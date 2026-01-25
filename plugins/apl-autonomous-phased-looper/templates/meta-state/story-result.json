@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Template for .meta/archive/sessions/<story_id>_result.json - Full APL result (archived, not loaded)",
+  "story_id": "",
+  "epic_id": "",
+  "feature_id": "",
+  "status": "complete",
+  "started_at": "",
+  "completed_at": "",
+  "apl_session": {
+    "session_id": "",
+    "iterations": 0,
+    "tasks_completed": 0
+  },
+  "files_created": [],
+  "files_modified": [],
+  "test_results": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0
+  },
+  "learnings": [],
+  "execution_log": ""
+}

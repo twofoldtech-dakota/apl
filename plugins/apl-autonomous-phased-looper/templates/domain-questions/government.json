@@ -1,0 +1,81 @@
+{
+  "domain": "government",
+  "description": "Government, public sector, and federal applications",
+  "keywords": ["federal", "government", "agency", "FedRAMP", "508", "public sector", "compliance", "clearance"],
+  "questions": [
+    {
+      "id": "gov_001",
+      "category": "COMPLIANCE",
+      "priority": "critical",
+      "question": "What FedRAMP authorization level is required?",
+      "why": "Low, Moderate, or High impact levels have vastly different control requirements",
+      "options": ["FedRAMP Low", "FedRAMP Moderate", "FedRAMP High", "StateRAMP", "Not required"]
+    },
+    {
+      "id": "gov_002",
+      "category": "COMPLIANCE",
+      "priority": "critical",
+      "question": "What Section 508 accessibility requirements apply?",
+      "why": "Federal agencies require WCAG 2.1 AA compliance for all user interfaces",
+      "options": ["WCAG 2.1 AA", "WCAG 2.1 AAA", "Specific agency standards", "Not applicable"]
+    },
+    {
+      "id": "gov_003",
+      "category": "COMPLIANCE",
+      "priority": "critical",
+      "question": "Are there data sovereignty or residency requirements?",
+      "why": "Data may need to stay within US borders, specific regions, or government clouds",
+      "options": ["AWS GovCloud", "Azure Government", "On-premise only", "Specific geographic region", "No restrictions"]
+    },
+    {
+      "id": "gov_004",
+      "category": "SECURITY",
+      "priority": "critical",
+      "question": "Are security clearances required for personnel?",
+      "why": "Affects who can access systems, code, and data; impacts hiring and operations"
+    },
+    {
+      "id": "gov_005",
+      "category": "COMPLIANCE",
+      "priority": "high",
+      "question": "What FISMA compliance requirements apply?",
+      "why": "Federal Information Security Management Act requires specific security controls and reporting"
+    },
+    {
+      "id": "gov_006",
+      "category": "ARCHITECTURE",
+      "priority": "high",
+      "question": "What are the procurement and contracting constraints?",
+      "why": "Technology choices may be limited by existing contracts, approved vendor lists, or regulations"
+    },
+    {
+      "id": "gov_007",
+      "category": "SECURITY",
+      "priority": "high",
+      "question": "What identity and access management requirements exist?",
+      "why": "CAC/PIV card authentication, HSPD-12 compliance may be required",
+      "options": ["CAC/PIV required", "Login.gov integration", "Agency-specific IdP", "Standard authentication"]
+    },
+    {
+      "id": "gov_008",
+      "category": "OPERATIONS",
+      "priority": "high",
+      "question": "What continuous monitoring and reporting is required?",
+      "why": "FedRAMP requires continuous monitoring, vulnerability scanning, and monthly reporting"
+    },
+    {
+      "id": "gov_009",
+      "category": "COMPLIANCE",
+      "priority": "medium",
+      "question": "Are there specific records retention requirements?",
+      "why": "Federal records management rules may require specific retention periods and formats"
+    },
+    {
+      "id": "gov_010",
+      "category": "ARCHITECTURE",
+      "priority": "medium",
+      "question": "What interoperability with existing government systems is required?",
+      "why": "Legacy system integration may require specific protocols, data formats, or middleware"
+    }
+  ]
+}

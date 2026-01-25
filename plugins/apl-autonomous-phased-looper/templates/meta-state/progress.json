@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Template for .meta/progress.json - Lightweight progress tracking (always small)",
+  "project_id": "",
+  "current_epic_id": null,
+  "current_story_id": null,
+  "phase": "planned",
+  "metrics": {
+    "total_epics": 0,
+    "completed_epics": 0,
+    "total_features": 0,
+    "completed_features": 0,
+    "total_stories": 0,
+    "completed_stories": 0,
+    "failed_stories": 0
+  },
+  "epic_status": {},
+  "last_updated": ""
+}

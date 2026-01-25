@@ -1,0 +1,78 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dakotasmith/apl/main/schemas/config.schema.json",
+  "version": "1.0.0",
+  "description": "APL Configuration - Customize autonomous coding behavior",
+
+  "execution": {
+    "max_iterations": 20,
+    "max_phase_iterations": 5,
+    "max_retry_attempts": 3,
+    "timeout_minutes": 30
+  },
+
+  "parallel_execution": {
+    "enabled": true,
+    "max_concurrent_agents": 3,
+    "min_tasks_for_parallel": 2
+  },
+
+  "confidence": {
+    "threshold": "medium",
+    "escalate_on_low": true,
+    "auto_proceed_on_high": true
+  },
+
+  "verification": {
+    "chain_of_verification": true,
+    "run_tests_after_changes": true,
+    "run_linter_after_changes": true,
+    "require_all_criteria_met": true
+  },
+
+  "learning": {
+    "enabled": true,
+    "persist_success_patterns": true,
+    "persist_anti_patterns": true,
+    "learn_user_preferences": true,
+    "learn_project_knowledge": true,
+    "track_technique_stats": true,
+    "max_patterns_stored": 100,
+    "pattern_decay_days": 90
+  },
+
+  "context_management": {
+    "compression_threshold_tokens": 80000,
+    "max_scratchpad_entries": 10,
+    "auto_summarize_completed": true,
+    "preserve_error_history": 5
+  },
+
+  "model_selection": {
+    "simple_tasks": "haiku",
+    "medium_tasks": "sonnet",
+    "complex_tasks": "sonnet",
+    "planning": "sonnet",
+    "review": "sonnet",
+    "learning": "haiku"
+  },
+
+  "output": {
+    "verbose": false,
+    "show_reasoning": true,
+    "show_phase_transitions": true,
+    "show_task_progress": true,
+    "show_verification_details": false
+  },
+
+  "safety": {
+    "require_confirmation_for_destructive": true,
+    "max_files_per_task": 10,
+    "blocked_paths": [
+      "node_modules",
+      ".git",
+      ".env",
+      "*.key",
+      "*.pem"
+    ]
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "domain": "saas",
+  "description": "Software-as-a-Service and multi-tenant applications",
+  "keywords": ["tenant", "subscription", "SaaS", "multi-tenant", "workspace", "organization", "team", "plan", "tier"],
+  "questions": [
+    {
+      "id": "saas_001",
+      "category": "ARCHITECTURE",
+      "priority": "critical",
+      "question": "What multi-tenant data isolation model is required?",
+      "why": "Shared database, schema-per-tenant, or database-per-tenant have vastly different cost and security tradeoffs",
+      "options": ["Shared database (row-level)", "Schema per tenant", "Database per tenant", "Single-tenant deployments"]
+    },
+    {
+      "id": "saas_002",
+      "category": "INTEGRATION",
+      "priority": "critical",
+      "question": "What subscription billing model will be used?",
+      "why": "Flat-rate vs usage-based vs tiered affects billing system complexity significantly",
+      "options": ["Flat-rate plans", "Usage-based metering", "Tiered with usage", "Custom enterprise pricing"]
+    },
+    {
+      "id": "saas_003",
+      "category": "ARCHITECTURE",
+      "priority": "critical",
+      "question": "Is white-labeling or custom branding required?",
+      "why": "Affects theming system, custom domains, and email configuration"
+    },
+    {
+      "id": "saas_004",
+      "category": "ARCHITECTURE",
+      "priority": "high",
+      "question": "What usage metering and limits are needed?",
+      "why": "API rate limiting, storage quotas, and feature gates require consistent enforcement"
+    },
+    {
+      "id": "saas_005",
+      "category": "COMPLIANCE",
+      "priority": "high",
+      "question": "What customer data export and deletion capabilities are required?",
+      "why": "GDPR right to data portability and right to deletion; also needed for offboarding"
+    },
+    {
+      "id": "saas_006",
+      "category": "SECURITY",
+      "priority": "high",
+      "question": "What SSO/enterprise authentication options are needed?",
+      "why": "Enterprise customers often require SAML, OIDC, or directory sync (SCIM)",
+      "options": ["SAML", "OIDC", "SCIM provisioning", "All of the above", "None initially"]
+    },
+    {
+      "id": "saas_007",
+      "category": "OPERATIONS",
+      "priority": "high",
+      "question": "Is SOC 2 certification required?",
+      "why": "Enterprise sales often require SOC 2 Type II; affects logging, access controls, and processes"
+    },
+    {
+      "id": "saas_008",
+      "category": "ARCHITECTURE",
+      "priority": "medium",
+      "question": "What self-service vs sales-assisted onboarding is needed?",
+      "why": "Affects trial flow, demo environment, and admin tooling requirements"
+    },
+    {
+      "id": "saas_009",
+      "category": "INTEGRATION",
+      "priority": "medium",
+      "question": "What third-party integrations are essential at launch?",
+      "why": "Slack, Salesforce, etc. integrations affect API design and webhook architecture"
+    },
+    {
+      "id": "saas_010",
+      "category": "OPERATIONS",
+      "priority": "medium",
+      "question": "What tenant-level analytics and admin dashboards are needed?",
+      "why": "Customer success requires visibility into tenant usage and health"
+    }
+  ]
+}

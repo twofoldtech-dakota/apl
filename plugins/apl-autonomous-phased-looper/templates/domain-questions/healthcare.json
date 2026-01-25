@@ -1,0 +1,78 @@
+{
+  "domain": "healthcare",
+  "description": "HIPAA-regulated healthcare and medical applications",
+  "keywords": ["patient", "medical", "health", "clinic", "hospital", "PHI", "EHR", "EMR", "HIPAA"],
+  "questions": [
+    {
+      "id": "hc_001",
+      "category": "COMPLIANCE",
+      "priority": "critical",
+      "question": "Is this a HIPAA-covered entity or business associate?",
+      "why": "Determines BAA requirements, PHI handling obligations, and breach notification responsibilities",
+      "options": ["Covered entity", "Business associate", "Neither", "Unsure - need legal review"]
+    },
+    {
+      "id": "hc_002",
+      "category": "COMPLIANCE",
+      "priority": "critical",
+      "question": "What types of PHI will be processed (names, SSN, medical records, diagnoses)?",
+      "why": "Different PHI types have different protection requirements under the HIPAA Privacy Rule"
+    },
+    {
+      "id": "hc_003",
+      "category": "SECURITY",
+      "priority": "critical",
+      "question": "Who needs access to PHI and under what circumstances?",
+      "why": "HIPAA minimum necessary principle requires role-based access controls"
+    },
+    {
+      "id": "hc_004",
+      "category": "COMPLIANCE",
+      "priority": "critical",
+      "question": "What PHI access audit logging is required?",
+      "why": "HIPAA requires 6-year retention of access logs and ability to track all PHI access"
+    },
+    {
+      "id": "hc_005",
+      "category": "INTEGRATION",
+      "priority": "critical",
+      "question": "What EHR/EMR system(s) will this integrate with?",
+      "why": "Determines API approach (HL7 FHIR vs proprietary), data transformation needs, and certification requirements"
+    },
+    {
+      "id": "hc_006",
+      "category": "SECURITY",
+      "priority": "high",
+      "question": "What encryption requirements exist for PHI at rest and in transit?",
+      "why": "HIPAA Security Rule requires encryption as an addressable safeguard"
+    },
+    {
+      "id": "hc_007",
+      "category": "OPERATIONS",
+      "priority": "high",
+      "question": "What is the breach notification process and timeline?",
+      "why": "HIPAA requires notification within 60 days; need incident response procedures"
+    },
+    {
+      "id": "hc_008",
+      "category": "COMPLIANCE",
+      "priority": "high",
+      "question": "Is this system subject to HITRUST certification requirements?",
+      "why": "HITRUST adds additional controls beyond HIPAA; affects architecture decisions"
+    },
+    {
+      "id": "hc_009",
+      "category": "INTEGRATION",
+      "priority": "medium",
+      "question": "Does this need to support CMS/Medicare reporting requirements?",
+      "why": "Medicare participation requires specific quality reporting and data formats"
+    },
+    {
+      "id": "hc_010",
+      "category": "SECURITY",
+      "priority": "medium",
+      "question": "What patient identity verification is required?",
+      "why": "Healthcare identity proofing often requires verification against external sources"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "name": "apl-marketplace",
+  "owner": {
+    "name": "Dakota Smith",
+    "email": "dakotasmith@example.com"
+  },
+  "metadata": {
+    "description": "The ultimate autonomous coding plugin marketplace featuring APL - Autonomous Phased Looper",
+    "version": "1.0.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "apl-autonomous-phased-looper",
+      "source": "./plugins/apl-autonomous-phased-looper",
+      "description": "Ultimate autonomous coding agent with phased execution, self-learning, and multi-agent orchestration. Implements ReAct, Chain-of-Verification, and Reflexion patterns for reliable, high-performance autonomous development.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Dakota Smith",
+        "email": "dakotasmith@example.com"
+      },
+      "homepage": "https://github.com/dakotasmith/apl",
+      "repository": "https://github.com/dakotasmith/apl",
+      "license": "MIT",
+      "keywords": [
+        "autonomous-coding",
+        "ai-agent",
+        "gsd-enhanced",
+        "phased-looper",
+        "self-learning",
+        "react-pattern",
+        "chain-of-verification",
+        "reflexion",
+        "multi-agent",
+        "parallel-execution",
+        "code-generation",
+        "automated-testing",
+        "productivity"
+      ],
+      "category": "productivity",
+      "tags": [
+        "autonomous",
+        "agents",
+        "orchestration",
+        "learning",
+        "reliability"
+      ],
+      "strict": false
+    }
+  ]
+}

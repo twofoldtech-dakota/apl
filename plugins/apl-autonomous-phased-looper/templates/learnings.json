@@ -1,0 +1,79 @@
+{
+  "version": "1.0.0",
+  "project_id": null,
+  "last_updated": null,
+
+  "success_patterns": [
+    {
+      "id": "sp_example_001",
+      "task_type": "example",
+      "approach": "This is an example success pattern - it will be replaced by real patterns as APL learns",
+      "context": "Example context showing when this pattern applies",
+      "success_count": 0,
+      "last_used": null,
+      "code_example": null,
+      "tags": ["example"]
+    }
+  ],
+
+  "anti_patterns": [
+    {
+      "id": "ap_example_001",
+      "task_type": "example",
+      "approach": "This is an example anti-pattern - it will be replaced by real patterns as APL learns",
+      "reason": "Example reason why this approach should be avoided",
+      "failure_count": 0,
+      "last_encountered": null,
+      "alternative": "What to do instead"
+    }
+  ],
+
+  "user_preferences": {
+    "code_style": {
+      "naming": null,
+      "variables": null,
+      "functions": null,
+      "async": null,
+      "comments": null,
+      "formatting": null
+    },
+    "preferred_libraries": [],
+    "avoided_libraries": [],
+    "architecture_preferences": []
+  },
+
+  "project_knowledge": {
+    "entry_points": [],
+    "test_command": null,
+    "build_command": null,
+    "lint_command": null,
+    "key_files": {},
+    "conventions": {},
+    "dependencies": {
+      "runtime": [],
+      "dev": []
+    }
+  },
+
+  "technique_stats": {
+    "react_pattern": {
+      "success": 0,
+      "failure": 0,
+      "avg_iterations": 0
+    },
+    "cove_verification": {
+      "caught_issues": 0,
+      "false_positives": 0
+    },
+    "reflexion": {
+      "improvements_found": 0,
+      "no_issues": 0
+    },
+    "parallel_execution": {
+      "sessions_used": 0,
+      "avg_tasks_parallelized": 0,
+      "time_saved_percent": 0,
+      "conflict_rate": 0
+    }
+  }
+}

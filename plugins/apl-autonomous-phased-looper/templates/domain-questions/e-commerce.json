@@ -1,0 +1,77 @@
+{
+  "domain": "e-commerce",
+  "description": "Online retail, marketplaces, and shopping platforms",
+  "keywords": ["product", "cart", "checkout", "inventory", "order", "shop", "store", "catalog", "SKU", "retail"],
+  "questions": [
+    {
+      "id": "ec_001",
+      "category": "ARCHITECTURE",
+      "priority": "critical",
+      "question": "What is the expected product catalog size (number of SKUs)?",
+      "why": "Affects search infrastructure (simple DB vs Elasticsearch), indexing strategy, and page performance"
+    },
+    {
+      "id": "ec_002",
+      "category": "INTEGRATION",
+      "priority": "critical",
+      "question": "What payment gateways must be supported?",
+      "why": "Each gateway has different APIs, fees, and capabilities"
+    },
+    {
+      "id": "ec_003",
+      "category": "ARCHITECTURE",
+      "priority": "critical",
+      "question": "Is real-time inventory tracking required across channels?",
+      "why": "Determines event-driven vs polling architecture and oversell prevention strategy"
+    },
+    {
+      "id": "ec_004",
+      "category": "INTEGRATION",
+      "priority": "critical",
+      "question": "What shipping carriers and fulfillment centers will be used?",
+      "why": "Carrier APIs vary greatly in complexity; fulfillment affects order routing logic"
+    },
+    {
+      "id": "ec_005",
+      "category": "ARCHITECTURE",
+      "priority": "high",
+      "question": "What is the returns and refunds process?",
+      "why": "Affects order state machine, inventory management, and accounting systems"
+    },
+    {
+      "id": "ec_006",
+      "category": "SCALABILITY",
+      "priority": "high",
+      "question": "What traffic is expected during peak sales events (Black Friday, flash sales)?",
+      "why": "Flash sales require specific scaling, queue management, and inventory locking strategies"
+    },
+    {
+      "id": "ec_007",
+      "category": "ARCHITECTURE",
+      "priority": "high",
+      "question": "Is this a marketplace (multiple sellers) or single-seller store?",
+      "why": "Marketplaces require seller onboarding, split payments, and complex commission logic"
+    },
+    {
+      "id": "ec_008",
+      "category": "INTEGRATION",
+      "priority": "medium",
+      "question": "What tax calculation service will be used?",
+      "why": "Sales tax compliance (Avalara, TaxJar) is complex with nexus rules"
+    },
+    {
+      "id": "ec_009",
+      "category": "ARCHITECTURE",
+      "priority": "medium",
+      "question": "What product recommendation/personalization is needed?",
+      "why": "ML-based recommendations require data pipelines and model serving infrastructure"
+    },
+    {
+      "id": "ec_010",
+      "category": "OPERATIONS",
+      "priority": "medium",
+      "question": "What analytics and reporting are needed for merchandising?",
+      "why": "Determines data warehouse needs and event tracking granularity"
+    }
+  ]
+}

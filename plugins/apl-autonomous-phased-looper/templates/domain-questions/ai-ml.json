@@ -1,0 +1,79 @@
+{
+  "domain": "ai-ml",
+  "description": "Artificial Intelligence, Machine Learning, and data science applications",
+  "keywords": ["model", "training", "inference", "GPU", "ML", "AI", "neural", "deep learning", "prediction", "LLM"],
+  "questions": [
+    {
+      "id": "ai_001",
+      "category": "ARCHITECTURE",
+      "priority": "critical",
+      "question": "What are the training data sources and formats?",
+      "why": "Determines ETL pipeline design, data quality processes, and storage requirements"
+    },
+    {
+      "id": "ai_002",
+      "category": "ARCHITECTURE",
+      "priority": "critical",
+      "question": "What model serving latency requirements exist?",
+      "why": "Real-time (<100ms) vs batch affects GPU allocation, model optimization, and caching strategies"
+    },
+    {
+      "id": "ai_003",
+      "category": "OPERATIONS",
+      "priority": "critical",
+      "question": "What model versioning and rollback requirements exist?",
+      "why": "MLOps pipeline design, A/B testing, and production safety depend on version management"
+    },
+    {
+      "id": "ai_004",
+      "category": "ARCHITECTURE",
+      "priority": "critical",
+      "question": "Is a feature store required for real-time or batch features?",
+      "why": "Feature stores (Feast, Tecton) enable feature reuse and consistent training/serving"
+    },
+    {
+      "id": "ai_005",
+      "category": "COMPLIANCE",
+      "priority": "high",
+      "question": "What explainability and interpretability requirements exist?",
+      "why": "Regulatory requirements (GDPR, FCRA) may require explaining model decisions"
+    },
+    {
+      "id": "ai_006",
+      "category": "ARCHITECTURE",
+      "priority": "high",
+      "question": "What compute infrastructure is available (GPUs, TPUs, cloud vs on-prem)?",
+      "why": "Determines model architecture choices, batch sizes, and training timeline",
+      "options": ["AWS (SageMaker)", "GCP (Vertex AI)", "Azure ML", "On-premise GPUs", "Hybrid"]
+    },
+    {
+      "id": "ai_007",
+      "category": "OPERATIONS",
+      "priority": "high",
+      "question": "What model monitoring and drift detection is needed?",
+      "why": "Production models degrade over time; need to detect and trigger retraining"
+    },
+    {
+      "id": "ai_008",
+      "category": "SECURITY",
+      "priority": "high",
+      "question": "What data privacy requirements affect training data?",
+      "why": "PII in training data may require anonymization, differential privacy, or federated learning"
+    },
+    {
+      "id": "ai_009",
+      "category": "ARCHITECTURE",
+      "priority": "medium",
+      "question": "Is this using pre-trained models/LLMs or training from scratch?",
+      "why": "Fine-tuning vs training affects data requirements, compute costs, and timeline significantly",
+      "options": ["Pre-trained LLM (GPT, Claude)", "Fine-tune existing model", "Train from scratch", "Combination"]
+    },
+    {
+      "id": "ai_010",
+      "category": "OPERATIONS",
+      "priority": "medium",
+      "question": "What experiment tracking and reproducibility requirements exist?",
+      "why": "MLflow, W&B, or similar for tracking experiments, hyperparameters, and artifacts"
+    }
+  ]
+}

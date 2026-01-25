@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Template for .meta/active/context-summary.json - 1-line summaries kept in context (always small)",
+  "completed_epics": [],
+  "completed_stories_in_current_epic": []
+}

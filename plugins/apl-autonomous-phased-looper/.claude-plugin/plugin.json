@@ -1,0 +1,28 @@
+{
+  "name": "apl-autonomous-phased-looper",
+  "version": "1.0.0",
+  "description": "Ultimate autonomous coding agent with phased execution (Plan → Execute → Review), self-learning across sessions, and multi-agent orchestration. Features ReAct, Chain-of-Verification, Reflexion patterns, parallel execution, and intelligent error recovery.",
+  "author": {
+    "name": "Dakota Smith",
+    "email": "dakotasmith@example.com",
+    "url": "https://github.com/dakotasmith"
+  },
+  "homepage": "https://github.com/dakotasmith/apl",
+  "repository": "https://github.com/dakotasmith/apl",
+  "license": "MIT",
+  "keywords": [
+    "autonomous-coding",
+    "ai-agent",
+    "gsd-enhanced",
+    "phased-looper",
+    "self-learning",
+    "react-pattern",
+    "chain-of-verification",
+    "reflexion",
+    "multi-agent",
+    "parallel-execution"
+  ],
+  "skills": "./skills",
+  "agents": "./agents",
+  "hooks": "./hooks/hooks.json"
+}

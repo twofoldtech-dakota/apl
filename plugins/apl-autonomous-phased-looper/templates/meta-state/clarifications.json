@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Template for .meta/clarifications.json - Q&A history from PLAN phase",
+  "project_id": "",
+  "total_questions": 0,
+  "answered_questions": 0,
+  "questions": []
+}

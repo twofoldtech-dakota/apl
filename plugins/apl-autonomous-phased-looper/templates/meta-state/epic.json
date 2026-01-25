@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Template for .meta/epics/<epic_id>.json - Full Epic with Features and Stories",
+  "id": "",
+  "title": "",
+  "description": "",
+  "status": "pending",
+  "priority": 1,
+  "created_at": "",
+  "updated_at": "",
+  "features": [
+    {
+      "id": "",
+      "title": "",
+      "description": "",
+      "status": "pending",
+      "stories": [
+        {
+          "id": "",
+          "title": "",
+          "description": "",
+          "status": "pending",
+          "acceptance_criteria": [],
+          "apl_goal": "",
+          "dependencies": [],
+          "estimated_complexity": "medium"
+        }
+      ]
+    }
+  ],
+  "architectural_decisions": [],
+  "cross_cutting_concerns": []
+}

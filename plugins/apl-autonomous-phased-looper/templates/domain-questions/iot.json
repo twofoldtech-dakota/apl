@@ -1,0 +1,79 @@
+{
+  "domain": "iot",
+  "description": "Internet of Things, embedded systems, and device management",
+  "keywords": ["sensor", "device", "firmware", "OTA", "embedded", "IoT", "gateway", "telemetry", "MQTT", "edge"],
+  "questions": [
+    {
+      "id": "iot_001",
+      "category": "ARCHITECTURE",
+      "priority": "critical",
+      "question": "What are the device hardware constraints (memory, CPU, battery)?",
+      "why": "Determines protocol choice, payload size, and processing location (edge vs cloud)"
+    },
+    {
+      "id": "iot_002",
+      "category": "ARCHITECTURE",
+      "priority": "critical",
+      "question": "What communication protocol will devices use?",
+      "why": "MQTT, CoAP, HTTP, LoRaWAN have different tradeoffs for latency, power, and reliability",
+      "options": ["MQTT", "CoAP", "HTTP/REST", "WebSockets", "LoRaWAN", "Cellular (LTE-M/NB-IoT)"]
+    },
+    {
+      "id": "iot_003",
+      "category": "SECURITY",
+      "priority": "critical",
+      "question": "What OTA firmware update requirements exist?",
+      "why": "Secure updates require signed firmware, staged rollouts, and rollback capability"
+    },
+    {
+      "id": "iot_004",
+      "category": "ARCHITECTURE",
+      "priority": "critical",
+      "question": "What offline operation requirements exist?",
+      "why": "Devices may need local storage, edge processing, and sync when connectivity restored"
+    },
+    {
+      "id": "iot_005",
+      "category": "SECURITY",
+      "priority": "critical",
+      "question": "What device provisioning and authentication method will be used?",
+      "why": "X.509 certificates, tokens, or TPM-based auth have different security and operational tradeoffs",
+      "options": ["X.509 certificates", "Symmetric keys", "TPM/secure element", "OAuth tokens"]
+    },
+    {
+      "id": "iot_006",
+      "category": "SCALABILITY",
+      "priority": "high",
+      "question": "How many devices are expected at scale?",
+      "why": "10K vs 1M devices require different infrastructure for connection handling and data ingestion"
+    },
+    {
+      "id": "iot_007",
+      "category": "ARCHITECTURE",
+      "priority": "high",
+      "question": "What telemetry data frequency and retention is required?",
+      "why": "High-frequency data (1Hz+) requires time-series databases and data downsampling strategies"
+    },
+    {
+      "id": "iot_008",
+      "category": "OPERATIONS",
+      "priority": "high",
+      "question": "What device management capabilities are needed?",
+      "why": "Remote configuration, diagnostics, and lifecycle management affect platform architecture"
+    },
+    {
+      "id": "iot_009",
+      "category": "ARCHITECTURE",
+      "priority": "medium",
+      "question": "Is edge computing/gateway processing required?",
+      "why": "Edge processing reduces cloud costs and latency but adds deployment complexity"
+    },
+    {
+      "id": "iot_010",
+      "category": "COMPLIANCE",
+      "priority": "medium",
+      "question": "Are there industry-specific certifications required (UL, CE, FCC)?",
+      "why": "Hardware certifications may affect software architecture and update processes"
+    }
+  ]
+}

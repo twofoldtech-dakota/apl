@@ -1,0 +1,81 @@
+{
+  "domain": "fintech",
+  "description": "Financial technology, payments, and PCI-DSS regulated applications",
+  "keywords": ["payment", "transaction", "billing", "card", "credit", "debit", "bank", "finance", "money", "PCI"],
+  "questions": [
+    {
+      "id": "ft_001",
+      "category": "COMPLIANCE",
+      "priority": "critical",
+      "question": "What PCI-DSS compliance level is required (1-4)?",
+      "why": "Level 1 requires annual on-site audit; lower levels have different assessment requirements",
+      "options": ["Level 1 (>6M transactions)", "Level 2 (1-6M)", "Level 3 (20K-1M)", "Level 4 (<20K)", "Not applicable"]
+    },
+    {
+      "id": "ft_002",
+      "category": "COMPLIANCE",
+      "priority": "critical",
+      "question": "Will the system store, process, or transmit cardholder data?",
+      "why": "Determines if PCI-DSS scope applies; tokenization can reduce scope significantly",
+      "options": ["Store card numbers", "Process only (no storage)", "Transmit only", "Use tokenization (no CHD)"]
+    },
+    {
+      "id": "ft_003",
+      "category": "ARCHITECTURE",
+      "priority": "critical",
+      "question": "Should card data be tokenized? Using which provider?",
+      "why": "Tokenization (Stripe, Braintree, Adyen) dramatically reduces PCI compliance scope",
+      "options": ["Stripe", "Braintree", "Adyen", "Square", "Custom tokenization", "No tokenization"]
+    },
+    {
+      "id": "ft_004",
+      "category": "SECURITY",
+      "priority": "critical",
+      "question": "What fraud detection capabilities are needed?",
+      "why": "Real-time vs batch, ML-based vs rules-based affects architecture significantly",
+      "options": ["Real-time ML", "Real-time rules", "Batch analysis", "Third-party service", "None initially"]
+    },
+    {
+      "id": "ft_005",
+      "category": "INTEGRATION",
+      "priority": "critical",
+      "question": "What payment methods must be supported?",
+      "why": "Each gateway has different integration patterns and capabilities"
+    },
+    {
+      "id": "ft_006",
+      "category": "OPERATIONS",
+      "priority": "high",
+      "question": "What reconciliation and settlement processes are needed?",
+      "why": "Determines batch job requirements, reporting, and accounting integrations"
+    },
+    {
+      "id": "ft_007",
+      "category": "COMPLIANCE",
+      "priority": "high",
+      "question": "Are there anti-money laundering (AML) requirements?",
+      "why": "KYC, transaction monitoring, and suspicious activity reporting may be required"
+    },
+    {
+      "id": "ft_008",
+      "category": "SECURITY",
+      "priority": "high",
+      "question": "What chargeback and dispute handling is required?",
+      "why": "Affects transaction state machine and evidence retention policies"
+    },
+    {
+      "id": "ft_009",
+      "category": "COMPLIANCE",
+      "priority": "medium",
+      "question": "Is this subject to state money transmitter licensing?",
+      "why": "Holding funds may require licensing in each US state"
+    },
+    {
+      "id": "ft_010",
+      "category": "ARCHITECTURE",
+      "priority": "medium",
+      "question": "What currencies and international payment support is needed?",
+      "why": "Multi-currency adds complexity in pricing, settlement, and compliance"
+    }
+  ]
+}
