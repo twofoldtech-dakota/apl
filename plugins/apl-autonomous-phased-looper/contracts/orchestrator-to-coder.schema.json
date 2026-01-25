@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/twofoldtech-dakota/apl/contracts/orchestrator-to-coder.schema.json",
+  "title": "OrchestratorToCoderInput",
+  "description": "Input contract for the coder agent. Contains a single task to implement along with project context and retry information.",
+  "type": "object",
+  "required": ["task", "context"],
+  "properties": {
+    "task": {
+      "$ref": "#/$defs/Task",
+      "description": "The task to implement"
+    },
+    "context": {
+      "$ref": "#/$defs/ExecutionContext",
+      "description": "Project and execution context"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3,
+      "default": 1,
+      "description": "Current attempt number (1-3)"
+    },
+    "previous_error": {
+      "type": ["object", "null"],
+      "description": "Error from previous attempt, if this is a retry",
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Error message"
+        },
+        "type": {
+          "type": "string",
+          "description": "Error classification"
+        },
+        "approach_tried": {
+          "type": "string",
+          "description": "Approach that failed"
+        },
+        "recovery_suggestion": {
+          "type": "string",
+          "description": "Suggested recovery action"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "Task": {
+      "type": "object",
+      "description": "Task definition from the planner",
+      "required": ["id", "description", "success_criteria"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Task identifier"
+        },
+        "description": {
+          "type": "string",
+          "description": "What to implement"
+        },
+        "success_criteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Criteria that define completion"
+        },
+        "complexity": {
+          "type": "string",
+          "enum": ["simple", "medium", "complex"],
+          "description": "Task complexity"
+        },
+        "suggested_approach": {
+          "type": ["string", "null"],
+          "description": "Recommended approach from patterns"
+        },
+        "estimated_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Expected files to create/modify"
+        },
+        "verification_method": {
+          "type": "string",
+          "description": "How to verify completion"
+        }
+      }
+    },
+    "ExecutionContext": {
+      "type": "object",
+      "description": "Context for task execution",
+      "required": ["project_root"],
+      "properties": {
+        "project_root": {
+          "type": "string",
+          "description": "Absolute path to project root"
+        },
+        "language": {
+          "type": "string",
+          "description": "Primary language (TypeScript, Python, etc.)"
+        },
+        "framework": {
+          "type": "string",
+          "description": "Primary framework (Express, Django, etc.)"
+        },
+        "existing_patterns": {
+          "type": "object",
+          "description": "Patterns observed in the codebase",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "scratchpad": {
+          "$ref": "#/$defs/Scratchpad",
+          "description": "Session learnings and notes"
+        },
+        "completed_tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CompletedTaskSummary"
+          },
+          "description": "Summary of previously completed tasks"
+        }
+      }
+    },
+    "Scratchpad": {
+      "type": "object",
+      "description": "Session-level notes and learnings",
+      "properties": {
+        "learnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Insights discovered during execution"
+        },
+        "failed_approaches": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Approaches that didn't work"
+        },
+        "open_questions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Unresolved questions"
+        }
+      }
+    },
+    "CompletedTaskSummary": {
+      "type": "object",
+      "description": "Brief summary of a completed task",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Task ID"
+        },
+        "description": {
+          "type": "string",
+          "description": "Task description"
+        },
+        "files_created": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Files created by this task"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "task": {
+        "id": 2,
+        "description": "Create User model with secure password storage",
+        "success_criteria": [
+          "User model has email, passwordHash, timestamps",
+          "Password hashing uses bcrypt",
+          "Model exports TypeScript interface"
+        ],
+        "complexity": "medium",
+        "suggested_approach": "Use bcrypt for hashing (learned pattern)",
+        "estimated_files": ["src/models/User.ts", "src/types/user.ts"],
+        "verification_method": "TypeScript compiles"
+      },
+      "context": {
+        "project_root": "/home/user/my-api",
+        "language": "typescript",
+        "framework": "express",
+        "existing_patterns": {
+          "imports": "ES modules",
+          "async": "async/await"
+        },
+        "scratchpad": {
+          "learnings": ["Project uses ESM imports"],
+          "failed_approaches": [],
+          "open_questions": []
+        },
+        "completed_tasks": [
+          {
+            "id": 1,
+            "description": "Initialize Express project",
+            "files_created": ["package.json", "tsconfig.json", "src/index.ts"]
+          }
+        ]
+      },
+      "attempt": 1,
+      "previous_error": null
+    },
+    {
+      "task": {
+        "id": 2,
+        "description": "Create User model with secure password storage",
+        "success_criteria": ["Password hashing uses bcrypt"],
+        "complexity": "medium"
+      },
+      "context": {
+        "project_root": "/home/user/my-api",
+        "language": "typescript"
+      },
+      "attempt": 2,
+      "previous_error": {
+        "message": "Cannot find module 'bcrypt'",
+        "type": "module_error",
+        "approach_tried": "Standard bcrypt import",
+        "recovery_suggestion": "Install bcrypt dependency first"
+      }
+    }
+  ]
+}

@@ -1,0 +1,295 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/twofoldtech-dakota/apl/contracts/coder-output.schema.json",
+  "title": "CoderOutput",
+  "description": "Output contract for the coder agent. Contains implementation results including files changed, verification status, and learning suggestions.",
+  "type": "object",
+  "required": ["task_id", "status"],
+  "properties": {
+    "task_id": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "ID of the task that was attempted"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "failure", "needs_retry"],
+      "description": "Outcome of the implementation attempt"
+    },
+    "files_created": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/FileChange"
+      },
+      "description": "New files created during implementation",
+      "default": []
+    },
+    "files_modified": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/FileChange"
+      },
+      "description": "Existing files that were modified",
+      "default": []
+    },
+    "files_deleted": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Files that were deleted",
+      "default": []
+    },
+    "commands_run": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/CommandResult"
+      },
+      "description": "Shell commands executed during implementation",
+      "default": []
+    },
+    "criteria_verification": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/CriterionVerification"
+      },
+      "description": "Verification status for each success criterion"
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Notable observations during implementation",
+      "default": []
+    },
+    "error": {
+      "type": ["object", "null"],
+      "description": "Error details if status is 'failure' or 'needs_retry'",
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Error message"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["syntax", "type", "runtime", "dependency", "environment", "logic"],
+          "description": "Error classification"
+        },
+        "file": {
+          "type": "string",
+          "description": "File where error occurred"
+        },
+        "line": {
+          "type": "integer",
+          "description": "Line number of error"
+        },
+        "recovery_attempted": {
+          "type": "string",
+          "description": "What recovery was tried"
+        }
+      }
+    },
+    "suggested_learning": {
+      "type": ["object", "null"],
+      "description": "Suggested pattern to learn from this implementation",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["success_pattern", "anti_pattern"],
+          "description": "Type of learning"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Pattern identifier"
+        },
+        "description": {
+          "type": "string",
+          "description": "What was learned"
+        },
+        "applicable_to": {
+          "type": "string",
+          "description": "When this pattern applies"
+        },
+        "code_example": {
+          "type": "string",
+          "description": "Optional code example"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "FileChange": {
+      "type": "object",
+      "description": "A file that was created or modified",
+      "required": ["path", "action"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Absolute path to the file"
+        },
+        "action": {
+          "type": "string",
+          "enum": ["create", "modify", "rename"],
+          "description": "Type of change"
+        },
+        "lines": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of lines in the file"
+        },
+        "language": {
+          "type": "string",
+          "description": "File language (typescript, python, etc.)"
+        },
+        "summary": {
+          "type": "string",
+          "description": "Brief description of what was added/changed"
+        }
+      }
+    },
+    "CommandResult": {
+      "type": "object",
+      "description": "Result of a shell command execution",
+      "required": ["command", "result"],
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "The command that was run"
+        },
+        "result": {
+          "type": "string",
+          "enum": ["success", "failure"],
+          "description": "Command outcome"
+        },
+        "output": {
+          "type": "string",
+          "description": "Command output (truncated if long)"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "description": "Execution time in milliseconds"
+        }
+      }
+    },
+    "CriterionVerification": {
+      "type": "object",
+      "description": "Verification of a single success criterion",
+      "required": ["criterion", "met"],
+      "properties": {
+        "criterion": {
+          "type": "string",
+          "description": "The success criterion being verified"
+        },
+        "met": {
+          "type": "boolean",
+          "description": "Whether the criterion was satisfied"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "Evidence supporting the verification"
+        },
+        "verified_by": {
+          "type": "string",
+          "enum": ["code_inspection", "compilation", "test", "manual"],
+          "description": "How verification was performed"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "task_id": 2,
+      "status": "success",
+      "files_created": [
+        {
+          "path": "/home/user/my-api/src/models/User.ts",
+          "action": "create",
+          "lines": 45,
+          "language": "typescript",
+          "summary": "User model with bcrypt password hashing"
+        },
+        {
+          "path": "/home/user/my-api/src/types/user.ts",
+          "action": "create",
+          "lines": 12,
+          "language": "typescript",
+          "summary": "IUser interface export"
+        }
+      ],
+      "files_modified": [],
+      "commands_run": [
+        {
+          "command": "npm install bcrypt @types/bcrypt",
+          "result": "success",
+          "duration_ms": 3200
+        },
+        {
+          "command": "npx tsc --noEmit",
+          "result": "success",
+          "duration_ms": 1500
+        }
+      ],
+      "criteria_verification": [
+        {
+          "criterion": "User model has email, passwordHash, timestamps",
+          "met": true,
+          "evidence": "IUser interface contains all required fields",
+          "verified_by": "code_inspection"
+        },
+        {
+          "criterion": "Password hashing uses bcrypt",
+          "met": true,
+          "evidence": "hashPassword() uses bcrypt.hash() with cost factor 10",
+          "verified_by": "code_inspection"
+        },
+        {
+          "criterion": "Model exports TypeScript interface",
+          "met": true,
+          "evidence": "IUser exported from User.ts and re-exported from types/",
+          "verified_by": "compilation"
+        }
+      ],
+      "observations": [
+        "Used existing ES module pattern from project",
+        "Added bcrypt as dependency"
+      ],
+      "error": null,
+      "suggested_learning": {
+        "type": "success_pattern",
+        "pattern": "bcrypt-user-model",
+        "description": "User model with bcrypt password hashing",
+        "applicable_to": "user-authentication",
+        "code_example": "static async hashPassword(pw: string) { return bcrypt.hash(pw, 10); }"
+      }
+    },
+    {
+      "task_id": 2,
+      "status": "failure",
+      "files_created": [],
+      "files_modified": [],
+      "commands_run": [
+        {
+          "command": "npm install bcrypt",
+          "result": "failure",
+          "output": "gyp ERR! build error"
+        }
+      ],
+      "criteria_verification": [],
+      "observations": [
+        "Native module build failed"
+      ],
+      "error": {
+        "message": "bcrypt native module failed to build",
+        "type": "dependency",
+        "recovery_attempted": "Tried installing build tools"
+      },
+      "suggested_learning": {
+        "type": "anti_pattern",
+        "pattern": "bcrypt-native-deps",
+        "description": "bcrypt requires native build tools that may not be available",
+        "applicable_to": "password-hashing"
+      }
+    }
+  ]
+}

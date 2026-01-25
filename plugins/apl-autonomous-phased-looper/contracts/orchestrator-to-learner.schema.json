@@ -1,0 +1,369 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dakotasmith/apl/contracts/orchestrator-to-learner.schema.json",
+  "title": "OrchestratorToLearnerInput",
+  "description": "Input contract for the learner agent. Contains the complete session data for knowledge extraction.",
+  "type": "object",
+  "required": ["goal", "outcome", "tasks"],
+  "properties": {
+    "goal": {
+      "type": "string",
+      "description": "Original user goal"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["success", "partial", "failure"],
+      "description": "Overall session outcome"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Unique session identifier"
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TaskWithHistory"
+      },
+      "description": "All tasks with their execution history"
+    },
+    "files_modified": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "All files created or modified",
+      "default": []
+    },
+    "scratchpad": {
+      "$ref": "#/$defs/Scratchpad",
+      "description": "Session learnings and notes"
+    },
+    "verification_log": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/VerificationEntry"
+      },
+      "description": "All verification checks performed",
+      "default": []
+    },
+    "user_corrections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/UserCorrection"
+      },
+      "description": "User feedback and corrections",
+      "default": []
+    },
+    "technique_usage": {
+      "$ref": "#/$defs/TechniqueUsage",
+      "description": "Statistics on agentic techniques used"
+    }
+  },
+  "$defs": {
+    "TaskWithHistory": {
+      "type": "object",
+      "description": "A task with its complete execution history",
+      "required": ["id", "description", "status"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Task identifier"
+        },
+        "description": {
+          "type": "string",
+          "description": "Task description"
+        },
+        "success_criteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Success criteria"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["completed", "failed", "skipped"],
+          "description": "Final status"
+        },
+        "attempts": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of attempts"
+        },
+        "approach_history": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ApproachAttempt"
+          },
+          "description": "History of approaches tried"
+        },
+        "files_modified": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Files this task affected"
+        }
+      }
+    },
+    "ApproachAttempt": {
+      "type": "object",
+      "description": "Record of an approach that was tried",
+      "required": ["approach", "result"],
+      "properties": {
+        "attempt": {
+          "type": "integer",
+          "description": "Attempt number"
+        },
+        "approach": {
+          "type": "string",
+          "description": "Description of approach used"
+        },
+        "result": {
+          "type": "string",
+          "enum": ["success", "failure"],
+          "description": "Outcome"
+        },
+        "error": {
+          "type": "string",
+          "description": "Error message if failed"
+        },
+        "recovery_action": {
+          "type": "string",
+          "description": "Recovery action taken"
+        }
+      }
+    },
+    "Scratchpad": {
+      "type": "object",
+      "description": "Session notes",
+      "properties": {
+        "learnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "failed_approaches": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "open_questions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "VerificationEntry": {
+      "type": "object",
+      "description": "A verification check",
+      "properties": {
+        "task_id": {
+          "type": "integer"
+        },
+        "criterion": {
+          "type": "string"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "evidence": {
+          "type": "string"
+        }
+      }
+    },
+    "UserCorrection": {
+      "type": "object",
+      "description": "User feedback on the work",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["style_preference", "approach_preference", "convention", "error_correction"],
+          "description": "Type of correction"
+        },
+        "original": {
+          "type": "string",
+          "description": "What was originally done"
+        },
+        "corrected": {
+          "type": "string",
+          "description": "What user preferred instead"
+        },
+        "context": {
+          "type": "string",
+          "description": "Context for the correction"
+        }
+      }
+    },
+    "TechniqueUsage": {
+      "type": "object",
+      "description": "Usage statistics for agentic techniques",
+      "properties": {
+        "react_pattern": {
+          "type": "object",
+          "properties": {
+            "invocations": {
+              "type": "integer",
+              "description": "Times ReAct loop was run"
+            },
+            "successes": {
+              "type": "integer",
+              "description": "Successful completions"
+            },
+            "failures": {
+              "type": "integer",
+              "description": "Failed attempts"
+            }
+          }
+        },
+        "cove_verification": {
+          "type": "object",
+          "properties": {
+            "checks": {
+              "type": "integer",
+              "description": "Verification checks performed"
+            },
+            "issues_found": {
+              "type": "integer",
+              "description": "Real issues detected"
+            },
+            "false_positives": {
+              "type": "integer",
+              "description": "False alarms"
+            }
+          }
+        },
+        "parallel_execution": {
+          "type": "object",
+          "properties": {
+            "used": {
+              "type": "boolean",
+              "description": "Whether parallelization was used"
+            },
+            "tasks_parallelized": {
+              "type": "integer",
+              "description": "Number of tasks run in parallel"
+            },
+            "groups": {
+              "type": "integer",
+              "description": "Number of parallel groups"
+            }
+          }
+        },
+        "reflexion": {
+          "type": "object",
+          "properties": {
+            "reviews": {
+              "type": "integer",
+              "description": "Review cycles"
+            },
+            "issues_caught": {
+              "type": "integer",
+              "description": "Issues caught in review"
+            },
+            "fix_iterations": {
+              "type": "integer",
+              "description": "Fix iterations required"
+            }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "goal": "Build REST API with JWT authentication",
+      "outcome": "success",
+      "session_id": "sess_20240115_143000",
+      "tasks": [
+        {
+          "id": 1,
+          "description": "Initialize Express project",
+          "success_criteria": ["package.json configured"],
+          "status": "completed",
+          "attempts": 1,
+          "approach_history": [
+            {
+              "attempt": 1,
+              "approach": "Standard Express + TypeScript setup",
+              "result": "success"
+            }
+          ],
+          "files_modified": ["package.json", "tsconfig.json"]
+        },
+        {
+          "id": 2,
+          "description": "Create User model with password hashing",
+          "success_criteria": ["Password uses bcrypt"],
+          "status": "completed",
+          "attempts": 2,
+          "approach_history": [
+            {
+              "attempt": 1,
+              "approach": "Using argon2 for hashing",
+              "result": "failure",
+              "error": "Native module build failed",
+              "recovery_action": "Switched to bcrypt"
+            },
+            {
+              "attempt": 2,
+              "approach": "Using bcrypt for hashing",
+              "result": "success"
+            }
+          ],
+          "files_modified": ["src/models/User.ts"]
+        }
+      ],
+      "files_modified": [
+        "package.json",
+        "tsconfig.json",
+        "src/models/User.ts"
+      ],
+      "scratchpad": {
+        "learnings": [
+          "bcrypt works better than argon2 in this environment",
+          "Project uses ES modules"
+        ],
+        "failed_approaches": [
+          "argon2 - native deps failed"
+        ],
+        "open_questions": []
+      },
+      "user_corrections": [
+        {
+          "type": "style_preference",
+          "original": "Used var for variables",
+          "corrected": "Use const/let",
+          "context": "Variable declarations"
+        }
+      ],
+      "technique_usage": {
+        "react_pattern": {
+          "invocations": 5,
+          "successes": 5,
+          "failures": 0
+        },
+        "cove_verification": {
+          "checks": 12,
+          "issues_found": 2,
+          "false_positives": 0
+        },
+        "parallel_execution": {
+          "used": true,
+          "tasks_parallelized": 3,
+          "groups": 2
+        },
+        "reflexion": {
+          "reviews": 1,
+          "issues_caught": 0,
+          "fix_iterations": 0
+        }
+      }
+    }
+  ]
+}

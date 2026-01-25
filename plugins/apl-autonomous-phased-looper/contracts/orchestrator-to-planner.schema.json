@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/twofoldtech-dakota/apl/contracts/orchestrator-to-planner.schema.json",
+  "title": "OrchestratorToPlannerInput",
+  "description": "Input contract for the planner agent. Contains the user's goal along with learned patterns, anti-patterns, and project context to inform task decomposition.",
+  "type": "object",
+  "required": ["goal"],
+  "properties": {
+    "goal": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The user's coding goal to be decomposed into tasks"
+    },
+    "learned_patterns": {
+      "type": "array",
+      "description": "Success patterns from previous sessions that may apply to this goal",
+      "items": {
+        "$ref": "#/$defs/SuccessPattern"
+      },
+      "default": []
+    },
+    "anti_patterns": {
+      "type": "array",
+      "description": "Failed approaches from previous sessions to avoid",
+      "items": {
+        "$ref": "#/$defs/AntiPattern"
+      },
+      "default": []
+    },
+    "project_context": {
+      "$ref": "#/$defs/ProjectContext",
+      "description": "Context about the current project structure and conventions"
+    }
+  },
+  "$defs": {
+    "SuccessPattern": {
+      "type": "object",
+      "description": "A pattern that has proven successful in previous sessions",
+      "required": ["id", "task_type", "approach"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^sp_[a-z_]+_[0-9]+$",
+          "description": "Unique identifier (format: sp_category_name_NNN)"
+        },
+        "task_type": {
+          "type": "string",
+          "description": "Category of task this pattern applies to (e.g., 'authentication', 'api-endpoint')"
+        },
+        "approach": {
+          "type": "string",
+          "description": "Description of the successful approach"
+        },
+        "context": {
+          "type": "string",
+          "description": "When this pattern is applicable"
+        },
+        "success_count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of times this pattern has succeeded"
+        },
+        "last_used": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of last successful use"
+        },
+        "code_example": {
+          "type": "string",
+          "description": "Optional code snippet demonstrating the pattern"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Searchable tags for pattern matching"
+        }
+      }
+    },
+    "AntiPattern": {
+      "type": "object",
+      "description": "An approach that has failed and should be avoided",
+      "required": ["id", "task_type", "approach", "reason"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^ap_[a-z_]+_[0-9]+$",
+          "description": "Unique identifier (format: ap_category_name_NNN)"
+        },
+        "task_type": {
+          "type": "string",
+          "description": "Category of task where this approach failed"
+        },
+        "approach": {
+          "type": "string",
+          "description": "The approach that should be avoided"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why this approach fails"
+        },
+        "failure_count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of times this approach has failed"
+        },
+        "last_encountered": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of last failure"
+        },
+        "alternative": {
+          "type": "string",
+          "description": "Suggested alternative approach"
+        }
+      }
+    },
+    "ProjectContext": {
+      "type": "object",
+      "description": "Context about the current project",
+      "properties": {
+        "framework": {
+          "type": "string",
+          "description": "Primary framework (e.g., 'Express', 'Next.js', 'Django')"
+        },
+        "language": {
+          "type": "string",
+          "description": "Primary language (e.g., 'TypeScript', 'Python')"
+        },
+        "test_framework": {
+          "type": "string",
+          "description": "Testing framework (e.g., 'Jest', 'pytest')"
+        },
+        "conventions": {
+          "type": "object",
+          "description": "Project-specific conventions",
+          "properties": {
+            "model_pattern": {
+              "type": "string",
+              "description": "How models are structured"
+            },
+            "route_pattern": {
+              "type": "string",
+              "description": "How routes are organized"
+            },
+            "test_pattern": {
+              "type": "string",
+              "description": "How tests are structured"
+            }
+          }
+        },
+        "key_files": {
+          "type": "object",
+          "description": "Important file locations",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "entry_points": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Application entry point files"
+        },
+        "dependencies": {
+          "type": "object",
+          "description": "Key project dependencies",
+          "properties": {
+            "runtime": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "dev": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "goal": "Build REST API with JWT authentication",
+      "learned_patterns": [
+        {
+          "id": "sp_auth_jwt_001",
+          "task_type": "authentication",
+          "approach": "Use short-lived access tokens (15min) with refresh tokens (7d)",
+          "success_count": 3,
+          "last_used": "2024-01-10T14:30:00Z"
+        }
+      ],
+      "anti_patterns": [
+        {
+          "id": "ap_security_plaintext_001",
+          "task_type": "authentication",
+          "approach": "Storing passwords in plain text",
+          "reason": "Security vulnerability - passwords must be hashed",
+          "alternative": "Use bcrypt with cost factor 10+"
+        }
+      ],
+      "project_context": {
+        "framework": "Express",
+        "language": "TypeScript",
+        "test_framework": "Jest",
+        "conventions": {
+          "model_pattern": "Class with interface export",
+          "route_pattern": "Express router with controllers"
+        }
+      }
+    }
+  ]
+}

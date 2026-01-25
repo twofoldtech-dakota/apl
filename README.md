@@ -17,7 +17,7 @@ Traditional AI coding assistants respond to individual prompts. APL thinks bigge
 
 ```bash
 # Add the APL marketplace
-/plugin marketplace add dakotasmith/apl
+/plugin marketplace add https://github.com/twofoldtech-dakota/apl.git
 
 # Install the APL plugin
 /plugin install apl-autonomous-phased-looper@apl-marketplace
@@ -98,7 +98,7 @@ Learnings persist in `.apl/` in your project directory.
 ## Architecture
 
 ```
-apl-marketplace/
+apl/
 ├── plugins/
 │   └── apl-autonomous-phased-looper/
 │       ├── skills/apl/SKILL.md       # /apl command

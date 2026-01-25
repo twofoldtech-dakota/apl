@@ -1,0 +1,360 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/twofoldtech-dakota/apl/contracts/reviewer-output.schema.json",
+  "title": "ReviewerOutput",
+  "description": "Output contract for the reviewer agent. Contains the review verdict, identified issues, quality scores, and learning insights.",
+  "type": "object",
+  "required": ["status"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["pass", "needs_fixes"],
+      "description": "Overall review verdict"
+    },
+    "goal_alignment": {
+      "$ref": "#/$defs/GoalAlignment",
+      "description": "Assessment of goal achievement"
+    },
+    "criteria_verification": {
+      "$ref": "#/$defs/CriteriaVerification",
+      "description": "Verification of all success criteria"
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Issue"
+      },
+      "description": "Issues requiring fixes (critical/warning only)",
+      "default": []
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Issue"
+      },
+      "description": "Non-blocking suggestions",
+      "default": []
+    },
+    "quality_score": {
+      "$ref": "#/$defs/QualityScore",
+      "description": "Quality assessment across dimensions"
+    },
+    "regression_risk": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Risk of regressions from these changes"
+    },
+    "insights": {
+      "$ref": "#/$defs/Insights",
+      "description": "Learnings to persist"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Human-readable summary of the review"
+    }
+  },
+  "$defs": {
+    "GoalAlignment": {
+      "type": "object",
+      "description": "Assessment of how well the goal was achieved",
+      "properties": {
+        "aligned": {
+          "type": "boolean",
+          "description": "Whether work aligns with goal"
+        },
+        "coverage": {
+          "type": "string",
+          "pattern": "^[0-9]{1,3}%$",
+          "description": "Percentage of goal completed"
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Expected deliverables not present"
+        },
+        "extra": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Deliverables beyond scope"
+        }
+      }
+    },
+    "CriteriaVerification": {
+      "type": "object",
+      "description": "Summary of criteria verification",
+      "required": ["total", "verified", "failed"],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total criteria across all tasks"
+        },
+        "verified": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Criteria that were met"
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Criteria that were not met"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "integer"
+              },
+              "criterion": {
+                "type": "string"
+              },
+              "verified": {
+                "type": "boolean"
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Per-criterion details"
+        }
+      }
+    },
+    "Issue": {
+      "type": "object",
+      "description": "An issue found during review",
+      "required": ["severity", "category", "description"],
+      "properties": {
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "warning", "suggestion"],
+          "description": "Issue severity"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["security", "correctness", "completeness", "performance", "maintainability", "testing", "documentation"],
+          "description": "Issue category"
+        },
+        "description": {
+          "type": "string",
+          "description": "What the issue is"
+        },
+        "affected_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Files affected by this issue"
+        },
+        "affected_tasks": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "description": "Task IDs related to this issue"
+        },
+        "suggested_fix": {
+          "type": "string",
+          "description": "How to fix the issue"
+        },
+        "fix_task": {
+          "type": "object",
+          "description": "New task to fix this issue",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "success_criteria": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "QualityScore": {
+      "type": "object",
+      "description": "Quality scores across dimensions (0-10)",
+      "properties": {
+        "security": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Security practices score"
+        },
+        "performance": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Performance optimization score"
+        },
+        "maintainability": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Code maintainability score"
+        },
+        "testing": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Test coverage and quality score"
+        },
+        "overall": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Overall quality score"
+        }
+      }
+    },
+    "Insights": {
+      "type": "object",
+      "description": "Learnings from this session",
+      "properties": {
+        "success_patterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "type": "string"
+              },
+              "context": {
+                "type": "string"
+              },
+              "approach": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Patterns that worked well"
+        },
+        "anti_patterns_avoided": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Anti-patterns successfully avoided"
+        },
+        "user_preferences": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Observed user preferences"
+        },
+        "project_conventions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Discovered project conventions"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "status": "pass",
+      "goal_alignment": {
+        "aligned": true,
+        "coverage": "100%",
+        "missing": [],
+        "extra": []
+      },
+      "criteria_verification": {
+        "total": 6,
+        "verified": 6,
+        "failed": 0,
+        "details": []
+      },
+      "issues": [],
+      "warnings": [
+        {
+          "severity": "suggestion",
+          "category": "documentation",
+          "description": "Some functions lack JSDoc comments",
+          "affected_files": ["src/services/authService.ts"],
+          "suggested_fix": "Add JSDoc to exported functions"
+        }
+      ],
+      "quality_score": {
+        "security": 9,
+        "performance": 8,
+        "maintainability": 7,
+        "testing": 8,
+        "overall": 8
+      },
+      "regression_risk": "low",
+      "insights": {
+        "success_patterns": [
+          {
+            "pattern": "jwt-refresh-tokens",
+            "context": "Authentication systems",
+            "approach": "Short-lived access + long-lived refresh tokens"
+          }
+        ],
+        "anti_patterns_avoided": ["plaintext-passwords"],
+        "user_preferences": ["Prefers async/await over callbacks"],
+        "project_conventions": ["Models in src/models/", "Tests adjacent to source"]
+      },
+      "summary": "All tasks completed successfully. Code quality is good with minor suggestions for improvement."
+    },
+    {
+      "status": "needs_fixes",
+      "goal_alignment": {
+        "aligned": true,
+        "coverage": "90%",
+        "missing": ["Logout endpoint not implemented"]
+      },
+      "criteria_verification": {
+        "total": 6,
+        "verified": 5,
+        "failed": 1,
+        "details": [
+          {
+            "task_id": 3,
+            "criterion": "Refresh token rotation implemented",
+            "verified": false,
+            "reason": "Refresh tokens not rotated on use"
+          }
+        ]
+      },
+      "issues": [
+        {
+          "severity": "critical",
+          "category": "security",
+          "description": "Refresh tokens not rotated, allowing token reuse",
+          "affected_files": ["src/services/authService.ts"],
+          "affected_tasks": [3],
+          "suggested_fix": "Invalidate old refresh token when issuing new one",
+          "fix_task": {
+            "description": "Implement refresh token rotation",
+            "success_criteria": [
+              "Old refresh token invalidated on use",
+              "New refresh token issued with new access token"
+            ]
+          }
+        }
+      ],
+      "quality_score": {
+        "security": 6,
+        "performance": 8,
+        "maintainability": 7,
+        "testing": 7,
+        "overall": 7
+      },
+      "regression_risk": "low",
+      "summary": "Core functionality works but security issue with refresh tokens needs addressing."
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/twofoldtech-dakota/apl/contracts/orchestrator-to-tester.schema.json",
+  "title": "OrchestratorToTesterInput",
+  "description": "Input contract for the tester agent. Specifies what tests to run and provides context about recent changes.",
+  "type": "object",
+  "required": ["request_type", "context"],
+  "properties": {
+    "request_type": {
+      "type": "string",
+      "enum": ["full", "targeted", "regression"],
+      "description": "Type of test run: full suite, targeted to changes, or regression check"
+    },
+    "context": {
+      "$ref": "#/$defs/TestContext",
+      "description": "Context for test execution"
+    },
+    "previous_results": {
+      "type": ["object", "null"],
+      "description": "Results from previous test run for comparison",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "description": "Total tests in previous run"
+        },
+        "passed": {
+          "type": "integer",
+          "description": "Passing tests in previous run"
+        },
+        "failed": {
+          "type": "integer",
+          "description": "Failed tests in previous run"
+        },
+        "failed_tests": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Names of previously failing tests"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "TestContext": {
+      "type": "object",
+      "description": "Context for test execution",
+      "required": ["project_root"],
+      "properties": {
+        "project_root": {
+          "type": "string",
+          "description": "Absolute path to project root"
+        },
+        "test_framework": {
+          "type": "string",
+          "enum": ["jest", "mocha", "vitest", "pytest", "go", "cargo", "unknown"],
+          "description": "Testing framework in use"
+        },
+        "test_command": {
+          "type": "string",
+          "description": "Command to run tests (e.g., 'npm test')"
+        },
+        "test_directory": {
+          "type": "string",
+          "description": "Directory containing test files"
+        },
+        "files_modified": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Files changed since last test run"
+        },
+        "task_id": {
+          "type": "integer",
+          "description": "ID of the task being verified"
+        },
+        "coverage_enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to collect coverage data"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "default": 60000,
+          "description": "Maximum time for test execution"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "request_type": "full",
+      "context": {
+        "project_root": "/home/user/my-api",
+        "test_framework": "jest",
+        "test_command": "npm test",
+        "test_directory": "src/__tests__",
+        "files_modified": [],
+        "coverage_enabled": true,
+        "timeout_ms": 120000
+      },
+      "previous_results": null
+    },
+    {
+      "request_type": "targeted",
+      "context": {
+        "project_root": "/home/user/my-api",
+        "test_framework": "jest",
+        "test_command": "npm test",
+        "files_modified": [
+          "src/models/User.ts",
+          "src/services/authService.ts"
+        ],
+        "task_id": 2
+      },
+      "previous_results": {
+        "total": 45,
+        "passed": 45,
+        "failed": 0,
+        "failed_tests": []
+      }
+    },
+    {
+      "request_type": "regression",
+      "context": {
+        "project_root": "/home/user/my-api",
+        "test_framework": "jest",
+        "test_command": "npm test",
+        "files_modified": [
+          "src/models/User.ts"
+        ]
+      },
+      "previous_results": {
+        "total": 45,
+        "passed": 43,
+        "failed": 2,
+        "failed_tests": [
+          "User.hashPassword should hash password",
+          "AuthService.login should validate credentials"
+        ]
+      }
+    }
+  ]
+}

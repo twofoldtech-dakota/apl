@@ -1,0 +1,414 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/twofoldtech-dakota/apl/contracts/tester-output.schema.json",
+  "title": "TesterOutput",
+  "description": "Output contract for the tester agent. Contains test results, failure analysis, and regression detection.",
+  "type": "object",
+  "required": ["request_type", "status", "summary"],
+  "properties": {
+    "request_type": {
+      "type": "string",
+      "enum": ["full", "targeted", "regression"],
+      "description": "Type of test run that was executed"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pass", "fail", "error", "warning"],
+      "description": "Overall test status"
+    },
+    "summary": {
+      "$ref": "#/$defs/TestSummary",
+      "description": "Summary statistics"
+    },
+    "coverage": {
+      "$ref": "#/$defs/CoverageReport",
+      "description": "Code coverage data if collected"
+    },
+    "test_files": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TestFileResult"
+      },
+      "description": "Results per test file"
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TestFailure"
+      },
+      "description": "Detailed failure information",
+      "default": []
+    },
+    "regressions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Regression"
+      },
+      "description": "Tests that were passing but now fail",
+      "default": []
+    },
+    "new_failures": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Test names failing for the first time",
+      "default": []
+    },
+    "fixed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Previously failing tests that now pass",
+      "default": []
+    },
+    "analysis": {
+      "$ref": "#/$defs/FailureAnalysis",
+      "description": "Analysis of failures with suggested fixes"
+    },
+    "performance": {
+      "$ref": "#/$defs/PerformanceReport",
+      "description": "Test performance metrics"
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Suggestions for improvement",
+      "default": []
+    }
+  },
+  "$defs": {
+    "TestSummary": {
+      "type": "object",
+      "description": "Summary of test execution",
+      "required": ["total", "passed", "failed"],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of tests"
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of passing tests"
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of failing tests"
+        },
+        "skipped": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Number of skipped tests"
+        },
+        "pending": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Number of pending/todo tests"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total execution time in milliseconds"
+        }
+      }
+    },
+    "CoverageReport": {
+      "type": "object",
+      "description": "Code coverage statistics",
+      "properties": {
+        "statements": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Statement coverage percentage"
+        },
+        "branches": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Branch coverage percentage"
+        },
+        "functions": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Function coverage percentage"
+        },
+        "lines": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Line coverage percentage"
+        },
+        "uncovered_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Files with low or no coverage"
+        }
+      }
+    },
+    "TestFileResult": {
+      "type": "object",
+      "description": "Results for a single test file",
+      "required": ["file", "status"],
+      "properties": {
+        "file": {
+          "type": "string",
+          "description": "Path to the test file"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pass", "fail"],
+          "description": "Overall file status"
+        },
+        "tests": {
+          "type": "integer",
+          "description": "Number of tests in file"
+        },
+        "passed": {
+          "type": "integer",
+          "description": "Passing tests in file"
+        },
+        "failed": {
+          "type": "integer",
+          "description": "Failing tests in file"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "description": "File execution time"
+        }
+      }
+    },
+    "TestFailure": {
+      "type": "object",
+      "description": "Detailed information about a test failure",
+      "required": ["file", "test_name", "error_type", "message"],
+      "properties": {
+        "file": {
+          "type": "string",
+          "description": "Test file path"
+        },
+        "test_name": {
+          "type": "string",
+          "description": "Full test name including describe blocks"
+        },
+        "error_type": {
+          "type": "string",
+          "enum": ["assertion", "type_error", "runtime_error", "timeout", "module_error", "environment_error"],
+          "description": "Classification of the error"
+        },
+        "message": {
+          "type": "string",
+          "description": "Error message"
+        },
+        "actual": {
+          "type": "string",
+          "description": "Actual value (for assertions)"
+        },
+        "expected": {
+          "type": "string",
+          "description": "Expected value (for assertions)"
+        },
+        "stack_trace": {
+          "type": "string",
+          "description": "Stack trace (truncated if long)"
+        },
+        "relevant_code": {
+          "type": "object",
+          "description": "Source code context",
+          "properties": {
+            "file": {
+              "type": "string"
+            },
+            "line": {
+              "type": "integer"
+            },
+            "context": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "Regression": {
+      "type": "object",
+      "description": "A test that previously passed but now fails",
+      "required": ["test_name", "previous_status", "current_status"],
+      "properties": {
+        "test_name": {
+          "type": "string",
+          "description": "Full test name"
+        },
+        "previous_status": {
+          "type": "string",
+          "enum": ["pass"],
+          "description": "Previous status (always pass for regressions)"
+        },
+        "current_status": {
+          "type": "string",
+          "enum": ["fail"],
+          "description": "Current status (always fail for regressions)"
+        },
+        "likely_cause": {
+          "type": "string",
+          "description": "Suspected cause of regression"
+        },
+        "related_changes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Files changed that may have caused regression"
+        }
+      }
+    },
+    "FailureAnalysis": {
+      "type": "object",
+      "description": "Analysis of test failures",
+      "properties": {
+        "failure_category": {
+          "type": "string",
+          "description": "Primary category of failures"
+        },
+        "likely_cause": {
+          "type": "string",
+          "description": "Most likely root cause"
+        },
+        "suggested_fix": {
+          "type": "string",
+          "description": "Recommended fix"
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["low", "medium", "high"],
+          "description": "Confidence in the analysis"
+        },
+        "debugging_hints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Steps to debug the issue"
+        }
+      }
+    },
+    "PerformanceReport": {
+      "type": "object",
+      "description": "Test performance metrics",
+      "properties": {
+        "current_duration_ms": {
+          "type": "integer",
+          "description": "Duration of this run"
+        },
+        "previous_duration_ms": {
+          "type": "integer",
+          "description": "Duration of previous run"
+        },
+        "change_percent": {
+          "type": "number",
+          "description": "Percentage change in duration"
+        },
+        "slow_tests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "duration_ms": {
+                "type": "integer"
+              },
+              "threshold_ms": {
+                "type": "integer"
+              }
+            }
+          },
+          "description": "Tests exceeding duration threshold"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "request_type": "full",
+      "status": "pass",
+      "summary": {
+        "total": 45,
+        "passed": 45,
+        "failed": 0,
+        "skipped": 2,
+        "duration_ms": 3420
+      },
+      "coverage": {
+        "statements": 87.5,
+        "branches": 72.3,
+        "functions": 91.2,
+        "lines": 88.1
+      },
+      "test_files": [
+        {
+          "file": "src/__tests__/User.test.ts",
+          "status": "pass",
+          "tests": 12,
+          "passed": 12,
+          "failed": 0,
+          "duration_ms": 450
+        }
+      ],
+      "failures": [],
+      "regressions": [],
+      "recommendations": []
+    },
+    {
+      "request_type": "targeted",
+      "status": "fail",
+      "summary": {
+        "total": 12,
+        "passed": 9,
+        "failed": 3,
+        "duration_ms": 1250
+      },
+      "failures": [
+        {
+          "file": "src/__tests__/User.test.ts",
+          "test_name": "User.hashPassword should hash password with bcrypt",
+          "error_type": "assertion",
+          "message": "Expected hash to match pattern /^\\$2[ab]\\$/",
+          "actual": "undefined",
+          "expected": "bcrypt hash string",
+          "stack_trace": "at Object.<anonymous> (User.test.ts:23:5)",
+          "relevant_code": {
+            "file": "src/models/User.ts",
+            "line": 15,
+            "context": "static async hashPassword(password: string)"
+          }
+        }
+      ],
+      "analysis": {
+        "failure_category": "implementation_error",
+        "likely_cause": "hashPassword method not returning the hash",
+        "suggested_fix": "Ensure hashPassword returns the result of bcrypt.hash()",
+        "confidence": "high",
+        "debugging_hints": [
+          "Check if bcrypt.hash() is being awaited",
+          "Verify bcrypt is properly imported",
+          "Check if method is returning the hash result"
+        ]
+      },
+      "recommendations": [
+        "Add return statement to hashPassword method"
+      ]
+    }
+  ]
+}

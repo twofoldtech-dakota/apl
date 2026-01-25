@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dakotasmith/apl/contracts/learner-output.schema.json",
+  "title": "LearnerOutput",
+  "description": "Output contract for the learner agent. Contains summary of extracted learnings and files written.",
+  "type": "object",
+  "required": ["status"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "partial", "failure"],
+      "description": "Learning extraction outcome"
+    },
+    "learnings_extracted": {
+      "$ref": "#/$defs/LearningsExtracted",
+      "description": "Summary of what was learned"
+    },
+    "key_insights": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Top insights from this session",
+      "default": []
+    },
+    "files_written": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Files that were updated with learnings",
+      "default": []
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Suggestions for future work",
+      "default": []
+    },
+    "statistics": {
+      "$ref": "#/$defs/LearningStatistics",
+      "description": "Updated learning statistics"
+    }
+  },
+  "$defs": {
+    "LearningsExtracted": {
+      "type": "object",
+      "description": "Counts of extracted learnings",
+      "properties": {
+        "new_success_patterns": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "New success patterns added"
+        },
+        "updated_success_patterns": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Existing patterns with incremented counts"
+        },
+        "new_anti_patterns": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "New anti-patterns added"
+        },
+        "updated_anti_patterns": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Existing anti-patterns with incremented counts"
+        },
+        "user_preferences_updated": {
+          "type": "boolean",
+          "description": "Whether user preferences were updated"
+        },
+        "project_knowledge_updated": {
+          "type": "boolean",
+          "description": "Whether project knowledge was updated"
+        },
+        "technique_stats_updated": {
+          "type": "boolean",
+          "description": "Whether technique statistics were updated"
+        }
+      }
+    },
+    "LearningStatistics": {
+      "type": "object",
+      "description": "Current state of learning storage",
+      "properties": {
+        "total_success_patterns": {
+          "type": "integer",
+          "description": "Total patterns in storage"
+        },
+        "total_anti_patterns": {
+          "type": "integer",
+          "description": "Total anti-patterns in storage"
+        },
+        "storage_utilization": {
+          "type": "string",
+          "pattern": "^[0-9]{1,3}%$",
+          "description": "Percentage of max_patterns_stored used"
+        },
+        "patterns_decayed": {
+          "type": "integer",
+          "description": "Patterns that had confidence reduced"
+        },
+        "patterns_removed": {
+          "type": "integer",
+          "description": "Patterns removed due to low confidence"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "status": "success",
+      "learnings_extracted": {
+        "new_success_patterns": 2,
+        "updated_success_patterns": 1,
+        "new_anti_patterns": 1,
+        "updated_anti_patterns": 0,
+        "user_preferences_updated": true,
+        "project_knowledge_updated": true,
+        "technique_stats_updated": true
+      },
+      "key_insights": [
+        "bcrypt pattern works well for this project",
+        "User prefers async/await over callbacks",
+        "Project uses controller pattern for routes"
+      ],
+      "files_written": [
+        ".apl/learnings.json",
+        ".apl/patterns/success-patterns.json",
+        ".apl/patterns/anti-patterns.json",
+        ".apl/preferences/user-prefs.json",
+        ".apl/project-knowledge/codebase-map.json"
+      ],
+      "recommendations": [
+        "Consider documenting the bcrypt pattern in project README",
+        "Add rate limiting in future iterations"
+      ],
+      "statistics": {
+        "total_success_patterns": 15,
+        "total_anti_patterns": 8,
+        "storage_utilization": "23%",
+        "patterns_decayed": 2,
+        "patterns_removed": 0
+      }
+    },
+    {
+      "status": "partial",
+      "learnings_extracted": {
+        "new_success_patterns": 0,
+        "updated_success_patterns": 0,
+        "new_anti_patterns": 2,
+        "updated_anti_patterns": 0,
+        "user_preferences_updated": false,
+        "project_knowledge_updated": true,
+        "technique_stats_updated": true
+      },
+      "key_insights": [
+        "argon2 has native dependency issues in this environment",
+        "Session failed but learned what not to do"
+      ],
+      "files_written": [
+        ".apl/learnings.json",
+        ".apl/patterns/anti-patterns.json"
+      ],
+      "recommendations": [
+        "Use bcryptjs for pure-JS password hashing",
+        "Check environment supports native modules before using"
+      ],
+      "statistics": {
+        "total_success_patterns": 13,
+        "total_anti_patterns": 10,
+        "storage_utilization": "23%",
+        "patterns_decayed": 0,
+        "patterns_removed": 0
+      }
+    }
+  ]
+}

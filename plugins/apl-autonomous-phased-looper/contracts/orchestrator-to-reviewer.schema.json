@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/twofoldtech-dakota/apl/contracts/orchestrator-to-reviewer.schema.json",
+  "title": "OrchestratorToReviewerInput",
+  "description": "Input contract for the reviewer agent. Contains all completed work for Reflexion-based review.",
+  "type": "object",
+  "required": ["goal", "tasks_completed"],
+  "properties": {
+    "goal": {
+      "type": "string",
+      "description": "Original user goal"
+    },
+    "tasks_completed": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/CompletedTask"
+      },
+      "description": "All tasks that were completed"
+    },
+    "files_modified": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/FileModification"
+      },
+      "description": "All files created or modified",
+      "default": []
+    },
+    "verification_log": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/VerificationEntry"
+      },
+      "description": "Log of all verifications performed",
+      "default": []
+    },
+    "scratchpad": {
+      "$ref": "#/$defs/Scratchpad",
+      "description": "Session learnings and notes"
+    },
+    "test_results": {
+      "$ref": "#/$defs/TestResults",
+      "description": "Final test results"
+    }
+  },
+  "$defs": {
+    "CompletedTask": {
+      "type": "object",
+      "description": "A task that was completed",
+      "required": ["id", "description", "success_criteria", "status"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Task identifier"
+        },
+        "description": {
+          "type": "string",
+          "description": "Task description"
+        },
+        "success_criteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Criteria that defined completion"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["completed", "partial", "skipped"],
+          "description": "Completion status"
+        },
+        "result": {
+          "type": "string",
+          "description": "Summary of what was accomplished"
+        },
+        "files_modified": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Files this task created/modified"
+        },
+        "attempts": {
+          "type": "integer",
+          "description": "Number of attempts required"
+        }
+      }
+    },
+    "FileModification": {
+      "type": "object",
+      "description": "A file that was created or modified",
+      "required": ["path", "action"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "File path"
+        },
+        "action": {
+          "type": "string",
+          "enum": ["create", "modify", "delete"],
+          "description": "Type of change"
+        },
+        "diff": {
+          "type": "string",
+          "description": "Diff of changes (for modifications)"
+        },
+        "task_id": {
+          "type": "integer",
+          "description": "Task that made this change"
+        },
+        "checkpoint_id": {
+          "type": "string",
+          "description": "Checkpoint when change was made"
+        }
+      }
+    },
+    "VerificationEntry": {
+      "type": "object",
+      "description": "Record of a verification check",
+      "required": ["task_id", "criterion", "verified"],
+      "properties": {
+        "task_id": {
+          "type": "integer",
+          "description": "Task being verified"
+        },
+        "criterion": {
+          "type": "string",
+          "description": "Success criterion being checked"
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Whether criterion was met"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "Evidence supporting verification"
+        },
+        "verified_by": {
+          "type": "string",
+          "enum": ["coder", "tester", "manual"],
+          "description": "Who performed verification"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When verification occurred"
+        }
+      }
+    },
+    "Scratchpad": {
+      "type": "object",
+      "description": "Session-level notes",
+      "properties": {
+        "learnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Insights discovered"
+        },
+        "failed_approaches": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Approaches that didn't work"
+        },
+        "open_questions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Unresolved questions"
+        }
+      }
+    },
+    "TestResults": {
+      "type": "object",
+      "description": "Summary of test execution",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["pass", "fail", "error", "skipped"],
+          "description": "Overall test status"
+        },
+        "total": {
+          "type": "integer",
+          "description": "Total tests"
+        },
+        "passed": {
+          "type": "integer",
+          "description": "Passing tests"
+        },
+        "failed": {
+          "type": "integer",
+          "description": "Failing tests"
+        },
+        "coverage": {
+          "type": "number",
+          "description": "Coverage percentage"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "goal": "Build REST API with JWT authentication",
+      "tasks_completed": [
+        {
+          "id": 1,
+          "description": "Initialize Express project with TypeScript",
+          "success_criteria": [
+            "package.json configured",
+            "TypeScript compiles"
+          ],
+          "status": "completed",
+          "result": "Project initialized with Express 4.x and TypeScript 5.x",
+          "files_modified": ["package.json", "tsconfig.json", "src/index.ts"],
+          "attempts": 1
+        },
+        {
+          "id": 2,
+          "description": "Create User model with password hashing",
+          "success_criteria": [
+            "User model has required fields",
+            "Password hashing uses bcrypt"
+          ],
+          "status": "completed",
+          "result": "User model with bcrypt hashing implemented",
+          "files_modified": ["src/models/User.ts"],
+          "attempts": 1
+        }
+      ],
+      "files_modified": [
+        {
+          "path": "src/models/User.ts",
+          "action": "create",
+          "task_id": 2,
+          "checkpoint_id": "cp_002"
+        }
+      ],
+      "verification_log": [
+        {
+          "task_id": 2,
+          "criterion": "Password hashing uses bcrypt",
+          "verified": true,
+          "evidence": "bcrypt.hash called in hashPassword method",
+          "verified_by": "coder",
+          "timestamp": "2024-01-15T14:30:00Z"
+        }
+      ],
+      "scratchpad": {
+        "learnings": ["bcrypt works well with async/await pattern"],
+        "failed_approaches": [],
+        "open_questions": []
+      },
+      "test_results": {
+        "status": "pass",
+        "total": 24,
+        "passed": 24,
+        "failed": 0,
+        "coverage": 87.5
+      }
+    }
+  ]
+}
