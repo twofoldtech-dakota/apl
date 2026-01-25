@@ -1,0 +1,303 @@
+{
+  "id": "epic_002_patient_records",
+  "title": "Patient Health Records Management",
+  "description": "Implement secure patient health records with CRUD operations, document attachments, access controls, and audit logging for HIPAA compliance.",
+
+  "status": "in_progress",
+  "priority": 2,
+  "created_at": "2024-01-18T09:00:00Z",
+  "started_at": "2024-01-20T08:30:00Z",
+
+  "progress": {
+    "features_total": 3,
+    "features_completed": 1,
+    "features_in_progress": 1,
+    "stories_total": 8,
+    "stories_completed": 4,
+    "stories_in_progress": 1,
+    "estimated_hours_total": 24,
+    "hours_completed": 11
+  },
+
+  "features": [
+    {
+      "id": "feat_004_record_crud",
+      "title": "Health Record CRUD Operations",
+      "description": "Create, read, update, and soft-delete patient health records",
+      "status": "completed",
+      "completed_at": "2024-01-21T16:45:00Z",
+      "stories": [
+        {
+          "id": "story_010",
+          "title": "Health record data model",
+          "status": "completed",
+          "completed_at": "2024-01-20T11:30:00Z",
+          "priority": 1,
+          "acceptance_criteria": [
+            "HealthRecord model with patient_id, record_type, content, metadata",
+            "Support for multiple record types (lab_result, prescription, visit_note)",
+            "Timestamps for created_at, updated_at, deleted_at",
+            "Indexes on patient_id and record_type"
+          ],
+          "apl_goal": "Create HealthRecord model with patient association, record types enum, and soft delete support. Add appropriate database indexes.",
+          "estimated_hours": 2,
+          "actual_hours": 1.5,
+          "dependencies": [],
+          "implementation_notes": "Used existing base model pattern. Added composite index on (patient_id, record_type) for query optimization."
+        },
+        {
+          "id": "story_011",
+          "title": "Create health record endpoint",
+          "status": "completed",
+          "completed_at": "2024-01-20T15:00:00Z",
+          "priority": 1,
+          "acceptance_criteria": [
+            "POST /patients/:id/records creates new record",
+            "Validates record_type against allowed types",
+            "Content is validated based on record_type schema",
+            "Returns 201 with created record",
+            "Logs creation in audit trail"
+          ],
+          "apl_goal": "Implement POST endpoint for creating health records with type-specific validation and audit logging.",
+          "estimated_hours": 3,
+          "actual_hours": 3.5,
+          "dependencies": ["story_010"],
+          "implementation_notes": "Extended validation to use Zod discriminated unions for type-specific schemas. Encountered edge case with nested metadata validation - resolved by flattening schema."
+        },
+        {
+          "id": "story_012",
+          "title": "Read and list health records",
+          "status": "completed",
+          "completed_at": "2024-01-21T11:00:00Z",
+          "priority": 1,
+          "acceptance_criteria": [
+            "GET /patients/:id/records lists all records for patient",
+            "Supports filtering by record_type",
+            "Supports pagination (limit, offset)",
+            "GET /records/:id returns single record",
+            "Excludes soft-deleted records by default"
+          ],
+          "apl_goal": "Implement read endpoints with filtering, pagination, and soft-delete awareness.",
+          "estimated_hours": 2,
+          "actual_hours": 2,
+          "dependencies": ["story_010"]
+        },
+        {
+          "id": "story_013",
+          "title": "Update and delete health records",
+          "status": "completed",
+          "completed_at": "2024-01-21T16:45:00Z",
+          "priority": 2,
+          "acceptance_criteria": [
+            "PATCH /records/:id updates record content/metadata",
+            "DELETE /records/:id soft-deletes record",
+            "Both operations require provider role",
+            "Changes logged in audit trail",
+            "Returns 404 for already-deleted records"
+          ],
+          "apl_goal": "Implement update and soft-delete endpoints with provider authorization and audit logging.",
+          "estimated_hours": 2,
+          "actual_hours": 2,
+          "dependencies": ["story_012"]
+        }
+      ]
+    },
+    {
+      "id": "feat_005_attachments",
+      "title": "Document Attachments",
+      "description": "Support file attachments (PDFs, images) for health records",
+      "status": "in_progress",
+      "stories": [
+        {
+          "id": "story_014",
+          "title": "File upload endpoint",
+          "status": "completed",
+          "completed_at": "2024-01-22T10:30:00Z",
+          "priority": 1,
+          "acceptance_criteria": [
+            "POST /records/:id/attachments accepts file upload",
+            "Validates file type (PDF, PNG, JPG only)",
+            "Max file size 10MB",
+            "Stores file in configured storage (local/S3)",
+            "Returns attachment metadata with download URL"
+          ],
+          "apl_goal": "Implement file upload with type/size validation and configurable storage backend.",
+          "estimated_hours": 3,
+          "actual_hours": 3,
+          "dependencies": ["story_010"],
+          "implementation_notes": "Used multer for multipart handling. Abstracted storage behind interface for easy S3 migration later."
+        },
+        {
+          "id": "story_015",
+          "title": "File download and deletion",
+          "status": "in_progress",
+          "started_at": "2024-01-22T11:00:00Z",
+          "priority": 1,
+          "acceptance_criteria": [
+            "GET /attachments/:id/download returns file stream",
+            "Uses signed URLs for S3 storage",
+            "DELETE /attachments/:id removes file and metadata",
+            "Download requires patient or provider access",
+            "Downloads logged in audit trail"
+          ],
+          "apl_goal": "Implement secure file download with signed URLs and deletion with proper authorization checks.",
+          "estimated_hours": 2,
+          "current_progress": {
+            "tasks_completed": [
+              "Download endpoint basic implementation",
+              "Authorization middleware integration"
+            ],
+            "tasks_remaining": [
+              "Signed URL generation for S3",
+              "Delete endpoint implementation",
+              "Audit logging integration"
+            ],
+            "blockers": [],
+            "notes": "Download working for local storage. Need to test S3 path."
+          },
+          "dependencies": ["story_014"]
+        },
+        {
+          "id": "story_016",
+          "title": "Attachment integration tests",
+          "status": "pending",
+          "priority": 2,
+          "acceptance_criteria": [
+            "Test successful file upload flow",
+            "Test file type rejection",
+            "Test file size rejection",
+            "Test download authorization",
+            "Test deletion cleanup"
+          ],
+          "apl_goal": "Write integration tests for attachment upload, download, and deletion with mock storage.",
+          "estimated_hours": 2,
+          "dependencies": ["story_014", "story_015"]
+        }
+      ]
+    },
+    {
+      "id": "feat_006_access_control",
+      "title": "Record Access Control",
+      "description": "Fine-grained access control for health records",
+      "status": "pending",
+      "stories": [
+        {
+          "id": "story_017",
+          "title": "Record-level access policies",
+          "status": "pending",
+          "priority": 1,
+          "acceptance_criteria": [
+            "Patients can view their own records only",
+            "Providers can view/edit assigned patients' records",
+            "Admins can view all records (no edit)",
+            "Access policy stored per record",
+            "Policy checked on every operation"
+          ],
+          "apl_goal": "Implement record-level access control policy system with role-based defaults and per-record overrides.",
+          "estimated_hours": 3,
+          "dependencies": ["story_012", "story_008"]
+        },
+        {
+          "id": "story_018",
+          "title": "Access control integration tests",
+          "status": "pending",
+          "priority": 2,
+          "acceptance_criteria": [
+            "Test patient can only see own records",
+            "Test provider access to assigned patients",
+            "Test cross-patient access denied",
+            "Test admin read-only access",
+            "Test policy override scenarios"
+          ],
+          "apl_goal": "Write comprehensive access control tests covering all role combinations and policy scenarios.",
+          "estimated_hours": 2,
+          "dependencies": ["story_017"]
+        }
+      ]
+    }
+  ],
+
+  "execution_log": [
+    {
+      "timestamp": "2024-01-20T08:30:00Z",
+      "event": "epic_started",
+      "details": "Beginning Patient Health Records epic implementation"
+    },
+    {
+      "timestamp": "2024-01-20T11:30:00Z",
+      "event": "story_completed",
+      "story_id": "story_010",
+      "duration_hours": 1.5,
+      "notes": "Data model completed ahead of estimate"
+    },
+    {
+      "timestamp": "2024-01-20T15:00:00Z",
+      "event": "story_completed",
+      "story_id": "story_011",
+      "duration_hours": 3.5,
+      "notes": "Took extra time for type-specific validation"
+    },
+    {
+      "timestamp": "2024-01-21T11:00:00Z",
+      "event": "story_completed",
+      "story_id": "story_012",
+      "duration_hours": 2
+    },
+    {
+      "timestamp": "2024-01-21T16:45:00Z",
+      "event": "feature_completed",
+      "feature_id": "feat_004_record_crud",
+      "total_hours": 9,
+      "estimated_hours": 9
+    },
+    {
+      "timestamp": "2024-01-22T10:30:00Z",
+      "event": "story_completed",
+      "story_id": "story_014",
+      "duration_hours": 3
+    },
+    {
+      "timestamp": "2024-01-22T11:00:00Z",
+      "event": "story_started",
+      "story_id": "story_015"
+    }
+  ],
+
+  "learnings_captured": [
+    {
+      "type": "success_pattern",
+      "context": "story_011",
+      "pattern": "Zod discriminated unions for type-specific API validation",
+      "applicable_to": ["api-endpoint", "validation"]
+    },
+    {
+      "type": "estimation_adjustment",
+      "context": "story_011",
+      "original_estimate": 3,
+      "actual": 3.5,
+      "reason": "Nested validation complexity underestimated"
+    }
+  ],
+
+  "architectural_decisions": [
+    "Soft delete for all health records (HIPAA retention requirements)",
+    "Storage backend abstracted behind interface for cloud migration",
+    "Audit logging on all CRUD operations",
+    "Type-specific validation schemas using Zod discriminated unions"
+  ],
+
+  "blockers": [],
+
+  "risks": [
+    {
+      "description": "S3 integration not tested in dev environment",
+      "mitigation": "Local storage mock covers same interface",
+      "status": "monitoring"
+    }
+  ],
+
+  "dependencies": {
+    "external": ["S3 bucket provisioning for production"],
+    "internal": ["epic_001_auth - RBAC system required for access control"]
+  }
+}

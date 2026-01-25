@@ -1,0 +1,202 @@
+{
+  "id": "epic_001_auth",
+  "title": "User Authentication & Authorization",
+  "description": "Implement secure patient and provider authentication with role-based access control, session management, and HIPAA-compliant audit logging.",
+
+  "status": "pending",
+  "priority": 1,
+  "created_at": "2024-01-15T10:00:00Z",
+
+  "features": [
+    {
+      "id": "feat_001_registration",
+      "title": "Patient Registration",
+      "description": "Allow new patients to register with email verification",
+      "status": "pending",
+      "stories": [
+        {
+          "id": "story_001",
+          "title": "Patient registration endpoint",
+          "status": "pending",
+          "priority": 1,
+          "acceptance_criteria": [
+            "POST /auth/register accepts email, password, name, dateOfBirth",
+            "Email format is validated",
+            "Password meets complexity requirements (8+ chars, uppercase, number)",
+            "Password is hashed with bcrypt (cost 12)",
+            "Returns 201 with patient ID on success",
+            "Returns 400 with validation errors on invalid input",
+            "Returns 409 if email already registered"
+          ],
+          "apl_goal": "Build patient registration endpoint with email/password validation, bcrypt hashing (cost 12), and proper error responses. Follow existing Express controller pattern.",
+          "estimated_hours": 2,
+          "dependencies": []
+        },
+        {
+          "id": "story_002",
+          "title": "Email verification flow",
+          "status": "pending",
+          "priority": 2,
+          "acceptance_criteria": [
+            "Registration sends verification email with token",
+            "GET /auth/verify/:token activates account",
+            "Token expires after 24 hours",
+            "Unverified accounts cannot login",
+            "Resend verification available"
+          ],
+          "apl_goal": "Implement email verification with time-limited tokens. Send verification email on registration, verify token endpoint, and resend capability.",
+          "estimated_hours": 3,
+          "dependencies": ["story_001"]
+        },
+        {
+          "id": "story_003",
+          "title": "Registration integration tests",
+          "status": "pending",
+          "priority": 3,
+          "acceptance_criteria": [
+            "Test successful registration flow",
+            "Test validation error scenarios",
+            "Test duplicate email handling",
+            "Test email verification flow",
+            "All tests pass with 80%+ coverage"
+          ],
+          "apl_goal": "Write integration tests for patient registration covering success, validation errors, duplicates, and email verification. Use supertest.",
+          "estimated_hours": 2,
+          "dependencies": ["story_001", "story_002"]
+        }
+      ]
+    },
+    {
+      "id": "feat_002_login",
+      "title": "Authentication Flow",
+      "description": "Secure login with JWT tokens and session management",
+      "status": "pending",
+      "stories": [
+        {
+          "id": "story_004",
+          "title": "Login endpoint with JWT",
+          "status": "pending",
+          "priority": 1,
+          "acceptance_criteria": [
+            "POST /auth/login accepts email and password",
+            "Validates credentials against stored hash",
+            "Returns access token (15min) and refresh token (24h)",
+            "Logs login attempt in audit log",
+            "Returns 401 for invalid credentials (no user enumeration)"
+          ],
+          "apl_goal": "Implement login endpoint that validates credentials, generates JWT access/refresh tokens, and logs the attempt. Return 401 for any invalid login to prevent enumeration.",
+          "estimated_hours": 2,
+          "dependencies": ["story_001"]
+        },
+        {
+          "id": "story_005",
+          "title": "Token refresh endpoint",
+          "status": "pending",
+          "priority": 2,
+          "acceptance_criteria": [
+            "POST /auth/refresh accepts refresh token",
+            "Validates refresh token is not expired or revoked",
+            "Rotates refresh token (old one invalidated)",
+            "Returns new access and refresh tokens",
+            "Logs token refresh in audit log"
+          ],
+          "apl_goal": "Implement token refresh with rotation. Validate incoming refresh token, invalidate it, issue new token pair. Log the refresh action.",
+          "estimated_hours": 2,
+          "dependencies": ["story_004"]
+        },
+        {
+          "id": "story_006",
+          "title": "Logout endpoint",
+          "status": "pending",
+          "priority": 2,
+          "acceptance_criteria": [
+            "POST /auth/logout invalidates refresh token",
+            "Logs logout in audit log",
+            "Returns 200 on success",
+            "Subsequent use of refresh token fails"
+          ],
+          "apl_goal": "Implement logout that invalidates the refresh token stored server-side. Log the logout action for audit.",
+          "estimated_hours": 1,
+          "dependencies": ["story_004"]
+        }
+      ]
+    },
+    {
+      "id": "feat_003_rbac",
+      "title": "Role-Based Access Control",
+      "description": "Implement roles (patient, provider, admin) with permission checking",
+      "status": "pending",
+      "stories": [
+        {
+          "id": "story_007",
+          "title": "Role and permission model",
+          "status": "pending",
+          "priority": 1,
+          "acceptance_criteria": [
+            "User model has role field (patient, provider, admin)",
+            "Permission definitions for each role",
+            "Role stored in JWT payload",
+            "Database migration adds role column"
+          ],
+          "apl_goal": "Extend User model with role field. Define permission constants for patient, provider, and admin roles. Include role in JWT payload.",
+          "estimated_hours": 2,
+          "dependencies": ["story_001"]
+        },
+        {
+          "id": "story_008",
+          "title": "Authorization middleware",
+          "status": "pending",
+          "priority": 1,
+          "acceptance_criteria": [
+            "Middleware checks user role against required permissions",
+            "Returns 403 for insufficient permissions",
+            "Logs authorization failures in audit log",
+            "Supports multiple required permissions (AND/OR)"
+          ],
+          "apl_goal": "Create authorization middleware that checks user role permissions. Support requiring multiple permissions. Log failures for audit.",
+          "estimated_hours": 2,
+          "dependencies": ["story_007"]
+        },
+        {
+          "id": "story_009",
+          "title": "RBAC integration tests",
+          "status": "pending",
+          "priority": 2,
+          "acceptance_criteria": [
+            "Test patient can access own data only",
+            "Test provider can access assigned patients",
+            "Test admin has full access",
+            "Test unauthorized access returns 403"
+          ],
+          "apl_goal": "Write integration tests for role-based access control covering all role types and permission scenarios.",
+          "estimated_hours": 2,
+          "dependencies": ["story_008"]
+        }
+      ]
+    }
+  ],
+
+  "architectural_decisions": [
+    "Use bcrypt with cost factor 12 for password hashing (HIPAA compliance)",
+    "JWT access tokens expire in 15 minutes",
+    "Refresh tokens stored server-side for revocation capability",
+    "All authentication actions logged for HIPAA audit trail"
+  ],
+
+  "cross_cutting_concerns": [
+    "Audit logging for all auth events",
+    "Session timeout after 15 minutes inactivity"
+  ],
+
+  "dependencies": {
+    "external": ["Email service for verification"],
+    "internal": []
+  },
+
+  "metrics": {
+    "total_features": 3,
+    "total_stories": 9,
+    "estimated_hours": 18,
+    "estimated_sessions": 4
+  }
+}

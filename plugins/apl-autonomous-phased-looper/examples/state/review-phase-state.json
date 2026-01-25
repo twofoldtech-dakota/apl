@@ -1,0 +1,207 @@
+{
+  "version": "1.0.0",
+  "session_id": "sess_20240115_143000",
+  "goal": "Build REST API with JWT authentication and user management",
+  "phase": "review",
+  "iteration": 12,
+  "max_iterations": 20,
+  "confidence": "high",
+  "started_at": "2024-01-15T14:30:00Z",
+  "last_updated": "2024-01-15T16:00:00Z",
+
+  "tasks": [
+    {
+      "id": 1,
+      "description": "Initialize Express project with TypeScript configuration",
+      "status": "completed",
+      "attempts": 1,
+      "completed_at": "2024-01-15T14:35:00Z"
+    },
+    {
+      "id": 2,
+      "description": "Create User model with secure password storage",
+      "status": "completed",
+      "attempts": 2,
+      "completed_at": "2024-01-15T14:45:00Z"
+    },
+    {
+      "id": 3,
+      "description": "Implement authentication service with JWT",
+      "status": "completed",
+      "attempts": 1,
+      "completed_at": "2024-01-15T14:55:00Z"
+    },
+    {
+      "id": 4,
+      "description": "Create authentication middleware",
+      "status": "completed",
+      "attempts": 1,
+      "completed_at": "2024-01-15T15:20:00Z"
+    },
+    {
+      "id": 5,
+      "description": "Build authentication routes (register, login, refresh, logout)",
+      "status": "completed",
+      "attempts": 1,
+      "completed_at": "2024-01-15T15:40:00Z"
+    },
+    {
+      "id": 6,
+      "description": "Write integration tests for authentication",
+      "status": "completed",
+      "attempts": 1,
+      "completed_at": "2024-01-15T15:55:00Z"
+    }
+  ],
+
+  "review_status": "in_progress",
+  "review_started_at": "2024-01-15T16:00:00Z",
+
+  "review_findings": {
+    "goal_alignment": {
+      "aligned": true,
+      "coverage": "100%",
+      "missing": [],
+      "notes": "All expected deliverables implemented"
+    },
+
+    "criteria_verification": {
+      "total": 18,
+      "verified": 18,
+      "failed": 0,
+      "summary": "All success criteria verified"
+    },
+
+    "issues_found": [
+      {
+        "severity": "warning",
+        "category": "security",
+        "description": "No rate limiting on authentication endpoints",
+        "affected_files": ["src/routes/auth.ts"],
+        "suggested_fix": "Add express-rate-limit middleware to auth routes",
+        "blocking": false
+      },
+      {
+        "severity": "suggestion",
+        "category": "documentation",
+        "description": "AuthService methods lack JSDoc comments",
+        "affected_files": ["src/services/authService.ts"],
+        "suggested_fix": "Add JSDoc to public methods",
+        "blocking": false
+      },
+      {
+        "severity": "suggestion",
+        "category": "testing",
+        "description": "Edge case: expired refresh token not tested",
+        "affected_files": ["src/__tests__/auth.test.ts"],
+        "suggested_fix": "Add test for expired refresh token scenario",
+        "blocking": false
+      }
+    ],
+
+    "quality_scores": {
+      "security": 8,
+      "performance": 9,
+      "maintainability": 8,
+      "testing": 7,
+      "overall": 8
+    },
+
+    "regression_analysis": {
+      "risk": "low",
+      "existing_tests_passed": true,
+      "breaking_changes": false
+    },
+
+    "insights_extracted": {
+      "success_patterns": [
+        {
+          "pattern": "jwt-refresh-rotation",
+          "context": "Token refresh flow",
+          "approach": "Rotate refresh token on each use"
+        }
+      ],
+      "user_preferences": [
+        "Prefers async/await over callbacks",
+        "Uses arrow functions consistently"
+      ],
+      "project_conventions": [
+        "Controllers in src/controllers/",
+        "Services in src/services/",
+        "Tests adjacent to source files"
+      ]
+    }
+  },
+
+  "files_modified": [
+    {"path": "package.json", "action": "create", "task_id": 1},
+    {"path": "tsconfig.json", "action": "create", "task_id": 1},
+    {"path": "src/index.ts", "action": "create", "task_id": 1},
+    {"path": "src/app.ts", "action": "create", "task_id": 1},
+    {"path": "src/models/User.ts", "action": "create", "task_id": 2},
+    {"path": "src/types/user.ts", "action": "create", "task_id": 2},
+    {"path": "src/services/authService.ts", "action": "create", "task_id": 3},
+    {"path": "src/models/RefreshToken.ts", "action": "create", "task_id": 3},
+    {"path": "src/middleware/auth.ts", "action": "create", "task_id": 4},
+    {"path": "src/routes/auth.ts", "action": "create", "task_id": 5},
+    {"path": "src/controllers/authController.ts", "action": "create", "task_id": 5},
+    {"path": "src/__tests__/auth.test.ts", "action": "create", "task_id": 6}
+  ],
+
+  "test_results": {
+    "status": "pass",
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "coverage": {
+      "statements": 87.5,
+      "branches": 72.3,
+      "functions": 91.2,
+      "lines": 88.1
+    }
+  },
+
+  "checkpoints": [
+    {"id": "cp_001", "phase": "execute", "iteration": 2},
+    {"id": "cp_002", "phase": "execute", "iteration": 4},
+    {"id": "cp_003", "phase": "execute", "iteration": 6},
+    {"id": "cp_004", "phase": "execute", "iteration": 8},
+    {"id": "cp_005", "phase": "execute", "iteration": 10},
+    {"id": "cp_006", "phase": "review", "iteration": 12}
+  ],
+
+  "scratchpad": {
+    "learnings": [
+      "bcrypt works better than argon2 in this environment",
+      "Project uses ES modules",
+      "JWT refresh token rotation prevents reuse attacks",
+      "supertest makes integration testing straightforward"
+    ],
+    "failed_approaches": [
+      "argon2 - native deps failed"
+    ],
+    "open_questions": []
+  },
+
+  "next_steps": {
+    "if_pass": [
+      "Extract learnings to .apl/learnings.json",
+      "Generate completion report"
+    ],
+    "if_needs_fixes": [
+      "Create fix tasks for critical/warning issues",
+      "Return to execute phase"
+    ]
+  },
+
+  "metrics": {
+    "tasks_completed": 6,
+    "tasks_remaining": 0,
+    "total_attempts": 7,
+    "success_rate": 0.86,
+    "elapsed_minutes": 90,
+    "files_created": 12,
+    "files_modified": 1
+  }
+}

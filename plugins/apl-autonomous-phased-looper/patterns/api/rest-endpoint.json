@@ -1,0 +1,57 @@
+{
+  "id": "sp_api_rest_endpoint_001",
+  "name": "Express REST Endpoint with Controller Pattern",
+  "version": "1.0.0",
+  "type": "success_pattern",
+
+  "task_type": "api-endpoint",
+  "applicable_when": [
+    "rest api",
+    "api endpoint",
+    "express route",
+    "crud endpoint",
+    "http endpoint",
+    "rest controller"
+  ],
+
+  "approach": "Separate routes from business logic using the controller pattern. Routes handle HTTP concerns (request parsing, response formatting), controllers handle business logic. Use async handlers with proper error forwarding. Group related routes in dedicated router files.",
+
+  "rationale": "Separation of concerns makes code testable and maintainable. Route files stay focused on HTTP mapping while controllers contain reusable business logic. Async handlers with next(error) integrate with Express error middleware.",
+
+  "code_examples": {
+    "route_file": "// src/routes/users.ts\nimport { Router } from 'express';\nimport * as userController from '../controllers/userController';\nimport { authMiddleware } from '../middleware/auth';\nimport { validate } from '../middleware/validate';\nimport { createUserSchema, updateUserSchema } from '../schemas/user';\n\nconst router = Router();\n\n// Public routes\nrouter.post('/register', validate(createUserSchema), userController.register);\nrouter.post('/login', userController.login);\n\n// Protected routes\nrouter.use(authMiddleware);\nrouter.get('/me', userController.getCurrentUser);\nrouter.patch('/me', validate(updateUserSchema), userController.updateCurrentUser);\nrouter.delete('/me', userController.deleteCurrentUser);\n\n// Admin routes\nrouter.get('/', userController.listUsers);\nrouter.get('/:id', userController.getUser);\n\nexport default router;",
+
+    "controller_file": "// src/controllers/userController.ts\nimport { Request, Response, NextFunction } from 'express';\nimport { UserService } from '../services/userService';\n\nconst userService = new UserService();\n\nexport async function register(req: Request, res: Response, next: NextFunction) {\n  try {\n    const { email, password, name } = req.body;\n    const user = await userService.createUser({ email, password, name });\n    res.status(201).json({\n      id: user.id,\n      email: user.email,\n      name: user.name\n    });\n  } catch (error) {\n    next(error);\n  }\n}\n\nexport async function getCurrentUser(req: Request, res: Response, next: NextFunction) {\n  try {\n    const user = await userService.findById(req.user.id);\n    if (!user) {\n      return res.status(404).json({ error: 'User not found' });\n    }\n    res.json(user);\n  } catch (error) {\n    next(error);\n  }\n}",
+
+    "index_routes": "// src/routes/index.ts\nimport { Router } from 'express';\nimport userRoutes from './users';\nimport authRoutes from './auth';\nimport productRoutes from './products';\n\nconst router = Router();\n\nrouter.use('/users', userRoutes);\nrouter.use('/auth', authRoutes);\nrouter.use('/products', productRoutes);\n\nexport default router;"
+  },
+
+  "success_indicators": [
+    "Routes are thin - only HTTP mapping",
+    "Controllers are framework-agnostic where possible",
+    "All async handlers use try/catch with next(error)",
+    "Related routes grouped in dedicated files",
+    "Input validation happens before controller",
+    "Response formatting is consistent"
+  ],
+
+  "anti_patterns_avoided": [
+    "ap_api_fat_routes_001",
+    "ap_api_unhandled_async_001"
+  ],
+
+  "related_patterns": [
+    "sp_api_error_handling_001",
+    "sp_api_input_validation_001"
+  ],
+
+  "tags": ["api", "rest", "express", "controller", "routes"],
+
+  "metadata": {
+    "author": "APL Starter Library",
+    "created": "2024-01-15",
+    "success_count": 0,
+    "frameworks": ["express"],
+    "languages": ["typescript", "javascript"]
+  }
+}

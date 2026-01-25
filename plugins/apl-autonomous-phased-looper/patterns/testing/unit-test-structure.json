@@ -1,0 +1,59 @@
+{
+  "id": "sp_test_unit_structure_001",
+  "name": "Unit Test Structure with Mocking",
+  "version": "1.0.0",
+  "type": "success_pattern",
+
+  "task_type": "testing",
+  "applicable_when": [
+    "unit test",
+    "write tests",
+    "test structure",
+    "jest test",
+    "testing",
+    "mock dependencies"
+  ],
+
+  "approach": "Structure tests with describe blocks for grouping, clear test names describing expected behavior, and AAA pattern (Arrange-Act-Assert). Mock external dependencies to isolate units. Place test files adjacent to source or in __tests__ directories. Use factories for test data.",
+
+  "rationale": "Consistent test structure improves readability and maintenance. The AAA pattern makes tests predictable. Mocking isolates the unit under test, making tests fast and deterministic. Adjacent test files make it easy to find related tests.",
+
+  "code_examples": {
+    "service_test": "// src/services/__tests__/UserService.test.ts\nimport { UserService } from '../UserService';\nimport { MockUserRepository } from '../../repositories/__mocks__/UserRepository';\nimport { createTestUser } from '../../test/factories/user';\nimport { ConflictError } from '../../errors';\n\ndescribe('UserService', () => {\n  let userService: UserService;\n  let mockUserRepository: MockUserRepository;\n\n  beforeEach(() => {\n    // Arrange: Fresh mocks for each test\n    mockUserRepository = new MockUserRepository();\n    userService = new UserService(mockUserRepository);\n  });\n\n  afterEach(() => {\n    jest.clearAllMocks();\n  });\n\n  describe('createUser', () => {\n    it('should create a new user with hashed password', async () => {\n      // Arrange\n      const userData = { email: 'test@example.com', password: 'Password123', name: 'Test' };\n      mockUserRepository.findByEmail.mockResolvedValue(null);\n      mockUserRepository.create.mockResolvedValue(createTestUser(userData));\n\n      // Act\n      const result = await userService.createUser(userData);\n\n      // Assert\n      expect(result.email).toBe(userData.email);\n      expect(result.passwordHash).not.toBe(userData.password);\n      expect(mockUserRepository.create).toHaveBeenCalledTimes(1);\n    });\n\n    it('should throw ConflictError when email already exists', async () => {\n      // Arrange\n      const existingUser = createTestUser({ email: 'existing@example.com' });\n      mockUserRepository.findByEmail.mockResolvedValue(existingUser);\n\n      // Act & Assert\n      await expect(\n        userService.createUser({ email: 'existing@example.com', password: 'Pass123', name: 'Test' })\n      ).rejects.toThrow(ConflictError);\n\n      expect(mockUserRepository.create).not.toHaveBeenCalled();\n    });\n  });\n\n  describe('getUserById', () => {\n    it('should return user when found', async () => {\n      // Arrange\n      const testUser = createTestUser({ id: 'user-123' });\n      mockUserRepository.findById.mockResolvedValue(testUser);\n\n      // Act\n      const result = await userService.getUserById('user-123');\n\n      // Assert\n      expect(result).toEqual(testUser);\n    });\n\n    it('should return null when user not found', async () => {\n      // Arrange\n      mockUserRepository.findById.mockResolvedValue(null);\n\n      // Act\n      const result = await userService.getUserById('nonexistent');\n\n      // Assert\n      expect(result).toBeNull();\n    });\n  });\n});",
+
+    "mock_repository": "// src/repositories/__mocks__/UserRepository.ts\nimport { IUserRepository } from '../UserRepository';\nimport { User } from '../../models/User';\n\nexport class MockUserRepository implements IUserRepository {\n  findById = jest.fn<Promise<User | null>, [string]>();\n  findByEmail = jest.fn<Promise<User | null>, [string]>();\n  findAll = jest.fn<Promise<User[]>, []>();\n  findActiveUsers = jest.fn<Promise<User[]>, []>();\n  findByRole = jest.fn<Promise<User[]>, [string]>();\n  create = jest.fn<Promise<User>, [Partial<User>]>();\n  update = jest.fn<Promise<User | null>, [string, Partial<User>]>();\n  delete = jest.fn<Promise<boolean>, [string]>();\n\n  // Helper to reset all mocks\n  resetAll() {\n    Object.values(this).forEach(mock => {\n      if (typeof mock?.mockReset === 'function') {\n        mock.mockReset();\n      }\n    });\n  }\n}",
+
+    "test_factory": "// src/test/factories/user.ts\nimport { User } from '../../models/User';\n\nlet userIdCounter = 0;\n\nexport function createTestUser(overrides: Partial<User> = {}): User {\n  userIdCounter++;\n  return {\n    id: `user-${userIdCounter}`,\n    email: `user${userIdCounter}@test.com`,\n    passwordHash: '$2b$10$hashedpassword',\n    name: `Test User ${userIdCounter}`,\n    status: 'active',\n    createdAt: new Date(),\n    updatedAt: new Date(),\n    ...overrides\n  } as User;\n}\n\n// For creating multiple users\nexport function createTestUsers(count: number, overrides: Partial<User> = {}): User[] {\n  return Array.from({ length: count }, () => createTestUser(overrides));\n}",
+
+    "integration_test": "// src/routes/__tests__/users.integration.test.ts\nimport request from 'supertest';\nimport app from '../../app';\nimport { setupTestDb, teardownTestDb, clearTestDb } from '../../test/db';\n\ndescribe('User Routes', () => {\n  beforeAll(async () => {\n    await setupTestDb();\n  });\n\n  afterAll(async () => {\n    await teardownTestDb();\n  });\n\n  beforeEach(async () => {\n    await clearTestDb();\n  });\n\n  describe('POST /api/users', () => {\n    it('should create user and return 201', async () => {\n      const response = await request(app)\n        .post('/api/users')\n        .send({\n          email: 'new@example.com',\n          password: 'Password123',\n          name: 'New User'\n        });\n\n      expect(response.status).toBe(201);\n      expect(response.body).toHaveProperty('id');\n      expect(response.body.email).toBe('new@example.com');\n      expect(response.body).not.toHaveProperty('passwordHash');\n    });\n\n    it('should return 400 for invalid email', async () => {\n      const response = await request(app)\n        .post('/api/users')\n        .send({\n          email: 'invalid-email',\n          password: 'Password123',\n          name: 'Test'\n        });\n\n      expect(response.status).toBe(400);\n      expect(response.body.error.code).toBe('VALIDATION_ERROR');\n    });\n  });\n});"
+  },
+
+  "success_indicators": [
+    "Tests follow AAA pattern (Arrange-Act-Assert)",
+    "describe blocks group related tests",
+    "Test names describe expected behavior",
+    "External dependencies are mocked",
+    "Test factories create consistent test data",
+    "beforeEach resets mocks between tests"
+  ],
+
+  "anti_patterns_avoided": [
+    "ap_test_shared_state_001",
+    "ap_test_no_assertions_001",
+    "ap_test_implementation_details_001"
+  ],
+
+  "related_patterns": [
+    "sp_db_repository_001"
+  ],
+
+  "tags": ["testing", "jest", "unit-test", "mocking", "factories"],
+
+  "metadata": {
+    "author": "APL Starter Library",
+    "created": "2024-01-15",
+    "success_count": 0,
+    "frameworks": ["jest", "vitest", "mocha"],
+    "languages": ["typescript", "javascript"]
+  }
+}

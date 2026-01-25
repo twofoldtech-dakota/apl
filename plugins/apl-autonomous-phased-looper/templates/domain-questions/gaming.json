@@ -1,0 +1,679 @@
+{
+  "domain": "gaming",
+  "display_name": "Gaming & Interactive Entertainment",
+  "version": "1.0.0",
+  "description": "Domain questions for video games, mobile games, and interactive entertainment applications. Covers platform distribution, multiplayer, monetization, game services, and anti-cheat considerations.",
+
+  "detection_keywords": [
+    "game", "gaming", "video game", "mobile game", "browser game",
+    "player", "players", "multiplayer", "single player", "co-op",
+    "leaderboard", "leaderboards", "achievements", "high score",
+    "in-app purchase", "IAP", "microtransaction", "virtual currency",
+    "game server", "matchmaking", "lobby", "session",
+    "level", "levels", "progression", "XP", "experience points",
+    "inventory", "loot", "items", "crafting",
+    "real-time", "turn-based", "PvP", "PvE"
+  ],
+
+  "question_categories": [
+    {
+      "category": "platform_distribution",
+      "display_name": "Platform & Distribution",
+      "description": "Target platforms and distribution channels",
+      "questions": [
+        {
+          "id": "game_platform",
+          "question": "What platforms will the game target?",
+          "type": "multi_choice",
+          "required": true,
+          "options": [
+            "Web browser (HTML5/WebGL)",
+            "iOS (iPhone/iPad)",
+            "Android",
+            "PC (Windows)",
+            "Mac",
+            "Linux",
+            "PlayStation",
+            "Xbox",
+            "Nintendo Switch"
+          ],
+          "impacts": [
+            "Build pipeline and tooling",
+            "Input handling (touch, controller, keyboard)",
+            "Performance optimization targets",
+            "Store compliance requirements",
+            "Certification processes"
+          ]
+        },
+        {
+          "id": "cross_platform",
+          "question": "Do you need cross-platform play?",
+          "type": "single_choice",
+          "required": false,
+          "options": [
+            "No - platforms are separate",
+            "Yes - full cross-play between all platforms",
+            "Yes - within platform families (e.g., all consoles together)",
+            "Future consideration"
+          ],
+          "follow_up": {
+            "condition": "includes 'Yes'",
+            "questions": [
+              {
+                "id": "cross_progression",
+                "question": "Should player progress sync across platforms?",
+                "type": "single_choice",
+                "options": [
+                  "Yes - full cross-progression",
+                  "No - separate progress per platform",
+                  "Partial - some elements sync"
+                ]
+              }
+            ]
+          },
+          "impacts": [
+            "Account system architecture",
+            "Matchmaking complexity",
+            "Data synchronization"
+          ]
+        },
+        {
+          "id": "age_rating",
+          "question": "What age rating are you targeting?",
+          "type": "single_choice",
+          "required": true,
+          "options": [
+            "Everyone (ESRB E / PEGI 3)",
+            "Everyone 10+ (ESRB E10+ / PEGI 7)",
+            "Teen (ESRB T / PEGI 12)",
+            "Mature (ESRB M / PEGI 16-18)",
+            "Not yet determined"
+          ],
+          "impacts": [
+            "Content restrictions",
+            "Monetization limitations",
+            "Marketing channels",
+            "Store placement"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "game_type",
+      "display_name": "Game Type & Mechanics",
+      "description": "Core gameplay and session structure",
+      "questions": [
+        {
+          "id": "game_genre",
+          "question": "What is the primary game genre?",
+          "type": "single_choice",
+          "required": true,
+          "options": [
+            "Action / Arcade",
+            "Puzzle / Casual",
+            "Strategy / Simulation",
+            "RPG / Adventure",
+            "Sports / Racing",
+            "Card / Board game",
+            "Idle / Incremental",
+            "Other"
+          ],
+          "impacts": [
+            "Game loop architecture",
+            "State management complexity",
+            "AI requirements"
+          ]
+        },
+        {
+          "id": "session_length",
+          "question": "What is the typical play session length?",
+          "type": "single_choice",
+          "required": false,
+          "options": [
+            "Quick (under 5 minutes)",
+            "Short (5-15 minutes)",
+            "Medium (15-60 minutes)",
+            "Long (1+ hours)",
+            "Variable / Player-controlled"
+          ],
+          "impacts": [
+            "Save system requirements",
+            "Monetization touch points",
+            "Notification strategy"
+          ]
+        },
+        {
+          "id": "game_state_complexity",
+          "question": "How complex is the game state?",
+          "type": "single_choice",
+          "required": false,
+          "options": [
+            "Simple (score, level, basic stats)",
+            "Moderate (inventory, progression, unlocks)",
+            "Complex (detailed character builds, crafting, economy)",
+            "Very complex (emergent systems, procedural generation)"
+          ],
+          "impacts": [
+            "Database schema complexity",
+            "Save file size",
+            "Sync requirements"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "multiplayer",
+      "display_name": "Multiplayer & Social",
+      "description": "Online features and social systems",
+      "questions": [
+        {
+          "id": "multiplayer_mode",
+          "question": "What multiplayer modes are needed?",
+          "type": "multi_choice",
+          "required": true,
+          "options": [
+            "Single-player only",
+            "Local multiplayer (same device/screen)",
+            "Online multiplayer (real-time synchronous)",
+            "Asynchronous multiplayer (turn-based, challenges)",
+            "Co-op PvE",
+            "Competitive PvP"
+          ],
+          "follow_up": {
+            "condition": "includes 'Online multiplayer' OR includes 'Competitive PvP'",
+            "questions": [
+              {
+                "id": "concurrent_players",
+                "question": "How many concurrent players per match/session?",
+                "type": "single_choice",
+                "options": [
+                  "1v1 (2 players)",
+                  "Small group (3-8 players)",
+                  "Medium (9-32 players)",
+                  "Large (33-100 players)",
+                  "Massive (100+ players)"
+                ]
+              },
+              {
+                "id": "matchmaking_type",
+                "question": "What type of matchmaking is needed?",
+                "type": "single_choice",
+                "options": [
+                  "None (direct join/invite only)",
+                  "Quick match (random opponents)",
+                  "Skill-based matchmaking (MMR/ELO)",
+                  "Ranked competitive with seasons"
+                ]
+              },
+              {
+                "id": "server_authority",
+                "question": "What is the network authority model?",
+                "type": "single_choice",
+                "options": [
+                  "Client-authoritative (simpler, less cheat-resistant)",
+                  "Server-authoritative (more secure, higher latency)",
+                  "Hybrid (server validates critical actions)",
+                  "Peer-to-peer with host migration"
+                ]
+              }
+            ]
+          },
+          "impacts": [
+            "Server infrastructure requirements",
+            "Netcode complexity",
+            "Latency compensation needs",
+            "Anti-cheat requirements"
+          ]
+        },
+        {
+          "id": "social_features",
+          "question": "What social features are needed?",
+          "type": "multi_choice",
+          "required": false,
+          "options": [
+            "Friends list",
+            "In-game chat (text)",
+            "Voice chat",
+            "Clans / Guilds / Teams",
+            "Social feed / Activity stream",
+            "Gifting between players",
+            "Spectator mode"
+          ],
+          "impacts": [
+            "Moderation requirements",
+            "COPPA compliance considerations",
+            "Infrastructure for real-time communication"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "monetization",
+      "display_name": "Monetization",
+      "description": "Revenue model and in-app purchases",
+      "questions": [
+        {
+          "id": "monetization_model",
+          "question": "What is the primary monetization model?",
+          "type": "single_choice",
+          "required": true,
+          "options": [
+            "Premium (one-time purchase)",
+            "Free-to-play with ads only",
+            "Free-to-play with IAP only",
+            "Free-to-play with ads and IAP",
+            "Subscription-based",
+            "Freemium (premium purchase + optional IAP)"
+          ],
+          "follow_up": {
+            "condition": "includes 'IAP'",
+            "questions": [
+              {
+                "id": "iap_types",
+                "question": "What types of in-app purchases?",
+                "type": "multi_choice",
+                "options": [
+                  "Consumables (currency, energy, boosters)",
+                  "Non-consumables (permanent unlocks)",
+                  "Cosmetics (skins, themes, visual customization)",
+                  "Gameplay items (weapons, characters with stats)",
+                  "Season / Battle pass",
+                  "Subscription tiers",
+                  "Gacha / Loot boxes"
+                ]
+              },
+              {
+                "id": "virtual_currency",
+                "question": "Will there be virtual currency?",
+                "type": "single_choice",
+                "options": [
+                  "No virtual currency",
+                  "Single currency (soft only)",
+                  "Dual currency (soft + premium)",
+                  "Multiple currencies"
+                ]
+              }
+            ]
+          },
+          "follow_up_ads": {
+            "condition": "includes 'ads'",
+            "questions": [
+              {
+                "id": "ad_types",
+                "question": "What ad formats will be used?",
+                "type": "multi_choice",
+                "options": [
+                  "Banner ads",
+                  "Interstitial ads",
+                  "Rewarded video ads",
+                  "Native ads",
+                  "Playable ads"
+                ]
+              }
+            ]
+          },
+          "impacts": [
+            "Store compliance requirements",
+            "Economy balancing complexity",
+            "Analytics requirements",
+            "A/B testing infrastructure"
+          ]
+        },
+        {
+          "id": "loot_box_regulations",
+          "question": "If using gacha/loot boxes, do you need compliance with disclosure regulations?",
+          "type": "single_choice",
+          "required": false,
+          "condition": "iap_types includes 'Gacha'",
+          "options": [
+            "Yes - need probability disclosure (China, Belgium, etc.)",
+            "Yes - need pity system / guaranteed drops",
+            "No - not targeting regulated markets",
+            "Need legal guidance"
+          ],
+          "impacts": [
+            "Probability disclosure UI",
+            "Backend tracking of pull counts",
+            "Regional feature flags"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "game_services",
+      "display_name": "Game Services & Backend",
+      "description": "Server-side features and platform integrations",
+      "questions": [
+        {
+          "id": "player_accounts",
+          "question": "How will players authenticate?",
+          "type": "multi_choice",
+          "required": true,
+          "options": [
+            "No accounts (local only)",
+            "Device-based anonymous accounts",
+            "Email/password registration",
+            "Social login (Google, Facebook, Apple)",
+            "Platform accounts (Steam, PlayStation Network, Xbox Live)",
+            "Guest play with optional account linking"
+          ],
+          "impacts": [
+            "Authentication service complexity",
+            "Account linking and migration",
+            "Privacy compliance"
+          ]
+        },
+        {
+          "id": "cloud_features",
+          "question": "What cloud/backend features are needed?",
+          "type": "multi_choice",
+          "required": false,
+          "options": [
+            "Cloud save / Progress sync",
+            "Leaderboards (global, friends, regional)",
+            "Achievements / Trophies",
+            "Daily/weekly challenges",
+            "Live events / Limited-time content",
+            "A/B testing / Remote config",
+            "Push notifications",
+            "Analytics and telemetry"
+          ],
+          "impacts": [
+            "Backend service requirements",
+            "Database design",
+            "Real-time update infrastructure"
+          ]
+        },
+        {
+          "id": "platform_services",
+          "question": "Which platform-specific services should be integrated?",
+          "type": "multi_choice",
+          "required": false,
+          "options": [
+            "Steam (achievements, leaderboards, workshop)",
+            "Apple Game Center",
+            "Google Play Games",
+            "Xbox Live",
+            "PlayStation Network",
+            "Nintendo Switch Online",
+            "Discord Rich Presence",
+            "Twitch integration"
+          ],
+          "impacts": [
+            "SDK integrations",
+            "Certification requirements",
+            "Feature parity considerations"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "security_anti_cheat",
+      "display_name": "Security & Anti-Cheat",
+      "description": "Protection against cheating and exploitation",
+      "questions": [
+        {
+          "id": "anti_cheat_level",
+          "question": "What level of anti-cheat protection is needed?",
+          "type": "single_choice",
+          "required": false,
+          "options": [
+            "None (single-player or casual multiplayer)",
+            "Basic (server-side validation of game actions)",
+            "Moderate (server-authoritative with anomaly detection)",
+            "Strong (third-party solution: EasyAntiCheat, BattlEye, etc.)"
+          ],
+          "impacts": [
+            "Server architecture",
+            "Client-server trust model",
+            "Development and maintenance cost"
+          ]
+        },
+        {
+          "id": "economy_security",
+          "question": "Does the game have a virtual economy needing protection?",
+          "type": "single_choice",
+          "required": false,
+          "options": [
+            "No economy / Not sensitive",
+            "Soft currency only (grindable)",
+            "Premium currency (purchased with real money)",
+            "Player-to-player trading enabled",
+            "Real-money trading (RMT) possible"
+          ],
+          "follow_up": {
+            "condition": "includes 'Premium' OR includes 'trading'",
+            "questions": [
+              {
+                "id": "fraud_prevention",
+                "question": "What fraud prevention measures are needed?",
+                "type": "multi_choice",
+                "options": [
+                  "Purchase receipt validation",
+                  "Chargeback handling",
+                  "Duplicate purchase detection",
+                  "Unusual activity monitoring",
+                  "Trade limits and escrow"
+                ]
+              }
+            ]
+          },
+          "impacts": [
+            "Transaction logging",
+            "Rollback capabilities",
+            "Customer support tooling"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "compliance_safety",
+      "display_name": "Compliance & Player Safety",
+      "description": "Legal compliance and player protection",
+      "questions": [
+        {
+          "id": "child_safety",
+          "question": "Will children under 13 play this game?",
+          "type": "single_choice",
+          "required": true,
+          "options": [
+            "Yes - game is designed for children",
+            "Yes - children may play (mixed audience)",
+            "No - game is for teens/adults only",
+            "Unsure - need guidance"
+          ],
+          "follow_up": {
+            "condition": "includes 'Yes'",
+            "questions": [
+              {
+                "id": "coppa_compliance",
+                "question": "Do you need COPPA compliance (US market)?",
+                "type": "single_choice",
+                "options": [
+                  "Yes - full COPPA compliance",
+                  "Yes - mixed audience mode (age gate)",
+                  "No - not targeting US market",
+                  "Need legal guidance"
+                ]
+              },
+              {
+                "id": "parental_controls",
+                "question": "What parental controls are needed?",
+                "type": "multi_choice",
+                "options": [
+                  "Parental gate for purchases",
+                  "Chat restrictions / filtering",
+                  "Playtime limits",
+                  "Social feature restrictions",
+                  "Spending limits"
+                ]
+              }
+            ]
+          },
+          "impacts": [
+            "Data collection limitations",
+            "Advertising restrictions",
+            "Consent flows"
+          ]
+        },
+        {
+          "id": "content_moderation",
+          "question": "Is user-generated content or communication possible?",
+          "type": "single_choice",
+          "required": false,
+          "options": [
+            "No UGC or chat",
+            "Text chat only",
+            "Voice chat",
+            "User-created levels/content",
+            "User profiles/avatars",
+            "Multiple of the above"
+          ],
+          "follow_up": {
+            "condition": "NOT 'No UGC'",
+            "questions": [
+              {
+                "id": "moderation_approach",
+                "question": "What content moderation approach?",
+                "type": "multi_choice",
+                "options": [
+                  "Profanity filter",
+                  "User reporting system",
+                  "AI-based moderation",
+                  "Human moderators",
+                  "Pre-publication review for UGC"
+                ]
+              }
+            ]
+          },
+          "impacts": [
+            "Moderation infrastructure",
+            "Trust and safety team needs",
+            "Legal liability considerations"
+          ]
+        }
+      ]
+    }
+  ],
+
+  "generated_requirements": {
+    "always_include": [
+      "Game client optimized for target platform performance",
+      "Frame rate targets defined for each platform tier",
+      "Input handling appropriate for target platforms",
+      "Graceful handling of network interruptions"
+    ],
+    "conditional": [
+      {
+        "condition": "multiplayer_mode includes 'Online multiplayer'",
+        "requirements": [
+          "Game server infrastructure (dedicated or cloud)",
+          "Network synchronization system",
+          "Lag compensation / client-side prediction",
+          "Connection quality indicators",
+          "Graceful disconnect and reconnection handling",
+          "Session management and player join/leave"
+        ]
+      },
+      {
+        "condition": "matchmaking_type includes 'Skill-based' OR matchmaking_type includes 'Ranked'",
+        "requirements": [
+          "Player skill rating system (ELO, TrueSkill, or custom)",
+          "Matchmaking queue and lobby system",
+          "Match result processing and rating updates",
+          "Anti-smurf and rank manipulation detection"
+        ]
+      },
+      {
+        "condition": "monetization_model includes 'IAP'",
+        "requirements": [
+          "Store integration (App Store, Google Play, Steam, etc.)",
+          "Server-side purchase receipt validation",
+          "Virtual currency balance management",
+          "Purchase history and analytics",
+          "Refund and chargeback handling"
+        ]
+      },
+      {
+        "condition": "iap_types includes 'Gacha'",
+        "requirements": [
+          "Probability disclosure system",
+          "Pull history tracking",
+          "Pity system implementation (if applicable)",
+          "Regional compliance feature flags"
+        ]
+      },
+      {
+        "condition": "age_rating == 'Everyone' AND multiplayer_mode NOT 'Single-player only'",
+        "requirements": [
+          "COPPA compliance review",
+          "Parental consent flow",
+          "Age-appropriate default settings",
+          "Limited data collection for minors"
+        ]
+      },
+      {
+        "condition": "anti_cheat_level includes 'server-authoritative' OR anti_cheat_level includes 'Strong'",
+        "requirements": [
+          "Server-authoritative game state",
+          "Input validation and sanity checks",
+          "Action rate limiting",
+          "Anomaly detection and logging",
+          "Ban system and appeals process"
+        ]
+      },
+      {
+        "condition": "cloud_features includes 'Live events'",
+        "requirements": [
+          "Remote configuration system",
+          "Content delivery pipeline for events",
+          "Time-synchronized event start/end",
+          "Event analytics and participation tracking"
+        ]
+      },
+      {
+        "condition": "social_features includes 'Voice chat' OR social_features includes 'In-game chat'",
+        "requirements": [
+          "Real-time communication infrastructure",
+          "Content moderation system",
+          "Mute and block functionality",
+          "Reporting and review workflow"
+        ]
+      }
+    ]
+  },
+
+  "architectural_recommendations": {
+    "multiplayer_realtime": {
+      "condition": "multiplayer_mode includes 'Online multiplayer'",
+      "recommendations": [
+        "Consider using established game server solutions (Photon, PlayFab, GameLift)",
+        "Implement client-side prediction for responsive feel",
+        "Design for eventual consistency in non-critical game state",
+        "Plan for regional server deployment to minimize latency"
+      ]
+    },
+    "mobile_f2p": {
+      "condition": "game_platform includes 'iOS' OR game_platform includes 'Android' AND monetization_model includes 'Free-to-play'",
+      "recommendations": [
+        "Implement analytics from day one (retention, monetization, engagement)",
+        "Design economy for live ops adjustments",
+        "Plan A/B testing infrastructure early",
+        "Consider ad mediation for optimal eCPM"
+      ]
+    }
+  },
+
+  "metadata": {
+    "author": "APL Framework",
+    "created": "2024-01-15",
+    "last_updated": "2024-01-15",
+    "related_domains": ["mobile_app", "saas", "entertainment"],
+    "references": [
+      "ESRB Rating Guidelines",
+      "COPPA Compliance Guide",
+      "App Store Review Guidelines",
+      "Google Play Policy Center"
+    ]
+  }
+}

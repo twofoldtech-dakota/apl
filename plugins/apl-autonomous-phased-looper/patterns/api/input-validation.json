@@ -1,0 +1,59 @@
+{
+  "id": "sp_api_input_validation_001",
+  "name": "Input Validation with Zod",
+  "version": "1.0.0",
+  "type": "success_pattern",
+
+  "task_type": "validation",
+  "applicable_when": [
+    "input validation",
+    "request validation",
+    "schema validation",
+    "form validation",
+    "api validation",
+    "validate request body"
+  ],
+
+  "approach": "Use Zod for runtime schema validation with TypeScript type inference. Define schemas once, use for both validation and type generation. Validate at API boundary (middleware) before business logic. Return detailed validation errors to clients.",
+
+  "rationale": "Zod provides type-safe runtime validation with excellent TypeScript integration. Single schema source prevents type drift. Middleware validation catches errors early and keeps controllers clean. Detailed errors help clients fix issues.",
+
+  "code_examples": {
+    "schema_definition": "// src/schemas/user.ts\nimport { z } from 'zod';\n\nexport const createUserSchema = z.object({\n  body: z.object({\n    email: z.string().email('Invalid email format'),\n    password: z.string()\n      .min(8, 'Password must be at least 8 characters')\n      .regex(/[A-Z]/, 'Password must contain an uppercase letter')\n      .regex(/[0-9]/, 'Password must contain a number'),\n    name: z.string().min(1, 'Name is required').max(100)\n  })\n});\n\nexport const updateUserSchema = z.object({\n  body: z.object({\n    email: z.string().email().optional(),\n    name: z.string().min(1).max(100).optional()\n  }).refine(data => Object.keys(data).length > 0, {\n    message: 'At least one field must be provided'\n  })\n});\n\nexport const userIdParamSchema = z.object({\n  params: z.object({\n    id: z.string().uuid('Invalid user ID format')\n  })\n});\n\n// Infer types from schemas\nexport type CreateUserInput = z.infer<typeof createUserSchema>['body'];\nexport type UpdateUserInput = z.infer<typeof updateUserSchema>['body'];",
+
+    "validation_middleware": "// src/middleware/validate.ts\nimport { Request, Response, NextFunction } from 'express';\nimport { AnyZodObject, ZodError } from 'zod';\n\nexport function validate(schema: AnyZodObject) {\n  return async (req: Request, res: Response, next: NextFunction) => {\n    try {\n      await schema.parseAsync({\n        body: req.body,\n        query: req.query,\n        params: req.params\n      });\n      next();\n    } catch (error) {\n      if (error instanceof ZodError) {\n        return res.status(400).json({\n          error: {\n            code: 'VALIDATION_ERROR',\n            message: 'Invalid request data',\n            details: error.errors.map(e => ({\n              path: e.path.join('.'),\n              message: e.message\n            }))\n          }\n        });\n      }\n      next(error);\n    }\n  };\n}",
+
+    "usage_in_routes": "// src/routes/users.ts\nimport { Router } from 'express';\nimport { validate } from '../middleware/validate';\nimport {\n  createUserSchema,\n  updateUserSchema,\n  userIdParamSchema\n} from '../schemas/user';\nimport * as userController from '../controllers/userController';\n\nconst router = Router();\n\n// Validation happens before controller\nrouter.post('/',\n  validate(createUserSchema),\n  userController.createUser\n);\n\nrouter.patch('/:id',\n  validate(userIdParamSchema.merge(updateUserSchema)),\n  userController.updateUser\n);\n\nexport default router;",
+
+    "typed_controller": "// src/controllers/userController.ts\nimport { Request, Response, NextFunction } from 'express';\nimport { CreateUserInput } from '../schemas/user';\n\nexport async function createUser(\n  req: Request<{}, {}, CreateUserInput>,\n  res: Response,\n  next: NextFunction\n) {\n  // req.body is typed as CreateUserInput\n  // and already validated\n  const { email, password, name } = req.body;\n  // ...\n}"
+  },
+
+  "success_indicators": [
+    "Schemas defined once, used for validation and types",
+    "Validation in middleware, not controllers",
+    "Detailed error messages with field paths",
+    "Request handlers have typed bodies",
+    "Composable schemas (merge, extend)"
+  ],
+
+  "anti_patterns_avoided": [
+    "ap_validation_in_controller_001",
+    "ap_validation_type_drift_001"
+  ],
+
+  "related_patterns": [
+    "sp_api_rest_endpoint_001",
+    "sp_api_error_handling_001"
+  ],
+
+  "tags": ["validation", "zod", "typescript", "api", "middleware"],
+
+  "metadata": {
+    "author": "APL Starter Library",
+    "created": "2024-01-15",
+    "success_count": 0,
+    "frameworks": ["express", "fastify"],
+    "languages": ["typescript"],
+    "alternatives": ["joi", "yup", "class-validator"]
+  }
+}

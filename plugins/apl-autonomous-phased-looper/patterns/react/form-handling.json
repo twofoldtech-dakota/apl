@@ -1,0 +1,58 @@
+{
+  "id": "sp_react_form_handling_001",
+  "name": "React Form Handling Pattern",
+  "version": "1.0.0",
+  "type": "success_pattern",
+
+  "task_type": "form-handling",
+  "applicable_when": [
+    "form handling",
+    "react form",
+    "form validation",
+    "form submission",
+    "input handling",
+    "controlled inputs"
+  ],
+
+  "approach": "Use controlled components with React Hook Form for complex forms, or useState for simple ones. Validate on blur and submit. Show inline errors near fields. Disable submit during submission. Handle both client and server errors gracefully.",
+
+  "rationale": "React Hook Form minimizes re-renders while providing robust validation. Controlled components ensure React is the source of truth. Inline errors improve UX by showing problems where they occur. Submission state prevents duplicate submissions.",
+
+  "code_examples": {
+    "simple_form": "// src/components/ContactForm/ContactForm.tsx\nimport { FC, useState, FormEvent, ChangeEvent } from 'react';\n\ninterface FormData {\n  name: string;\n  email: string;\n  message: string;\n}\n\ninterface FormErrors {\n  name?: string;\n  email?: string;\n  message?: string;\n}\n\nexport const ContactForm: FC = () => {\n  const [formData, setFormData] = useState<FormData>({\n    name: '',\n    email: '',\n    message: ''\n  });\n  const [errors, setErrors] = useState<FormErrors>({});\n  const [isSubmitting, setIsSubmitting] = useState(false);\n  const [submitSuccess, setSubmitSuccess] = useState(false);\n\n  const validate = (): boolean => {\n    const newErrors: FormErrors = {};\n\n    if (!formData.name.trim()) {\n      newErrors.name = 'Name is required';\n    }\n\n    if (!formData.email.trim()) {\n      newErrors.email = 'Email is required';\n    } else if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(formData.email)) {\n      newErrors.email = 'Invalid email format';\n    }\n\n    if (!formData.message.trim()) {\n      newErrors.message = 'Message is required';\n    }\n\n    setErrors(newErrors);\n    return Object.keys(newErrors).length === 0;\n  };\n\n  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {\n    const { name, value } = e.target;\n    setFormData(prev => ({ ...prev, [name]: value }));\n    // Clear error when user starts typing\n    if (errors[name as keyof FormErrors]) {\n      setErrors(prev => ({ ...prev, [name]: undefined }));\n    }\n  };\n\n  const handleSubmit = async (e: FormEvent) => {\n    e.preventDefault();\n\n    if (!validate()) return;\n\n    setIsSubmitting(true);\n    try {\n      await submitContactForm(formData);\n      setSubmitSuccess(true);\n      setFormData({ name: '', email: '', message: '' });\n    } catch (error) {\n      setErrors({ message: 'Failed to submit. Please try again.' });\n    } finally {\n      setIsSubmitting(false);\n    }\n  };\n\n  return (\n    <form onSubmit={handleSubmit} noValidate>\n      <div>\n        <label htmlFor=\"name\">Name</label>\n        <input\n          id=\"name\"\n          name=\"name\"\n          value={formData.name}\n          onChange={handleChange}\n          aria-invalid={!!errors.name}\n          aria-describedby={errors.name ? 'name-error' : undefined}\n        />\n        {errors.name && <span id=\"name-error\" role=\"alert\">{errors.name}</span>}\n      </div>\n      {/* Similar for email and message */}\n      <button type=\"submit\" disabled={isSubmitting}>\n        {isSubmitting ? 'Sending...' : 'Send'}\n      </button>\n    </form>\n  );\n};",
+
+    "react_hook_form": "// src/components/RegistrationForm/RegistrationForm.tsx\nimport { FC } from 'react';\nimport { useForm } from 'react-hook-form';\nimport { zodResolver } from '@hookform/resolvers/zod';\nimport { z } from 'zod';\n\nconst registrationSchema = z.object({\n  email: z.string().email('Invalid email'),\n  password: z.string()\n    .min(8, 'Password must be at least 8 characters')\n    .regex(/[A-Z]/, 'Must contain uppercase letter')\n    .regex(/[0-9]/, 'Must contain a number'),\n  confirmPassword: z.string()\n}).refine(data => data.password === data.confirmPassword, {\n  message: 'Passwords do not match',\n  path: ['confirmPassword']\n});\n\ntype RegistrationData = z.infer<typeof registrationSchema>;\n\ninterface RegistrationFormProps {\n  onSuccess: () => void;\n}\n\nexport const RegistrationForm: FC<RegistrationFormProps> = ({ onSuccess }) => {\n  const {\n    register,\n    handleSubmit,\n    formState: { errors, isSubmitting },\n    setError\n  } = useForm<RegistrationData>({\n    resolver: zodResolver(registrationSchema)\n  });\n\n  const onSubmit = async (data: RegistrationData) => {\n    try {\n      await registerUser(data);\n      onSuccess();\n    } catch (error) {\n      if (error instanceof ApiError && error.code === 'EMAIL_EXISTS') {\n        setError('email', { message: 'Email already registered' });\n      } else {\n        setError('root', { message: 'Registration failed. Please try again.' });\n      }\n    }\n  };\n\n  return (\n    <form onSubmit={handleSubmit(onSubmit)} noValidate>\n      <div>\n        <label htmlFor=\"email\">Email</label>\n        <input\n          {...register('email')}\n          type=\"email\"\n          id=\"email\"\n          aria-invalid={!!errors.email}\n        />\n        {errors.email && <span role=\"alert\">{errors.email.message}</span>}\n      </div>\n\n      <div>\n        <label htmlFor=\"password\">Password</label>\n        <input\n          {...register('password')}\n          type=\"password\"\n          id=\"password\"\n          aria-invalid={!!errors.password}\n        />\n        {errors.password && <span role=\"alert\">{errors.password.message}</span>}\n      </div>\n\n      <div>\n        <label htmlFor=\"confirmPassword\">Confirm Password</label>\n        <input\n          {...register('confirmPassword')}\n          type=\"password\"\n          id=\"confirmPassword\"\n          aria-invalid={!!errors.confirmPassword}\n        />\n        {errors.confirmPassword && (\n          <span role=\"alert\">{errors.confirmPassword.message}</span>\n        )}\n      </div>\n\n      {errors.root && <div role=\"alert\">{errors.root.message}</div>}\n\n      <button type=\"submit\" disabled={isSubmitting}>\n        {isSubmitting ? 'Registering...' : 'Register'}\n      </button>\n    </form>\n  );\n};",
+
+    "custom_input": "// src/components/FormInput/FormInput.tsx\nimport { FC, InputHTMLAttributes, forwardRef } from 'react';\nimport { FieldError } from 'react-hook-form';\nimport styles from './FormInput.module.css';\n\ninterface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {\n  label: string;\n  error?: FieldError;\n}\n\nexport const FormInput = forwardRef<HTMLInputElement, FormInputProps>(\n  ({ label, error, id, ...props }, ref) => {\n    const inputId = id || props.name;\n    const errorId = `${inputId}-error`;\n\n    return (\n      <div className={styles.formGroup}>\n        <label htmlFor={inputId} className={styles.label}>\n          {label}\n        </label>\n        <input\n          ref={ref}\n          id={inputId}\n          className={`${styles.input} ${error ? styles.inputError : ''}`}\n          aria-invalid={!!error}\n          aria-describedby={error ? errorId : undefined}\n          {...props}\n        />\n        {error && (\n          <span id={errorId} className={styles.error} role=\"alert\">\n            {error.message}\n          </span>\n        )}\n      </div>\n    );\n  }\n);\n\nFormInput.displayName = 'FormInput';"
+  },
+
+  "success_indicators": [
+    "Form uses controlled components",
+    "Validation runs on blur and submit",
+    "Inline errors near each field",
+    "Submit button disabled during submission",
+    "Server errors handled gracefully",
+    "Form is accessible (labels, aria attributes)"
+  ],
+
+  "anti_patterns_avoided": [
+    "ap_react_uncontrolled_form_001",
+    "ap_react_validation_on_change_only_001"
+  ],
+
+  "related_patterns": [
+    "sp_react_functional_001",
+    "sp_api_input_validation_001"
+  ],
+
+  "tags": ["react", "forms", "validation", "hooks", "accessibility"],
+
+  "metadata": {
+    "author": "APL Starter Library",
+    "created": "2024-01-15",
+    "success_count": 0,
+    "frameworks": ["react", "next.js"],
+    "languages": ["typescript"],
+    "libraries": ["react-hook-form", "zod"]
+  }
+}

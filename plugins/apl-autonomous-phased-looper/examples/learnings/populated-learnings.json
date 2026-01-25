@@ -1,0 +1,235 @@
+{
+  "version": "1.0.0",
+  "project_id": "example-ecommerce-api",
+  "last_updated": "2024-01-15T14:30:00Z",
+
+  "success_patterns": [
+    {
+      "id": "sp_auth_jwt_001",
+      "task_type": "authentication",
+      "approach": "Use short-lived access tokens (15min) with refresh tokens (7d). Store refresh tokens server-side for revocation.",
+      "context": "API authentication, stateless auth",
+      "success_count": 8,
+      "last_used": "2024-01-15T10:30:00Z",
+      "code_example": "const accessToken = jwt.sign({ userId }, secret, { expiresIn: '15m' });",
+      "tags": ["security", "authentication", "jwt"]
+    },
+    {
+      "id": "sp_auth_bcrypt_001",
+      "task_type": "authentication",
+      "approach": "Use bcrypt with cost factor 10-12 for password hashing. Always use async methods.",
+      "context": "Password storage, user registration",
+      "success_count": 12,
+      "last_used": "2024-01-15T10:30:00Z",
+      "code_example": "const hash = await bcrypt.hash(password, 10);",
+      "tags": ["security", "password", "bcrypt"]
+    },
+    {
+      "id": "sp_api_controller_001",
+      "task_type": "api-endpoint",
+      "approach": "Separate routes (HTTP mapping) from controllers (business logic). Routes stay thin.",
+      "context": "Express API endpoints",
+      "success_count": 15,
+      "last_used": "2024-01-14T16:00:00Z",
+      "tags": ["api", "architecture", "express"]
+    },
+    {
+      "id": "sp_api_error_middleware_001",
+      "task_type": "error-handling",
+      "approach": "Centralized error middleware with custom error classes. Never expose stack traces in production.",
+      "context": "Express error handling",
+      "success_count": 10,
+      "last_used": "2024-01-14T16:00:00Z",
+      "code_example": "app.use((err, req, res, next) => { /* format and log */ });",
+      "tags": ["api", "errors", "middleware"]
+    },
+    {
+      "id": "sp_validation_zod_001",
+      "task_type": "validation",
+      "approach": "Use Zod for runtime validation with TypeScript type inference. Validate in middleware.",
+      "context": "Request body validation",
+      "success_count": 7,
+      "last_used": "2024-01-13T11:00:00Z",
+      "code_example": "const schema = z.object({ email: z.string().email() });",
+      "tags": ["validation", "zod", "typescript"]
+    },
+    {
+      "id": "sp_db_repository_001",
+      "task_type": "data-access",
+      "approach": "Abstract database operations behind repository classes. Services never import DB client directly.",
+      "context": "Database queries, data layer",
+      "success_count": 6,
+      "last_used": "2024-01-12T09:00:00Z",
+      "tags": ["database", "repository", "architecture"]
+    },
+    {
+      "id": "sp_test_mocking_001",
+      "task_type": "testing",
+      "approach": "Mock external dependencies. Use factories for test data. AAA pattern (Arrange-Act-Assert).",
+      "context": "Unit testing services",
+      "success_count": 9,
+      "last_used": "2024-01-15T12:00:00Z",
+      "tags": ["testing", "mocking", "jest"]
+    },
+    {
+      "id": "sp_async_await_001",
+      "task_type": "async-code",
+      "approach": "Use async/await over callbacks or raw promises. Always handle errors with try/catch.",
+      "context": "Asynchronous operations",
+      "success_count": 20,
+      "last_used": "2024-01-15T14:00:00Z",
+      "tags": ["async", "promises", "error-handling"]
+    },
+    {
+      "id": "sp_env_config_001",
+      "task_type": "configuration",
+      "approach": "Load secrets from environment variables. Validate required env vars at startup.",
+      "context": "Application configuration",
+      "success_count": 5,
+      "last_used": "2024-01-10T08:00:00Z",
+      "code_example": "const secret = process.env.JWT_SECRET || throw new Error('Missing JWT_SECRET');",
+      "tags": ["configuration", "security", "environment"]
+    },
+    {
+      "id": "sp_typescript_strict_001",
+      "task_type": "typescript",
+      "approach": "Enable strict mode in tsconfig. Use explicit return types on public functions.",
+      "context": "TypeScript configuration",
+      "success_count": 4,
+      "last_used": "2024-01-08T10:00:00Z",
+      "tags": ["typescript", "types", "configuration"]
+    }
+  ],
+
+  "anti_patterns": [
+    {
+      "id": "ap_security_plaintext_001",
+      "task_type": "authentication",
+      "approach": "Storing passwords in plain text",
+      "reason": "Security vulnerability - passwords can be read directly from database",
+      "failure_count": 0,
+      "last_encountered": "2024-01-02T10:00:00Z",
+      "alternative": "sp_auth_bcrypt_001"
+    },
+    {
+      "id": "ap_auth_long_token_001",
+      "task_type": "authentication",
+      "approach": "Using long-lived access tokens (hours or days)",
+      "reason": "Extended window of vulnerability if token is compromised",
+      "failure_count": 1,
+      "last_encountered": "2024-01-05T14:00:00Z",
+      "alternative": "sp_auth_jwt_001"
+    },
+    {
+      "id": "ap_error_swallow_001",
+      "task_type": "error-handling",
+      "approach": "Catching errors without logging or re-throwing",
+      "reason": "Silent failures make debugging impossible",
+      "failure_count": 2,
+      "last_encountered": "2024-01-10T09:00:00Z",
+      "alternative": "sp_api_error_middleware_001"
+    },
+    {
+      "id": "ap_any_type_001",
+      "task_type": "typescript",
+      "approach": "Using 'any' type for complex objects",
+      "reason": "Defeats the purpose of TypeScript, hides bugs",
+      "failure_count": 3,
+      "last_encountered": "2024-01-12T16:00:00Z",
+      "alternative": "Define proper interfaces"
+    },
+    {
+      "id": "ap_argon2_native_001",
+      "task_type": "authentication",
+      "approach": "Using argon2 in environments without native build tools",
+      "reason": "Native module build failures in CI/CD and some hosts",
+      "failure_count": 2,
+      "last_encountered": "2024-01-08T11:00:00Z",
+      "alternative": "Use bcrypt or bcryptjs instead"
+    },
+    {
+      "id": "ap_sync_bcrypt_001",
+      "task_type": "authentication",
+      "approach": "Using synchronous bcrypt methods",
+      "reason": "Blocks event loop, degrades server performance",
+      "failure_count": 1,
+      "last_encountered": "2024-01-06T10:00:00Z",
+      "alternative": "Use async bcrypt.hash() and bcrypt.compare()"
+    }
+  ],
+
+  "user_preferences": {
+    "code_style": {
+      "naming": "camelCase",
+      "variables": "const/let",
+      "functions": "arrow",
+      "async": "async/await",
+      "comments": "minimal"
+    },
+    "preferred_libraries": [
+      "bcrypt",
+      "express",
+      "zod",
+      "jsonwebtoken",
+      "jest",
+      "supertest"
+    ],
+    "avoided_libraries": [
+      "moment",
+      "argon2",
+      "callback-based libs"
+    ],
+    "architecture_preferences": [
+      "controller pattern",
+      "repository pattern",
+      "middleware for cross-cutting concerns"
+    ]
+  },
+
+  "project_knowledge": {
+    "entry_points": ["src/index.ts", "src/app.ts"],
+    "test_command": "npm test",
+    "build_command": "npm run build",
+    "lint_command": "npm run lint",
+    "key_files": {
+      "config": "src/config/index.ts",
+      "types": "src/types/index.ts",
+      "errors": "src/errors/index.ts",
+      "middleware": "src/middleware/index.ts"
+    },
+    "conventions": {
+      "model_pattern": "Class with interface export",
+      "route_pattern": "Express router with controllers",
+      "test_pattern": "Adjacent *.test.ts files",
+      "error_pattern": "Custom error classes extending AppError"
+    },
+    "dependencies": {
+      "runtime": ["express", "bcrypt", "jsonwebtoken", "zod", "mongoose"],
+      "dev": ["typescript", "jest", "supertest", "@types/node", "@types/express"]
+    }
+  },
+
+  "technique_stats": {
+    "react_pattern": {
+      "success": 45,
+      "failure": 5,
+      "success_rate": 0.90,
+      "avg_iterations": 2.1
+    },
+    "cove_verification": {
+      "caught_issues": 22,
+      "false_positives": 2,
+      "precision": 0.92
+    },
+    "reflexion": {
+      "reviews_conducted": 18,
+      "issues_found": 7,
+      "improvements_rate": 0.39
+    },
+    "parallel_execution": {
+      "sessions_used": 15,
+      "avg_tasks_parallelized": 2.8,
+      "time_saved_percent": 35
+    }
+  }
+}

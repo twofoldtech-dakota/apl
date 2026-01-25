@@ -1,0 +1,59 @@
+{
+  "id": "sp_react_functional_001",
+  "name": "React Functional Component with Hooks",
+  "version": "1.0.0",
+  "type": "success_pattern",
+
+  "task_type": "react-component",
+  "applicable_when": [
+    "react component",
+    "functional component",
+    "react hooks",
+    "ui component",
+    "tsx component",
+    "create component"
+  ],
+
+  "approach": "Use functional components with hooks for state and effects. Extract custom hooks for reusable logic. Colocate styles, tests, and types with components. Use TypeScript for props typing. Keep components focused - extract sub-components when complexity grows.",
+
+  "rationale": "Functional components with hooks are the modern React pattern, offering better performance and simpler mental model than class components. Custom hooks enable logic reuse without render props or HOCs. Colocation keeps related code together.",
+
+  "code_examples": {
+    "basic_component": "// src/components/UserCard/UserCard.tsx\nimport { FC } from 'react';\nimport styles from './UserCard.module.css';\n\ninterface UserCardProps {\n  user: {\n    id: string;\n    name: string;\n    email: string;\n    avatarUrl?: string;\n  };\n  onSelect?: (userId: string) => void;\n  isSelected?: boolean;\n}\n\nexport const UserCard: FC<UserCardProps> = ({\n  user,\n  onSelect,\n  isSelected = false\n}) => {\n  const handleClick = () => {\n    onSelect?.(user.id);\n  };\n\n  return (\n    <div\n      className={`${styles.card} ${isSelected ? styles.selected : ''}`}\n      onClick={handleClick}\n      role=\"button\"\n      tabIndex={0}\n    >\n      <img\n        src={user.avatarUrl || '/default-avatar.png'}\n        alt={`${user.name}'s avatar`}\n        className={styles.avatar}\n      />\n      <div className={styles.info}>\n        <h3 className={styles.name}>{user.name}</h3>\n        <p className={styles.email}>{user.email}</p>\n      </div>\n    </div>\n  );\n};",
+
+    "component_with_state": "// src/components/Counter/Counter.tsx\nimport { FC, useState, useCallback } from 'react';\n\ninterface CounterProps {\n  initialValue?: number;\n  min?: number;\n  max?: number;\n  onChange?: (value: number) => void;\n}\n\nexport const Counter: FC<CounterProps> = ({\n  initialValue = 0,\n  min = 0,\n  max = 100,\n  onChange\n}) => {\n  const [count, setCount] = useState(initialValue);\n\n  const increment = useCallback(() => {\n    setCount(prev => {\n      const newValue = Math.min(prev + 1, max);\n      onChange?.(newValue);\n      return newValue;\n    });\n  }, [max, onChange]);\n\n  const decrement = useCallback(() => {\n    setCount(prev => {\n      const newValue = Math.max(prev - 1, min);\n      onChange?.(newValue);\n      return newValue;\n    });\n  }, [min, onChange]);\n\n  return (\n    <div className=\"counter\">\n      <button onClick={decrement} disabled={count <= min}>\n        -\n      </button>\n      <span>{count}</span>\n      <button onClick={increment} disabled={count >= max}>\n        +\n      </button>\n    </div>\n  );\n};",
+
+    "component_with_effects": "// src/components/UserProfile/UserProfile.tsx\nimport { FC, useState, useEffect } from 'react';\nimport { User, fetchUser } from '../../api/users';\n\ninterface UserProfileProps {\n  userId: string;\n}\n\nexport const UserProfile: FC<UserProfileProps> = ({ userId }) => {\n  const [user, setUser] = useState<User | null>(null);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState<string | null>(null);\n\n  useEffect(() => {\n    let isMounted = true;\n\n    const loadUser = async () => {\n      setLoading(true);\n      setError(null);\n\n      try {\n        const data = await fetchUser(userId);\n        if (isMounted) {\n          setUser(data);\n        }\n      } catch (err) {\n        if (isMounted) {\n          setError(err instanceof Error ? err.message : 'Failed to load user');\n        }\n      } finally {\n        if (isMounted) {\n          setLoading(false);\n        }\n      }\n    };\n\n    loadUser();\n\n    // Cleanup to prevent state updates on unmounted component\n    return () => {\n      isMounted = false;\n    };\n  }, [userId]);\n\n  if (loading) return <div>Loading...</div>;\n  if (error) return <div>Error: {error}</div>;\n  if (!user) return <div>User not found</div>;\n\n  return (\n    <div className=\"user-profile\">\n      <h1>{user.name}</h1>\n      <p>{user.email}</p>\n    </div>\n  );\n};",
+
+    "custom_hook": "// src/hooks/useUser.ts\nimport { useState, useEffect } from 'react';\nimport { User, fetchUser } from '../api/users';\n\ninterface UseUserResult {\n  user: User | null;\n  loading: boolean;\n  error: string | null;\n  refetch: () => void;\n}\n\nexport function useUser(userId: string): UseUserResult {\n  const [user, setUser] = useState<User | null>(null);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState<string | null>(null);\n\n  const fetchData = async () => {\n    setLoading(true);\n    setError(null);\n    try {\n      const data = await fetchUser(userId);\n      setUser(data);\n    } catch (err) {\n      setError(err instanceof Error ? err.message : 'Failed to load');\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  useEffect(() => {\n    fetchData();\n  }, [userId]);\n\n  return { user, loading, error, refetch: fetchData };\n}\n\n// Usage in component:\n// const { user, loading, error } = useUser(userId);"
+  },
+
+  "success_indicators": [
+    "Props have TypeScript interfaces",
+    "Components are focused (single responsibility)",
+    "Effects have cleanup functions when needed",
+    "Memoization used for expensive operations",
+    "Custom hooks extract reusable logic",
+    "Accessible (roles, tabIndex for interactive elements)"
+  ],
+
+  "anti_patterns_avoided": [
+    "ap_react_class_component_001",
+    "ap_react_missing_cleanup_001",
+    "ap_react_inline_callbacks_001"
+  ],
+
+  "related_patterns": [
+    "sp_react_form_handling_001"
+  ],
+
+  "tags": ["react", "hooks", "component", "typescript", "frontend"],
+
+  "metadata": {
+    "author": "APL Starter Library",
+    "created": "2024-01-15",
+    "success_count": 0,
+    "frameworks": ["react", "next.js"],
+    "languages": ["typescript", "javascript"]
+  }
+}

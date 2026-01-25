@@ -1,0 +1,57 @@
+{
+  "id": "sp_api_error_handling_001",
+  "name": "Express Error Handling Middleware",
+  "version": "1.0.0",
+  "type": "success_pattern",
+
+  "task_type": "error-handling",
+  "applicable_when": [
+    "error handling",
+    "express error",
+    "api errors",
+    "error middleware",
+    "exception handling",
+    "error responses"
+  ],
+
+  "approach": "Create custom error classes for different error types. Use a centralized error handling middleware that formats errors consistently. Never expose stack traces or internal details in production. Log errors with context for debugging.",
+
+  "rationale": "Centralized error handling ensures consistent API responses and prevents information leakage. Custom error classes allow precise error handling and appropriate HTTP status codes. Structured logging enables debugging without exposing details to clients.",
+
+  "code_examples": {
+    "error_classes": "// src/errors/index.ts\nexport class AppError extends Error {\n  constructor(\n    public message: string,\n    public statusCode: number = 500,\n    public code: string = 'INTERNAL_ERROR',\n    public isOperational: boolean = true\n  ) {\n    super(message);\n    this.name = this.constructor.name;\n    Error.captureStackTrace(this, this.constructor);\n  }\n}\n\nexport class NotFoundError extends AppError {\n  constructor(resource: string = 'Resource') {\n    super(`${resource} not found`, 404, 'NOT_FOUND');\n  }\n}\n\nexport class ValidationError extends AppError {\n  constructor(message: string, public details?: Record<string, string>) {\n    super(message, 400, 'VALIDATION_ERROR');\n  }\n}\n\nexport class UnauthorizedError extends AppError {\n  constructor(message: string = 'Unauthorized') {\n    super(message, 401, 'UNAUTHORIZED');\n  }\n}\n\nexport class ForbiddenError extends AppError {\n  constructor(message: string = 'Forbidden') {\n    super(message, 403, 'FORBIDDEN');\n  }\n}\n\nexport class ConflictError extends AppError {\n  constructor(message: string) {\n    super(message, 409, 'CONFLICT');\n  }\n}",
+
+    "error_middleware": "// src/middleware/errorHandler.ts\nimport { Request, Response, NextFunction } from 'express';\nimport { AppError } from '../errors';\nimport { logger } from '../utils/logger';\n\nexport function errorHandler(\n  error: Error,\n  req: Request,\n  res: Response,\n  next: NextFunction\n) {\n  // Log error with context\n  logger.error({\n    error: error.message,\n    stack: error.stack,\n    path: req.path,\n    method: req.method,\n    userId: req.user?.id\n  });\n\n  // Handle known operational errors\n  if (error instanceof AppError) {\n    return res.status(error.statusCode).json({\n      error: {\n        code: error.code,\n        message: error.message,\n        ...(error instanceof ValidationError && error.details\n          ? { details: error.details }\n          : {})\n      }\n    });\n  }\n\n  // Handle unknown errors\n  const statusCode = 500;\n  const message = process.env.NODE_ENV === 'production'\n    ? 'Internal server error'\n    : error.message;\n\n  res.status(statusCode).json({\n    error: {\n      code: 'INTERNAL_ERROR',\n      message\n    }\n  });\n}",
+
+    "app_setup": "// src/app.ts\nimport express from 'express';\nimport routes from './routes';\nimport { errorHandler } from './middleware/errorHandler';\nimport { NotFoundError } from './errors';\n\nconst app = express();\n\napp.use(express.json());\napp.use('/api', routes);\n\n// 404 handler for unknown routes\napp.use((req, res, next) => {\n  next(new NotFoundError('Route'));\n});\n\n// Error handler must be last\napp.use(errorHandler);\n\nexport default app;"
+  },
+
+  "success_indicators": [
+    "All errors go through centralized middleware",
+    "Custom error classes with appropriate status codes",
+    "No stack traces in production responses",
+    "Errors are logged with request context",
+    "Consistent error response format",
+    "404 handler for unknown routes"
+  ],
+
+  "anti_patterns_avoided": [
+    "ap_api_exposed_stack_traces_001",
+    "ap_api_inconsistent_errors_001"
+  ],
+
+  "related_patterns": [
+    "sp_api_rest_endpoint_001",
+    "sp_api_input_validation_001"
+  ],
+
+  "tags": ["api", "error-handling", "express", "middleware", "logging"],
+
+  "metadata": {
+    "author": "APL Starter Library",
+    "created": "2024-01-15",
+    "success_count": 0,
+    "frameworks": ["express"],
+    "languages": ["typescript", "javascript"]
+  }
+}

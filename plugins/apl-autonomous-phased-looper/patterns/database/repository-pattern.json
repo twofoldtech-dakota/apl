@@ -1,0 +1,57 @@
+{
+  "id": "sp_db_repository_001",
+  "name": "Repository Pattern for Data Access",
+  "version": "1.0.0",
+  "type": "success_pattern",
+
+  "task_type": "data-access",
+  "applicable_when": [
+    "database access",
+    "data layer",
+    "repository pattern",
+    "data access layer",
+    "orm abstraction",
+    "database queries"
+  ],
+
+  "approach": "Abstract database operations behind repository classes. Each entity gets its own repository with CRUD methods plus domain-specific queries. Repositories handle ORM/database details, returning domain objects. Services consume repositories, never raw database clients.",
+
+  "rationale": "Repositories isolate database implementation details, making business logic testable with mocks. Changing ORMs or databases only affects repository internals. Domain-specific query methods are more readable than scattered queries.",
+
+  "code_examples": {
+    "base_repository": "// src/repositories/BaseRepository.ts\nexport interface IRepository<T> {\n  findById(id: string): Promise<T | null>;\n  findAll(): Promise<T[]>;\n  create(data: Partial<T>): Promise<T>;\n  update(id: string, data: Partial<T>): Promise<T | null>;\n  delete(id: string): Promise<boolean>;\n}\n\nexport abstract class BaseRepository<T> implements IRepository<T> {\n  constructor(protected model: any) {}\n\n  async findById(id: string): Promise<T | null> {\n    return this.model.findByPk(id);\n  }\n\n  async findAll(): Promise<T[]> {\n    return this.model.findAll();\n  }\n\n  async create(data: Partial<T>): Promise<T> {\n    return this.model.create(data);\n  }\n\n  async update(id: string, data: Partial<T>): Promise<T | null> {\n    const record = await this.findById(id);\n    if (!record) return null;\n    return (record as any).update(data);\n  }\n\n  async delete(id: string): Promise<boolean> {\n    const count = await this.model.destroy({ where: { id } });\n    return count > 0;\n  }\n}",
+
+    "user_repository": "// src/repositories/UserRepository.ts\nimport { User } from '../models/User';\nimport { BaseRepository } from './BaseRepository';\n\nexport interface IUserRepository extends IRepository<User> {\n  findByEmail(email: string): Promise<User | null>;\n  findActiveUsers(): Promise<User[]>;\n  findByRole(role: string): Promise<User[]>;\n}\n\nexport class UserRepository extends BaseRepository<User> implements IUserRepository {\n  constructor() {\n    super(User);\n  }\n\n  // Domain-specific queries\n  async findByEmail(email: string): Promise<User | null> {\n    return this.model.findOne({ where: { email } });\n  }\n\n  async findActiveUsers(): Promise<User[]> {\n    return this.model.findAll({\n      where: { status: 'active' },\n      order: [['createdAt', 'DESC']]\n    });\n  }\n\n  async findByRole(role: string): Promise<User[]> {\n    return this.model.findAll({\n      where: { role },\n      include: ['permissions']\n    });\n  }\n\n  // Override base for soft delete\n  async delete(id: string): Promise<boolean> {\n    const user = await this.findById(id);\n    if (!user) return false;\n    await (user as any).update({ status: 'deleted', deletedAt: new Date() });\n    return true;\n  }\n}",
+
+    "service_usage": "// src/services/UserService.ts\nimport { IUserRepository } from '../repositories/UserRepository';\nimport { User } from '../models/User';\n\nexport class UserService {\n  constructor(private userRepository: IUserRepository) {}\n\n  async getUserByEmail(email: string): Promise<User | null> {\n    return this.userRepository.findByEmail(email);\n  }\n\n  async createUser(data: CreateUserDto): Promise<User> {\n    // Business logic here\n    const existingUser = await this.userRepository.findByEmail(data.email);\n    if (existingUser) {\n      throw new ConflictError('Email already registered');\n    }\n\n    const passwordHash = await hashPassword(data.password);\n    return this.userRepository.create({\n      ...data,\n      passwordHash,\n      status: 'active'\n    });\n  }\n}",
+
+    "dependency_injection": "// src/container.ts\nimport { UserRepository } from './repositories/UserRepository';\nimport { UserService } from './services/UserService';\n\n// Simple DI container\nexport const container = {\n  userRepository: new UserRepository(),\n  get userService() {\n    return new UserService(this.userRepository);\n  }\n};\n\n// In tests, swap implementations\nimport { MockUserRepository } from './__mocks__/UserRepository';\ncontainer.userRepository = new MockUserRepository();"
+  },
+
+  "success_indicators": [
+    "Services never import database client directly",
+    "Each entity has its own repository",
+    "Repositories have typed interfaces",
+    "Domain-specific queries are named methods",
+    "Easy to mock for testing"
+  ],
+
+  "anti_patterns_avoided": [
+    "ap_db_queries_in_controllers_001",
+    "ap_db_orm_leakage_001"
+  ],
+
+  "related_patterns": [
+    "sp_api_rest_endpoint_001"
+  ],
+
+  "tags": ["database", "repository", "data-access", "architecture", "testing"],
+
+  "metadata": {
+    "author": "APL Starter Library",
+    "created": "2024-01-15",
+    "success_count": 0,
+    "frameworks": ["sequelize", "prisma", "typeorm", "mongoose"],
+    "languages": ["typescript", "javascript"]
+  }
+}
