@@ -2,7 +2,7 @@
   "name": "apl-marketplace",
   "owner": {
     "name": "Dakota Smith",
-    "email": "dakotasmith@example.com"
+    "email": "dakota@twofold.tech"
   },
   "metadata": {
     "description": "The ultimate autonomous coding plugin marketplace featuring APL - Autonomous Phased Looper",
@@ -17,10 +17,10 @@
       "version": "1.0.0",
       "author": {
         "name": "Dakota Smith",
-        "email": "dakotasmith@example.com"
+        "email": "dakota@twofold.tech"
       },
-      "homepage": "https://github.com/dakotasmith/apl",
-      "repository": "https://github.com/dakotasmith/apl",
+      "homepage": "https://github.com/twofoldtech-dakota/apl",
+      "repository": "https://github.com/twofoldtech-dakota/apl",
       "license": "MIT",
       "keywords": [
         "autonomous-coding",

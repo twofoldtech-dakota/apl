@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "execution": {
+    "max_iterations": -5,
+    "max_phase_iterations": "not a number",
+    "max_retry_attempts": 100
+  },
+  "parallel_execution": {
+    "enabled": "yes",
+    "max_concurrent_agents": 0
+  },
+  "learning": {
+    "enabled": null
+  }
+}

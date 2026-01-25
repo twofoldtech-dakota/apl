@@ -27,8 +27,14 @@ SESSION_STATE=$(cat "$SESSION_FILE" 2>/dev/null || echo "{}")
 # Check if there are pending learnings to persist
 PENDING_LEARNINGS=$(echo "$SESSION_STATE" | jq -r '.learning.pending_persist // []')
 
+# Check cleanup flag early so we can handle it regardless of pending learnings
+CLEANUP=$(echo "$SESSION_STATE" | jq -r '.cleanup_on_exit // false')
+
 if [ "$PENDING_LEARNINGS" = "[]" ] || [ "$PENDING_LEARNINGS" = "null" ]; then
-    # No pending learnings
+    # No pending learnings, but still handle cleanup
+    if [ "$CLEANUP" = "true" ]; then
+        rm -f "$SESSION_FILE"
+    fi
     exit 0
 fi
 

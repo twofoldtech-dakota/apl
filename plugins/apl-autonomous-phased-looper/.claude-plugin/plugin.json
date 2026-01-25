@@ -4,11 +4,11 @@
   "description": "Ultimate autonomous coding agent with phased execution (Plan → Execute → Review), self-learning across sessions, and multi-agent orchestration. Features ReAct, Chain-of-Verification, Reflexion patterns, parallel execution, and intelligent error recovery.",
   "author": {
     "name": "Dakota Smith",
-    "email": "dakotasmith@example.com",
-    "url": "https://github.com/dakotasmith"
+    "email": "dakota@twofold.tech",
+    "url": "https://github.com/twofoldtech-dakota"
   },
-  "homepage": "https://github.com/dakotasmith/apl",
-  "repository": "https://github.com/dakotasmith/apl",
+  "homepage": "https://github.com/twofoldtech-dakota/apl",
+  "repository": "https://github.com/twofoldtech-dakota/apl",
   "license": "MIT",
   "keywords": [
     "autonomous-coding",
