@@ -67,10 +67,48 @@ Handle these special invocations:
 - `/apl status` - Display current state from `.apl/state.json`
 - `/apl config` - Show master config overview (agents, hooks, settings)
 - `/apl config <section>` - Show specific section (e.g., `/apl config agents`)
+- `/apl gui` - Launch the web-based GUI control panel (see below)
 - `/apl reset` - Clear state and start fresh
 - `/apl rollback <id>` - Restore checkpoint
 - `/apl forget <pattern_id>` - Remove learned pattern
 - `/apl forget --all` - Reset all learnings
+
+## GUI Control Panel
+
+APL includes a web-based dashboard for visual monitoring and control. To launch:
+
+### `/apl gui`
+
+When the user runs `/apl gui`, execute this command to start the GUI:
+
+```bash
+# Start the GUI server (runs in background)
+nohup /path/to/plugin/gui/start.sh "$(pwd)" > /tmp/apl-gui.log 2>&1 &
+```
+
+Then inform the user:
+
+```
+[APL] GUI Control Panel starting...
+
+Open your browser to:
+  • Frontend:  http://localhost:5173
+  • API:       http://localhost:3001
+
+The GUI provides:
+  • Real-time workflow monitoring
+  • Visual task progress tracking
+  • Configuration management
+  • Learnings browser
+  • Checkpoint management
+  • One-click workflow control
+
+To stop: Kill the process or close the terminal that started it.
+```
+
+The GUI path is: `{PLUGIN_ROOT}/gui/start.sh`
+
+Where `{PLUGIN_ROOT}` is the directory containing this skill file's parent `skills/` folder.
 
 ## Output Format
 

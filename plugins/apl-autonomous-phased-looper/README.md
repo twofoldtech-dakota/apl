@@ -8,6 +8,32 @@ The ultimate autonomous coding plugin for Claude Code. APL transforms Claude int
 /apl <your coding goal>
 ```
 
+### GUI Control Panel
+
+APL includes a web-based dashboard for visual monitoring and control:
+
+```bash
+/apl gui
+```
+
+This launches:
+- **Frontend**: http://localhost:5173 - Visual dashboard
+- **API Server**: http://localhost:3001 - REST API
+- **WebSocket**: ws://localhost:3001/ws - Real-time updates
+
+**Features:**
+- Real-time workflow monitoring with phase indicators
+- Visual task progress with parallel group tracking
+- Agent activity monitor (see which of 8 agents is active)
+- ReAct loop visualization (Reason → Act → Observe → Verify)
+- Token usage tracking with context window warnings
+- Configuration management UI
+- Learnings and pattern browser
+- Checkpoint timeline with one-click rollback
+- Goal templates and history
+
+See [gui/README.md](gui/README.md) for detailed documentation.
+
 ### Examples
 
 ```bash
@@ -248,12 +274,18 @@ apl-autonomous-phased-looper/
 │   ├── tester-agent.md      # Test execution
 │   ├── reviewer-agent.md    # Quality review
 │   └── learner-agent.md     # Learning extraction
+├── gui/                     # Web-based control panel
+│   ├── client/              # React + Vite frontend
+│   ├── server/              # Express + WebSocket backend
+│   ├── shared/              # Shared TypeScript types
+│   └── start.sh             # Launcher script
 ├── hooks/
 │   └── hooks.json
 ├── scripts/
 │   ├── validate-code.sh
 │   ├── track-progress.sh
 │   └── update-learnings.sh
+├── master-config.json       # Centralized configuration
 └── templates/
     ├── apl-config.json
     └── learnings.json
