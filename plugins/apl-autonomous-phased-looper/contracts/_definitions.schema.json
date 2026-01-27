@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/twofoldtech-dakota/apl/contracts/_definitions.schema.json",
+  "title": "APL Shared Definitions",
+  "description": "Canonical type definitions shared across all APL agent contracts. Import these to ensure consistency.",
+
+  "$defs": {
+    "TaskId": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Unique task identifier (always starts at 1)"
+    },
+
+    "Timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp (e.g., 2024-01-15T14:30:00Z)"
+    },
+
+    "FilePath": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Relative or absolute file path"
+    },
+
+    "Percentage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Percentage value as number (0-100), not string"
+    },
+
+    "TaskStatus": {
+      "type": "string",
+      "enum": ["pending", "in_progress", "completed", "failed", "skipped"],
+      "description": "Canonical task execution status"
+    },
+
+    "AgentOutcome": {
+      "type": "string",
+      "enum": ["success", "partial", "failure", "needs_retry"],
+      "description": "Canonical agent execution outcome"
+    },
+
+    "ReviewStatus": {
+      "type": "string",
+      "enum": ["pass", "needs_fixes", "blocked"],
+      "description": "Review phase outcome"
+    },
+
+    "TestStatus": {
+      "type": "string",
+      "enum": ["pass", "fail", "error", "skipped"],
+      "description": "Individual test result status"
+    },
+
+    "PlanStatus": {
+      "type": "string",
+      "enum": ["ready", "needs_clarification", "scope_warning"],
+      "description": "Plan readiness status"
+    },
+
+    "Complexity": {
+      "type": "string",
+      "enum": ["simple", "medium", "complex"],
+      "description": "Task or goal complexity level"
+    },
+
+    "Confidence": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Execution confidence level"
+    },
+
+    "Severity": {
+      "type": "string",
+      "enum": ["critical", "warning", "suggestion"],
+      "description": "Issue severity level"
+    },
+
+    "ErrorType": {
+      "type": "string",
+      "enum": ["syntax", "type", "runtime", "logic", "dependency", "environment", "timeout", "unknown"],
+      "description": "Classified error type for recovery strategy selection"
+    },
+
+    "VerificationMethod": {
+      "type": "string",
+      "enum": ["code_inspection", "compilation", "type_check", "test", "lint", "manual"],
+      "description": "How a criterion was verified"
+    },
+
+    "FileAction": {
+      "type": "string",
+      "enum": ["create", "modify", "delete", "rename"],
+      "description": "Type of file operation"
+    },
+
+    "PatternId": {
+      "type": "string",
+      "pattern": "^(sp|ap)_[a-z][a-z0-9_]*_[0-9]{3}$",
+      "description": "Pattern identifier: sp_category_name_NNN (success) or ap_category_name_NNN (anti)"
+    },
+
+    "Error": {
+      "type": "object",
+      "description": "Standardized error object",
+      "required": ["message", "type"],
+      "properties": {
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable error message"
+        },
+        "type": {
+          "$ref": "#/$defs/ErrorType"
+        },
+        "file_path": {
+          "$ref": "#/$defs/FilePath"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "stack_trace": {
+          "type": "string"
+        },
+        "recovery_hint": {
+          "type": "string",
+          "description": "Suggested recovery action"
+        }
+      }
+    },
+
+    "FileChange": {
+      "type": "object",
+      "description": "Standardized file modification record",
+      "required": ["file_path", "action"],
+      "properties": {
+        "file_path": {
+          "$ref": "#/$defs/FilePath"
+        },
+        "action": {
+          "$ref": "#/$defs/FileAction"
+        },
+        "diff": {
+          "type": "string",
+          "description": "Unified diff (required for modify action)"
+        },
+        "task_id": {
+          "$ref": "#/$defs/TaskId"
+        },
+        "timestamp": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      },
+      "if": {
+        "properties": { "action": { "const": "modify" } }
+      },
+      "then": {
+        "required": ["file_path", "action", "diff"]
+      }
+    },
+
+    "CriterionVerification": {
+      "type": "object",
+      "description": "Verification of a single success criterion",
+      "required": ["criterion", "met", "verified_by"],
+      "properties": {
+        "task_id": {
+          "$ref": "#/$defs/TaskId"
+        },
+        "criterion": {
+          "type": "string",
+          "minLength": 5
+        },
+        "met": {
+          "type": "boolean"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "Proof that criterion was met/not met"
+        },
+        "verified_by": {
+          "$ref": "#/$defs/VerificationMethod"
+        },
+        "timestamp": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      }
+    },
+
+    "SuccessPattern": {
+      "type": "object",
+      "description": "A learned successful approach",
+      "required": ["id", "task_type", "approach"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/PatternId"
+        },
+        "task_type": {
+          "type": "string"
+        },
+        "approach": {
+          "type": "string",
+          "minLength": 10
+        },
+        "applicable_when": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "success_count": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 1
+        },
+        "last_used": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      }
+    },
+
+    "AntiPattern": {
+      "type": "object",
+      "description": "A learned approach to avoid",
+      "required": ["id", "task_type", "approach", "why_fails"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/PatternId"
+        },
+        "task_type": {
+          "type": "string"
+        },
+        "approach": {
+          "type": "string"
+        },
+        "why_fails": {
+          "type": "string",
+          "minLength": 10
+        },
+        "alternative": {
+          "type": "string",
+          "description": "What to do instead"
+        },
+        "failure_count": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "last_encountered": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      }
+    }
+  }
+}

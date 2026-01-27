@@ -21,8 +21,13 @@ if [ ! -f "$SESSION_FILE" ]; then
     exit 0
 fi
 
-# Read session state
-SESSION_STATE=$(cat "$SESSION_FILE" 2>/dev/null || echo "{}")
+# Lock file for safe concurrent access
+LOCK_FILE="$APL_DIR/.state.lock"
+
+# Read session state (with lock to prevent race with track-progress.sh)
+SESSION_STATE=$(
+    flock -w 5 "$LOCK_FILE" cat "$SESSION_FILE" 2>/dev/null || echo "{}"
+)
 
 # Check if there are pending learnings to persist
 PENDING_LEARNINGS=$(echo "$SESSION_STATE" | jq -r '.learning.pending_persist // []')
@@ -67,17 +72,29 @@ if [ ! -f "$LEARNINGS_FILE" ]; then
 EOF
 fi
 
-# Update last_updated timestamp
-UPDATED_LEARNINGS=$(cat "$LEARNINGS_FILE" | jq --arg ts "$TIMESTAMP" '.last_updated = $ts')
-echo "$UPDATED_LEARNINGS" > "$LEARNINGS_FILE"
+# Update last_updated timestamp with safe atomic write
+TEMP_FILE=$(mktemp "${LEARNINGS_FILE}.XXXXXX")
+if UPDATED_LEARNINGS=$(cat "$LEARNINGS_FILE" | jq --arg ts "$TIMESTAMP" '.last_updated = $ts') && \
+   [ -n "$UPDATED_LEARNINGS" ] && \
+   echo "$UPDATED_LEARNINGS" | jq empty 2>/dev/null; then
+    echo "$UPDATED_LEARNINGS" > "$TEMP_FILE"
+    mv "$TEMP_FILE" "$LEARNINGS_FILE"
+else
+    rm -f "$TEMP_FILE"
+    echo "{\"continue\": true, \"warning\": \"Failed to update learnings timestamp\"}"
+    exit 0
+fi
 
 # Note: The actual learning extraction and merging is done by the learner-agent
 # This script just ensures the infrastructure is in place and timestamps are updated
 
-# Clean up session state if requested
+# Clean up session state if requested (with lock)
 CLEANUP=$(echo "$SESSION_STATE" | jq -r '.cleanup_on_exit // false')
 if [ "$CLEANUP" = "true" ]; then
-    rm -f "$SESSION_FILE"
+    (
+        flock -w 5 200
+        rm -f "$SESSION_FILE"
+    ) 200>"$LOCK_FILE"
 fi
 
 echo "{\"continue\": true, \"message\": \"Learnings checkpoint saved\"}"

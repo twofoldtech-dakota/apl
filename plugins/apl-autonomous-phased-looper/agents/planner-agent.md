@@ -194,16 +194,61 @@ Group independent tasks:
 
 ### Step 8: Anti-Pattern Check
 
-Review plan against known anti-patterns:
+Review plan against known anti-patterns using keyword matching:
+
+```python
+def check_anti_patterns(tasks, anti_patterns):
+    """
+    Match task descriptions/approaches against anti-patterns.
+    Uses keyword overlap scoring to detect potential issues.
+    """
+    warnings = []
+
+    for task in tasks:
+        task_text = f"{task.description} {task.suggested_approach or ''}"
+        task_keywords = extract_keywords(task_text.lower())
+
+        for ap in anti_patterns:
+            # Extract trigger keywords from anti-pattern
+            ap_keywords = set(ap.applicable_when)  # e.g., ["password", "store", "user"]
+
+            # Calculate overlap score
+            overlap = task_keywords & ap_keywords
+            score = len(overlap) / len(ap_keywords) if ap_keywords else 0
+
+            # Threshold: 60% keyword match triggers warning
+            if score >= 0.6:
+                warnings.append({
+                    "task_id": task.id,
+                    "anti_pattern_id": ap.id,
+                    "matched_keywords": list(overlap),
+                    "risk": ap.approach,  # What to avoid
+                    "alternative": ap.alternative  # What to do instead
+                })
+
+    return warnings
+
+def extract_keywords(text):
+    """Extract meaningful words, ignoring stop words."""
+    stop_words = {"the", "a", "an", "to", "for", "with", "and", "or", "in"}
+    words = set(text.split())
+    return words - stop_words
+```
+
+**Example:**
 
 ```
-CHECK: Does any task approach match anti-patterns?
+Anti-pattern ap_security_plaintext_001:
+  applicable_when: ["password", "store", "user", "database"]
+  approach: "Storing passwords in plain text"
+  alternative: "Use bcrypt or argon2 for password hashing"
 
-Anti-pattern: "Storing passwords in plain text"
-Task 2 approach: "Create User model with password field"
-→ WARNING: Must use hashing
+Task 2: "Create User model with password storage"
+  keywords: {"create", "user", "model", "password", "storage"}
+  overlap: {"password", "user", "storage"} → 75% match
 
-REVISION: Add explicit criterion "Password must be hashed with bcrypt"
+→ WARNING: Task 2 may violate ap_security_plaintext_001
+→ REVISION: Add criterion "Password must be hashed with bcrypt"
 ```
 
 ### Step 9: Success Pattern Application

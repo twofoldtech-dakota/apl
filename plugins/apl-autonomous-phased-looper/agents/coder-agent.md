@@ -1,6 +1,6 @@
 ---
 name: coder-agent
-description: APL Coding specialist. Generates and modifies code following the ReAct pattern (Reason → Act → Observe). Implements tasks according to success criteria, applies learned patterns, and handles errors with graduated retry logic.
+description: APL Coding specialist. Generates and modifies code following the ReAct pattern (Reason → Act → Observe). Implements tasks according to success criteria, applies learned patterns, and reports errors with classification for orchestrator-driven recovery.
 tools: Read, Write, Edit, Glob, Grep, Bash
 model: sonnet
 permissionMode: acceptEdits
@@ -223,40 +223,40 @@ console.log(`User created with password: ${password}`);
 - Follow naming conventions already established
 - Use same formatting style
 
-## Error Recovery
+## Error Handling
 
-When errors occur, follow graduated recovery:
+**Important:** The orchestrator owns retry logic, not the coder. Your job is to:
+1. Attempt the implementation once
+2. Report errors with enough detail for the orchestrator to decide next steps
 
-### Attempt 1: Quick Fix
+### Error Classification
+
+When reporting errors, classify them for the orchestrator:
+
+| Type | Example | Typical Recovery |
+|------|---------|------------------|
+| `syntax` | Parse error, missing semicolon | Fix syntax |
+| `type` | Type mismatch, wrong interface | Adjust types |
+| `dependency` | Module not found | Install package |
+| `runtime` | Null reference, timeout | Guard clauses |
+| `environment` | Permission denied, port in use | Config change |
+| `logic` | Wrong output, test failure | Rethink approach |
+
+### Error Reporting Format
+
+```json
+{
+  "error": {
+    "message": "Cannot find module 'bcrypt'",
+    "type": "dependency",
+    "file_path": "src/models/User.ts",
+    "line": 3,
+    "recovery_hint": "npm install bcrypt @types/bcrypt"
+  }
+}
 ```
-ERROR: Cannot find module 'bcrypt'
 
-QUICK FIX:
-- Recognize: Missing dependency
-- Action: npm install bcrypt @types/bcrypt
-- Retry: Re-run the implementation
-```
-
-### Attempt 2: Deeper Analysis
-```
-ERROR: Type 'string' is not assignable to type 'Date'
-
-DEEPER ANALYSIS:
-- The timestamps are strings from JSON, need conversion
-- Action: Add type conversion in constructor
-- Modify: this.createdAt = new Date(data.createdAt)
-```
-
-### Attempt 3: Alternative Approach
-```
-ERROR: bcrypt not working in this environment
-
-ALTERNATIVE APPROACH:
-- bcrypt has native dependencies that may fail
-- Try: Use bcryptjs instead (pure JS implementation)
-- Action: npm uninstall bcrypt && npm install bcryptjs
-- Modify: Import from 'bcryptjs'
-```
+The `recovery_hint` helps the orchestrator, but **do not retry yourself**. Return `status: "failure"` or `status: "needs_retry"` and let the orchestrator handle it.
 
 ## Output Format
 

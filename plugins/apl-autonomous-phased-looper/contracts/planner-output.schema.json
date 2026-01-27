@@ -152,7 +152,8 @@
           "type": "array",
           "items": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 1,
+            "description": "Must reference valid task IDs (starting from 1)"
           },
           "description": "IDs of tasks that must complete before this one",
           "default": []

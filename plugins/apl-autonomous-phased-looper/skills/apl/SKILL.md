@@ -22,13 +22,14 @@ Their coding goal is: **$ARGUMENTS**
 
 ## Initialization
 
-1. **Load Learnings**: Check for `.apl/learnings.json` in the project root
+1. **Load Master Config**: Load `master-config.json` from plugin root
+   - Central control hub for ALL workflow settings
+   - Contains: execution, agents, hooks, verification, learning, safety, integrations
+   - Override with project-local `.apl/config.json` if exists
+
+2. **Load Learnings**: Check for `.apl/learnings.json` in the project root
    - If exists: Load success patterns, anti-patterns, user preferences, project knowledge
    - If not: Initialize fresh learning state
-
-2. **Load Configuration**: Check for `.apl/config.json`
-   - Apply user-defined settings
-   - Use defaults for missing values
 
 3. **Initialize State**:
 ```json
@@ -64,6 +65,8 @@ Delegate to the `apl-orchestrator` agent with the goal and initialized state. Th
 Handle these special invocations:
 
 - `/apl status` - Display current state from `.apl/state.json`
+- `/apl config` - Show master config overview (agents, hooks, settings)
+- `/apl config <section>` - Show specific section (e.g., `/apl config agents`)
 - `/apl reset` - Clear state and start fresh
 - `/apl rollback <id>` - Restore checkpoint
 - `/apl forget <pattern_id>` - Remove learned pattern

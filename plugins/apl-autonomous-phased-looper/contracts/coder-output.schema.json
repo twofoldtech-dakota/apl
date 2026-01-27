@@ -7,13 +7,11 @@
   "required": ["task_id", "status"],
   "properties": {
     "task_id": {
-      "type": "integer",
-      "minimum": 1,
+      "$ref": "_definitions.schema.json#/$defs/TaskId",
       "description": "ID of the task that was attempted"
     },
     "status": {
-      "type": "string",
-      "enum": ["success", "failure", "needs_retry"],
+      "$ref": "_definitions.schema.json#/$defs/AgentOutcome",
       "description": "Outcome of the implementation attempt"
     },
     "files_created": {
@@ -35,7 +33,7 @@
     "files_deleted": {
       "type": "array",
       "items": {
-        "type": "string"
+        "$ref": "_definitions.schema.json#/$defs/FilePath"
       },
       "description": "Files that were deleted",
       "default": []
@@ -51,7 +49,7 @@
     "criteria_verification": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/CriterionVerification"
+        "$ref": "_definitions.schema.json#/$defs/CriterionVerification"
       },
       "description": "Verification status for each success criterion"
     },
@@ -64,31 +62,11 @@
       "default": []
     },
     "error": {
-      "type": ["object", "null"],
-      "description": "Error details if status is 'failure' or 'needs_retry'",
-      "properties": {
-        "message": {
-          "type": "string",
-          "description": "Error message"
-        },
-        "type": {
-          "type": "string",
-          "enum": ["syntax", "type", "runtime", "dependency", "environment", "logic"],
-          "description": "Error classification"
-        },
-        "file": {
-          "type": "string",
-          "description": "File where error occurred"
-        },
-        "line": {
-          "type": "integer",
-          "description": "Line number of error"
-        },
-        "recovery_attempted": {
-          "type": "string",
-          "description": "What recovery was tried"
-        }
-      }
+      "oneOf": [
+        { "$ref": "_definitions.schema.json#/$defs/Error" },
+        { "type": "null" }
+      ],
+      "description": "Error details if status is 'failure' or 'needs_retry'"
     },
     "suggested_learning": {
       "type": ["object", "null"],
@@ -122,15 +100,14 @@
     "FileChange": {
       "type": "object",
       "description": "A file that was created or modified",
-      "required": ["path", "action"],
+      "required": ["file_path", "action"],
       "properties": {
-        "path": {
-          "type": "string",
+        "file_path": {
+          "$ref": "_definitions.schema.json#/$defs/FilePath",
           "description": "Absolute path to the file"
         },
         "action": {
-          "type": "string",
-          "enum": ["create", "modify", "rename"],
+          "$ref": "_definitions.schema.json#/$defs/FileAction",
           "description": "Type of change"
         },
         "lines": {
@@ -151,13 +128,13 @@
     "CommandResult": {
       "type": "object",
       "description": "Result of a shell command execution",
-      "required": ["command", "result"],
+      "required": ["command", "status"],
       "properties": {
         "command": {
           "type": "string",
           "description": "The command that was run"
         },
-        "result": {
+        "status": {
           "type": "string",
           "enum": ["success", "failure"],
           "description": "Command outcome"
@@ -171,30 +148,6 @@
           "description": "Execution time in milliseconds"
         }
       }
-    },
-    "CriterionVerification": {
-      "type": "object",
-      "description": "Verification of a single success criterion",
-      "required": ["criterion", "met"],
-      "properties": {
-        "criterion": {
-          "type": "string",
-          "description": "The success criterion being verified"
-        },
-        "met": {
-          "type": "boolean",
-          "description": "Whether the criterion was satisfied"
-        },
-        "evidence": {
-          "type": "string",
-          "description": "Evidence supporting the verification"
-        },
-        "verified_by": {
-          "type": "string",
-          "enum": ["code_inspection", "compilation", "test", "manual"],
-          "description": "How verification was performed"
-        }
-      }
     }
   },
   "examples": [
@@ -203,14 +156,14 @@
       "status": "success",
       "files_created": [
         {
-          "path": "/home/user/my-api/src/models/User.ts",
+          "file_path": "/home/user/my-api/src/models/User.ts",
           "action": "create",
           "lines": 45,
           "language": "typescript",
           "summary": "User model with bcrypt password hashing"
         },
         {
-          "path": "/home/user/my-api/src/types/user.ts",
+          "file_path": "/home/user/my-api/src/types/user.ts",
           "action": "create",
           "lines": 12,
           "language": "typescript",
@@ -221,12 +174,12 @@
       "commands_run": [
         {
           "command": "npm install bcrypt @types/bcrypt",
-          "result": "success",
+          "status": "success",
           "duration_ms": 3200
         },
         {
           "command": "npx tsc --noEmit",
-          "result": "success",
+          "status": "success",
           "duration_ms": 1500
         }
       ],
@@ -271,7 +224,7 @@
       "commands_run": [
         {
           "command": "npm install bcrypt",
-          "result": "failure",
+          "status": "failure",
           "output": "gyp ERR! build error"
         }
       ],

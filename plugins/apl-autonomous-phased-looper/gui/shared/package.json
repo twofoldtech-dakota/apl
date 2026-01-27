@@ -1,0 +1,15 @@
+{
+  "name": "@apl-gui/shared",
+  "version": "1.0.0",
+  "description": "Shared types and utilities for APL GUI",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
