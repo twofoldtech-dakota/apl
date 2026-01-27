@@ -81,6 +81,11 @@ Use read-only tools to understand the project:
    - How are routes defined?
    - How is middleware used?
    - What patterns exist?
+
+4. Check for horizontal capability requirements
+   - Content tasks (blog, docs, landing pages)
+   - UI/Design tasks (components, pages, layouts)
+   - Deployment tasks (deploy, preview, rollback)
 ```
 
 ### Step 3: Tree-of-Thoughts Decomposition
@@ -262,6 +267,151 @@ Applicable to: Task 3, Task 4, Task 5
 Apply: Add refresh token handling to suggested approaches
 ```
 
+### Step 10: Horizontal Capability Detection
+
+Identify tasks requiring specialized agents (content, design, deploy):
+
+```python
+def detect_horizontal_capabilities(tasks):
+    """
+    Tag tasks that require horizontal capability agents.
+    Returns tasks with 'delegate_to' field when applicable.
+    """
+    content_keywords = [
+        "blog", "article", "documentation", "docs", "readme",
+        "landing page", "copy", "content", "seo", "meta description",
+        "social media", "email", "newsletter", "marketing", "copywriting"
+    ]
+
+    design_keywords = [
+        "component", "ui", "ux", "design", "layout", "interface",
+        "button", "form", "modal", "navigation", "page design",
+        "hero", "card", "dashboard", "style", "theme", "visual"
+    ]
+
+    deploy_keywords = [
+        "deploy", "deployment", "production", "preview",
+        "rollback", "environment variable", "domain", "hosting"
+    ]
+
+    for task in tasks:
+        task_text = task.description.lower()
+
+        if any(kw in task_text for kw in content_keywords):
+            task["delegate_to"] = "content-strategist-agent"
+            task["capability"] = "content"
+
+        elif any(kw in task_text for kw in design_keywords):
+            task["delegate_to"] = "designer-agent"
+            task["capability"] = "design"
+
+        elif any(kw in task_text for kw in deploy_keywords):
+            task["delegate_to"] = "deployer-agent"
+            task["capability"] = "deploy"
+
+    return tasks
+```
+
+### Step 11: Design-Before-Code Workflow
+
+When UI tasks are detected and `config.integrations.pencil.design_before_code` is enabled, inject design dependencies:
+
+```python
+def apply_design_before_code(tasks, config):
+    """
+    For UI/component tasks, ensure design happens before coding.
+    Adds design tasks as dependencies for code tasks.
+    """
+    if not config.integrations.pencil.design_before_code:
+        return tasks
+
+    design_tasks = []
+    code_tasks = []
+
+    for task in tasks:
+        if task.get("capability") == "design":
+            design_tasks.append(task)
+        elif has_ui_component(task):
+            code_tasks.append(task)
+
+    # For each code task with UI, check if there's a corresponding design task
+    for code_task in code_tasks:
+        component_name = extract_component_name(code_task)
+        matching_design = find_design_task(design_tasks, component_name)
+
+        if not matching_design:
+            # Create implicit design task
+            design_task = {
+                "id": generate_id(),
+                "description": f"Design {component_name} component",
+                "success_criteria": [
+                    "Design tokens defined",
+                    "Component variants specified",
+                    "Responsive behavior documented"
+                ],
+                "complexity": "simple",
+                "dependencies": [],
+                "delegate_to": "designer-agent",
+                "capability": "design"
+            }
+            tasks.insert(tasks.index(code_task), design_task)
+            code_task["dependencies"].append(design_task["id"])
+            code_task["design_artifacts"] = f"from_task_{design_task['id']}"
+
+    return tasks
+```
+
+**Example with design-before-code:**
+
+```
+Goal: "Build a landing page with hero section and pricing cards"
+
+Without design-before-code:
+  Task 1: Create Hero component
+  Task 2: Create PricingCard component
+  Task 3: Create LandingPage layout
+
+With design-before-code enabled:
+  Task 1: Design Hero component (designer-agent)
+  Task 2: Design PricingCard component (designer-agent)
+  Task 3: Create Hero component (coder-agent, depends on Task 1)
+  Task 4: Create PricingCard component (coder-agent, depends on Task 2)
+  Task 5: Create LandingPage layout (coder-agent, depends on Task 3, 4)
+```
+
+### Step 12: Content Task Enrichment
+
+For content tasks, add SEO and brand voice requirements:
+
+```python
+def enrich_content_tasks(tasks, config):
+    """
+    Add content strategy requirements to content tasks.
+    """
+    for task in tasks:
+        if task.get("capability") == "content":
+            # Add SEO criteria
+            task["success_criteria"].extend([
+                "Content includes meta description",
+                "Primary keyword appears in title and first paragraph",
+                "Content includes relevant structured data (JSON-LD)"
+            ])
+
+            # Add brand voice requirements
+            if config.content_strategy.brand_voice:
+                task["brand_voice"] = config.content_strategy.brand_voice
+                task["success_criteria"].append(
+                    f"Content matches brand tone: {config.content_strategy.brand_voice.tone}"
+                )
+
+            # Add accessibility requirements
+            task["success_criteria"].append(
+                f"Content meets {config.content_strategy.default_accessibility_level} accessibility"
+            )
+
+    return tasks
+```
+
 ## Output Format
 
 Return structured plan:
@@ -312,6 +462,20 @@ Return structured plan:
         "src/types/user.ts"
       ],
       "verification_method": "TypeScript compiles, manual review"
+    },
+    {
+      "id": 3,
+      "description": "Write API documentation",
+      "success_criteria": [
+        "README includes endpoint documentation",
+        "Content is SEO-optimized",
+        "Includes structured data"
+      ],
+      "complexity": "simple",
+      "dependencies": [1, 2],
+      "delegate_to": "content-strategist-agent",
+      "capability": "content",
+      "verification_method": "Content audit passes"
     }
   ],
   "parallel_groups": [
@@ -342,6 +506,10 @@ Before returning the plan, verify:
 - [ ] Success patterns applied where applicable
 - [ ] Verification methods are concrete and measurable
 - [ ] Total task count is manageable (typically 3-10 tasks)
+- [ ] Content tasks have `delegate_to: content-strategist-agent` and SEO criteria
+- [ ] UI tasks have `delegate_to: designer-agent` if design-before-code is enabled
+- [ ] Deploy tasks have `delegate_to: deployer-agent`
+- [ ] Design tasks precede their dependent code tasks when design-before-code is enabled
 
 ## Edge Cases
 

@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "deployer-output.schema.json",
+  "title": "DeployerOutput",
+  "description": "Output contract for deployer agent",
+  "type": "object",
+  "required": ["status"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "needs_auth", "in_progress", "failure"],
+      "description": "Outcome status of the deployment operation"
+    },
+    "mcp_available": {
+      "type": "boolean",
+      "description": "Whether Vercel MCP was available"
+    },
+    "auth_required": {
+      "type": "object",
+      "description": "Present when status is needs_auth",
+      "properties": {
+        "instructions": {
+          "type": "string",
+          "description": "Human-readable auth instructions"
+        },
+        "setup_command": {
+          "type": "string",
+          "description": "Command to set up MCP"
+        },
+        "steps": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Step-by-step setup guide"
+        },
+        "documentation": {
+          "type": "string",
+          "format": "uri",
+          "description": "Link to documentation"
+        }
+      }
+    },
+    "deployment": {
+      "type": "object",
+      "description": "Deployment details",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Vercel deployment ID"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Deployment URL"
+        },
+        "production_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Production URL if production deployment"
+        },
+        "inspect_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Vercel dashboard URL for this deployment"
+        },
+        "state": {
+          "type": "string",
+          "enum": ["QUEUED", "BUILDING", "READY", "ERROR", "CANCELED"],
+          "description": "Deployment state"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Deployment creation timestamp"
+        },
+        "ready_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When deployment became ready"
+        },
+        "build_duration": {
+          "type": "integer",
+          "description": "Build duration in seconds"
+        },
+        "environment": {
+          "type": "string",
+          "enum": ["production", "preview", "development"]
+        },
+        "branch": {
+          "type": "string",
+          "description": "Git branch deployed"
+        },
+        "commit_sha": {
+          "type": "string",
+          "description": "Git commit SHA"
+        }
+      }
+    },
+    "deployments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "url": { "type": "string" },
+          "state": { "type": "string" },
+          "created_at": { "type": "string" },
+          "environment": { "type": "string" }
+        }
+      },
+      "description": "List of deployments (for status action)"
+    },
+    "environment_variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": { "type": "string" },
+          "value": { "type": "string", "description": "Masked for sensitive values" },
+          "target": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["production", "preview", "development"] }
+          },
+          "type": { "type": "string", "enum": ["plain", "encrypted", "secret"] }
+        }
+      },
+      "description": "Environment variables (for env action)"
+    },
+    "domains": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "verified": { "type": "boolean" },
+          "redirect": { "type": "string" },
+          "configured": { "type": "boolean" }
+        }
+      },
+      "description": "Configured domains (for domain action)"
+    },
+    "logs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Build/deployment logs"
+    },
+    "smoke_test_results": {
+      "type": "object",
+      "properties": {
+        "passed": { "type": "boolean" },
+        "url_tested": { "type": "string" },
+        "status_code": { "type": "integer" },
+        "response_time_ms": { "type": "integer" },
+        "error": { "type": "string" }
+      },
+      "description": "Smoke test results if run"
+    },
+    "rollback": {
+      "type": "object",
+      "properties": {
+        "from_deployment": { "type": "string" },
+        "to_deployment": { "type": "string" },
+        "success": { "type": "boolean" }
+      },
+      "description": "Rollback details (for rollback action)"
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" },
+          "details": { "type": "string" }
+        }
+      },
+      "description": "Errors encountered"
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Non-fatal warnings"
+    },
+    "recommendations": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Suggested next steps"
+    }
+  }
+}

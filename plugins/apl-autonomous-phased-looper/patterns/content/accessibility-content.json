@@ -1,0 +1,54 @@
+{
+  "id": "sp_content_accessibility_001",
+  "name": "WCAG Content Accessibility Guidelines",
+  "version": "1.0.0",
+  "type": "success_pattern",
+  "task_type": "content-accessibility",
+  "applicable_when": [
+    "accessibility",
+    "wcag compliance",
+    "a11y content",
+    "accessible content",
+    "inclusive content"
+  ],
+  "approach": "Create content that meets WCAG 2.1 AA standards by ensuring proper heading hierarchy, descriptive link text, meaningful alt text for images, sufficient color contrast, and readable content structure. Content should be perceivable, operable, understandable, and robust for all users.",
+  "rationale": "Accessible content reaches a wider audience including the 15% of the global population with disabilities. It also improves SEO, user experience for all visitors, and ensures legal compliance with accessibility regulations like ADA and EAA.",
+  "code_examples": {
+    "heading_hierarchy": "<!-- CORRECT heading hierarchy -->\n<h1>Main Page Title</h1>\n  <h2>First Major Section</h2>\n    <h3>Subsection of First Section</h3>\n    <h3>Another Subsection</h3>\n  <h2>Second Major Section</h2>\n    <h3>Subsection</h3>\n      <h4>Detailed Point</h4>\n\n<!-- INCORRECT - skipped level -->\n<h1>Main Title</h1>\n  <h3>This skips h2!</h3>  <!-- Don't do this -->\n\n<!-- INCORRECT - multiple h1s -->\n<h1>First Title</h1>\n<h1>Second Title</h1>  <!-- Only one h1 per page -->",
+    "descriptive_links": "<!-- INCORRECT link text -->\n<p>To learn more about our services, <a href=\"/services\">click here</a>.</p>\n<p>Read the documentation <a href=\"/docs\">here</a>.</p>\n\n<!-- CORRECT descriptive link text -->\n<p><a href=\"/services\">Learn more about our enterprise services</a>.</p>\n<p><a href=\"/docs\">Read the API documentation</a>.</p>\n\n<!-- Links that open in new window -->\n<a href=\"https://external.com\" target=\"_blank\" rel=\"noopener noreferrer\">\n  External Resource (opens in new tab)\n  <span class=\"sr-only\">, opens in a new tab</span>\n</a>",
+    "image_alt_text": "<!-- Informative images - describe the content -->\n<img src=\"chart.png\" alt=\"Bar chart showing 40% increase in user engagement from January to March 2024\">\n\n<img src=\"team-photo.jpg\" alt=\"Our development team of 8 people standing in the office, smiling\">\n\n<!-- Decorative images - use empty alt -->\n<img src=\"decorative-border.png\" alt=\"\">\n\n<!-- Complex images - use longer description -->\n<figure>\n  <img src=\"architecture-diagram.png\" alt=\"System architecture diagram\" aria-describedby=\"arch-desc\">\n  <figcaption id=\"arch-desc\">\n    The architecture consists of three layers: a React frontend connecting to a Node.js API gateway, \n    which communicates with PostgreSQL and Redis databases. Load balancing is handled by Nginx.\n  </figcaption>\n</figure>\n\n<!-- Icons with meaning -->\n<button>\n  <svg aria-hidden=\"true\"><!-- icon svg --></svg>\n  <span class=\"sr-only\">Close dialog</span>\n</button>",
+    "readable_content": "/* Reading level and content structure */\n\n// AIM FOR: Grade 8-9 reading level for general audience\n// Use tools like Hemingway Editor to check\n\n// GOOD: Clear, simple sentences\n\"TypeScript adds type checking to JavaScript. This helps catch errors before your code runs.\"\n\n// AVOID: Complex, jargon-heavy sentences\n\"TypeScript facilitates the implementation of static type verification mechanisms that enable preemptive identification of potential runtime anomalies.\"\n\n// GOOD: Short paragraphs (2-4 sentences)\n// GOOD: Bullet points for lists\n// GOOD: Clear section headings\n// GOOD: White space between sections",
+    "color_and_contrast": "/* Minimum contrast ratios (WCAG AA) */\n\n/* Normal text (< 18pt or < 14pt bold): 4.5:1 */\n.body-text {\n  color: #333333; /* on white: 12.6:1 ✓ */\n}\n\n/* Large text (>= 18pt or >= 14pt bold): 3:1 */\n.heading {\n  color: #595959; /* on white: 7:1 ✓ */\n}\n\n/* Never rely on color alone */\n/* BAD: */\n.error { color: red; }\n\n/* GOOD: Color + icon/text */\n.error {\n  color: #d32f2f;\n  &::before {\n    content: '⚠ Error: ';\n  }\n}\n\n/* Links must be distinguishable */\na {\n  color: #0066cc;\n  text-decoration: underline; /* Don't remove! */\n}",
+    "markdown_accessible": "---\ntitle: \"Accessible Content Guide\"\ndescription: \"Learn how to create content that everyone can use.\"\n---\n\n# How to Write Accessible Content\n\nThis guide helps you create content that works for everyone.\n\n## Use Clear Headings\n\nHeadings help people navigate your content. Use them in order:\n\n- One H1 per page (the main title)\n- H2 for major sections\n- H3 for subsections\n\n## Write Descriptive Links\n\nInstead of \"click here,\" describe where the link goes:\n\n- **Don't:** For more info, [click here](#).\n- **Do:** Read our [accessibility guidelines](#).\n\n## Add Alt Text to Images\n\nDescribe what's in the image:\n\n![A developer reviewing code on two monitors, with a cup of coffee nearby](./dev-workspace.jpg)\n\n## Use Lists for Multiple Items\n\nWhen you have three or more related items:\n\n1. First, identify your content goals\n2. Then, outline your structure\n3. Finally, write clear, simple sentences"
+  },
+  "success_indicators": [
+    "Heading hierarchy is logical (H1 > H2 > H3, no skipped levels)",
+    "Only one H1 per page",
+    "All links have descriptive text (no 'click here')",
+    "All informative images have meaningful alt text",
+    "Decorative images have empty alt (alt=\"\")",
+    "Color is not the only way to convey information",
+    "Content is at grade 8-9 reading level for general audiences",
+    "Paragraphs are short (2-4 sentences)",
+    "Lists are used for 3+ related items",
+    "Sufficient color contrast (4.5:1 for text, 3:1 for large text)"
+  ],
+  "anti_patterns_avoided": [
+    "ap_content_click_here_001",
+    "ap_content_missing_alt_001",
+    "ap_content_color_only_001"
+  ],
+  "related_patterns": [
+    "sp_content_seo_blog_001",
+    "sp_content_brand_voice_001"
+  ],
+  "tags": ["content", "accessibility", "wcag", "a11y", "inclusive", "compliance"],
+  "metadata": {
+    "author": "APL Content Library",
+    "created": "2024-01-15",
+    "updated": "2024-01-15",
+    "success_count": 0,
+    "frameworks": ["all"],
+    "languages": ["html", "markdown", "mdx"]
+  }
+}

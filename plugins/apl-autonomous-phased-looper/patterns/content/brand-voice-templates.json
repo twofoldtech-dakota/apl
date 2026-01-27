@@ -1,0 +1,49 @@
+{
+  "id": "sp_content_brand_voice_001",
+  "name": "Brand Voice Application Templates",
+  "version": "1.0.0",
+  "type": "success_pattern",
+  "task_type": "content-brand-voice",
+  "applicable_when": [
+    "brand voice",
+    "tone of voice",
+    "content style",
+    "writing guidelines",
+    "brand consistency"
+  ],
+  "approach": "Apply consistent brand voice across all content by defining tone, personality traits, vocabulary level, and specific language preferences. Create a voice configuration that can be referenced during content generation to ensure every piece aligns with brand identity.",
+  "rationale": "Consistent brand voice builds trust, recognition, and emotional connection with audiences. When content sounds like it comes from the same source, it reinforces brand identity and makes the brand more memorable and relatable.",
+  "code_examples": {
+    "professional_voice": "{\n  \"brand_voice\": {\n    \"tone\": \"professional\",\n    \"personality_traits\": [\"authoritative\", \"knowledgeable\", \"trustworthy\", \"clear\"],\n    \"vocabulary_level\": \"moderate\",\n    \"formatting_preferences\": {\n      \"use_contractions\": false,\n      \"use_emojis\": false,\n      \"sentence_length\": \"varied\",\n      \"paragraph_length\": \"medium\"\n    },\n    \"avoid_words\": [\"basically\", \"actually\", \"very\", \"really\", \"just\", \"stuff\", \"things\"],\n    \"preferred_phrases\": [\"We recommend\", \"Best practices include\", \"Research indicates\", \"Our analysis shows\"],\n    \"example_intro\": \"In this comprehensive guide, we examine the key strategies for optimizing your development workflow. Our team has identified proven approaches that consistently deliver results.\"\n  }\n}",
+    "casual_friendly_voice": "{\n  \"brand_voice\": {\n    \"tone\": \"casual\",\n    \"personality_traits\": [\"friendly\", \"approachable\", \"helpful\", \"enthusiastic\"],\n    \"vocabulary_level\": \"simple\",\n    \"formatting_preferences\": {\n      \"use_contractions\": true,\n      \"use_emojis\": true,\n      \"sentence_length\": \"short\",\n      \"paragraph_length\": \"short\"\n    },\n    \"avoid_words\": [\"utilize\", \"leverage\", \"synergy\", \"paradigm\", \"subsequently\"],\n    \"preferred_phrases\": [\"Here's the thing\", \"Let's dive in\", \"You've got this\", \"Pro tip:\"],\n    \"example_intro\": \"Hey there! Ready to level up your coding skills? We've put together some awesome tips that'll make your life so much easier. Let's get started! 🚀\"\n  }\n}",
+    "technical_expert_voice": "{\n  \"brand_voice\": {\n    \"tone\": \"technical\",\n    \"personality_traits\": [\"precise\", \"detailed\", \"analytical\", \"expert\"],\n    \"vocabulary_level\": \"advanced\",\n    \"formatting_preferences\": {\n      \"use_contractions\": false,\n      \"use_emojis\": false,\n      \"sentence_length\": \"varied\",\n      \"paragraph_length\": \"medium\"\n    },\n    \"avoid_words\": [\"easy\", \"simple\", \"just\", \"basic\"],\n    \"preferred_phrases\": [\"Implementation details\", \"Under the hood\", \"Technical specifications\", \"Architecture overview\"],\n    \"example_intro\": \"This document provides a comprehensive technical analysis of the proposed microservices architecture. We examine the trade-offs between consistency and availability, evaluate appropriate data storage solutions, and present benchmarking results.\"\n  }\n}",
+    "empathetic_supportive_voice": "{\n  \"brand_voice\": {\n    \"tone\": \"empathetic\",\n    \"personality_traits\": [\"understanding\", \"supportive\", \"patient\", \"reassuring\"],\n    \"vocabulary_level\": \"simple\",\n    \"formatting_preferences\": {\n      \"use_contractions\": true,\n      \"use_emojis\": false,\n      \"sentence_length\": \"short\",\n      \"paragraph_length\": \"short\"\n    },\n    \"avoid_words\": [\"obviously\", \"clearly\", \"simply\", \"everyone knows\"],\n    \"preferred_phrases\": [\"We understand\", \"You're not alone\", \"Take your time\", \"It's completely normal to\"],\n    \"example_intro\": \"We know that getting started with a new tool can feel overwhelming. Don't worry—we're here to guide you through each step. There's no rush, and our support team is always available if you need help.\"\n  }\n}",
+    "voice_application_example": "// Before applying brand voice (generic):\n\"Click here to learn more about our features.\"\n\n// After applying professional voice:\n\"Explore our comprehensive feature documentation to discover how our platform addresses your specific business requirements.\"\n\n// After applying casual voice:\n\"Want to see what we can do? Check out all the cool features we've built for you! 🎉\"\n\n// After applying technical voice:\n\"Refer to the API documentation for detailed specifications on available endpoints, request parameters, and response schemas.\"\n\n// After applying empathetic voice:\n\"Take a moment to explore our features at your own pace. We've designed each one with your needs in mind, and we're here to help if you have questions.\""
+  },
+  "success_indicators": [
+    "Content consistently uses defined tone throughout",
+    "Vocabulary matches specified complexity level",
+    "Avoided words do not appear in content",
+    "Preferred phrases are naturally incorporated",
+    "Formatting preferences are followed (contractions, emojis, etc.)",
+    "Content sounds like it comes from the same source",
+    "Brand personality traits are evident in writing"
+  ],
+  "anti_patterns_avoided": [
+    "ap_content_inconsistent_voice_001",
+    "ap_content_tone_mismatch_001"
+  ],
+  "related_patterns": [
+    "sp_content_seo_blog_001",
+    "sp_content_accessibility_001"
+  ],
+  "tags": ["content", "brand", "voice", "tone", "style", "consistency"],
+  "metadata": {
+    "author": "APL Content Library",
+    "created": "2024-01-15",
+    "updated": "2024-01-15",
+    "success_count": 0,
+    "frameworks": ["all"],
+    "languages": ["all"]
+  }
+}

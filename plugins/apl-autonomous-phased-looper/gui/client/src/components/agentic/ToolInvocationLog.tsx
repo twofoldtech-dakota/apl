@@ -1,5 +1,5 @@
 import { useAplStore } from '../../store/aplStore';
-import { Wrench, FileText, Terminal, Search, Edit, FolderOpen, Globe } from 'lucide-react';
+import { Wrench, FileText, Terminal, Search, Edit, FolderOpen, Globe, Palette, Cloud } from 'lucide-react';
 import { clsx } from 'clsx';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -14,6 +14,9 @@ const TOOLS: Record<string, { icon: React.ElementType; color: string; label: str
   Task: { icon: Wrench, color: 'text-apl-400', label: 'Task' },
   WebFetch: { icon: Globe, color: 'text-cyan-400', label: 'WebFetch' },
   TodoWrite: { icon: FileText, color: 'text-gray-400', label: 'TodoWrite' },
+  // MCP Tools
+  mcp__pencil: { icon: Palette, color: 'text-pink-400', label: 'Pencil' },
+  mcp__vercel: { icon: Cloud, color: 'text-sky-400', label: 'Vercel' },
 };
 
 export default function ToolInvocationLog() {

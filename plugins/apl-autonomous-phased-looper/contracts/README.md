@@ -22,6 +22,14 @@ APL uses a multi-agent architecture where specialized agents communicate through
        ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐
        │ Planner │   │  Coder  │   │ Tester  │   │Reviewer │   │ Learner │
        └─────────┘   └─────────┘   └─────────┘   └─────────┘   └─────────┘
+                                        │
+                    ┌───────────────────┼───────────────────┐
+                    │                   │                   │
+                    ▼                   ▼                   ▼
+             ┌───────────┐       ┌───────────┐       ┌───────────┐
+             │ Content   │       │ Designer  │       │ Deployer  │
+             │ Strategist│       │(Pencil)   │       │(Vercel)   │
+             └───────────┘       └───────────┘       └───────────┘
 
 Each arrow represents a contract-defined handoff.
 ```
@@ -57,6 +65,19 @@ Each arrow represents a contract-defined handoff.
 |----------|------|-----|---------|
 | `orchestrator-to-learner.schema.json` | Orchestrator | Learner | Session data for learning |
 | `learner-output.schema.json` | Learner | Orchestrator | Extracted learnings summary |
+
+### Horizontal Capabilities
+
+These agents provide specialized capabilities across all project types:
+
+| Contract | From | To | Purpose |
+|----------|------|-----|---------|
+| `orchestrator-to-content-strategist.schema.json` | Orchestrator | Content Strategist | SEO content generation request |
+| `content-strategist-output.schema.json` | Content Strategist | Orchestrator | Generated content with SEO data |
+| `orchestrator-to-designer.schema.json` | Orchestrator | Designer | UI design request (Pencil.dev MCP) |
+| `designer-output.schema.json` | Designer | Orchestrator | Design tokens and component specs |
+| `orchestrator-to-deployer.schema.json` | Orchestrator | Deployer | Deployment request (Vercel MCP) |
+| `deployer-output.schema.json` | Deployer | Orchestrator | Deployment status and URLs |
 
 ## Schema Version
 

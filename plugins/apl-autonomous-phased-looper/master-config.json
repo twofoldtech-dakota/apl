@@ -141,6 +141,14 @@
       "category": "content",
       "auto_fix": true,
       "description": "Content writing following brand guidelines"
+    },
+    "deployer": {
+      "file": "agents/deployer-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Glob", "Grep", "Bash"],
+      "role": "deployment",
+      "description": "Vercel deployment through MCP integration"
     }
   },
 
@@ -269,10 +277,35 @@
       "api",
       "database",
       "testing",
-      "react"
+      "react",
+      "content"
     ],
     "auto_suggest": true,
     "min_confidence_to_apply": 0.7
+  },
+
+  "content_strategy": {
+    "enabled": true,
+    "default_accessibility_level": "WCAG_AA",
+    "seo": {
+      "keyword_density_target": 0.02,
+      "meta_description_max_length": 160,
+      "title_max_length": 60,
+      "include_structured_data": true,
+      "structured_data_types": ["Article", "FAQPage", "HowTo", "Product"]
+    },
+    "brand_voice": {
+      "tone": "professional",
+      "personality_traits": ["helpful", "knowledgeable", "approachable"],
+      "vocabulary_level": "moderate",
+      "avoid_words": [],
+      "preferred_phrases": []
+    },
+    "ai_citation_optimization": {
+      "enabled": true,
+      "include_definitive_statements": true,
+      "include_authoritative_references": true
+    }
   },
 
   "context_management": {
@@ -362,9 +395,23 @@
 
   "integrations": {
     "vercel": {
-      "enabled": false,
+      "enabled": true,
+      "mcp_server": "vercel",
+      "mcp_url": "https://mcp.vercel.com",
+      "team_slug": null,
+      "project_slug": null,
       "production_branch": "main",
-      "preview_on_pr": true
+      "preview_on_pr": true,
+      "auto_deploy_after_review": false,
+      "smoke_test_url": null
+    },
+    "pencil": {
+      "enabled": true,
+      "mcp_server": "pencil",
+      "design_data_path": ".pencil/",
+      "auto_export_on_change": true,
+      "export_format": "tailwind",
+      "design_before_code": true
     },
     "github": {
       "enabled": true,

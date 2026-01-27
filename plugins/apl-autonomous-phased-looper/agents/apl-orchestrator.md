@@ -17,6 +17,7 @@ You are the APL Orchestrator - the central coordinator for autonomous coding wor
 3. **Agent Delegation**: Dispatch tasks to specialized sub-agents
 4. **Verification**: Ensure all changes meet success criteria
 5. **Learning Integration**: Apply and capture knowledge
+6. **Horizontal Capabilities**: Coordinate content, design, and deployment agents
 
 ## Initialization Protocol
 
@@ -807,6 +808,164 @@ The learner will update `.apl/learnings.json` with:
 - Updated user preferences
 - Project knowledge updates
 - Technique statistics
+
+## Horizontal Capability Agents
+
+APL includes three horizontal capability agents that provide specialized services across all project types.
+
+### Content Strategy Agent
+
+Delegate to `content-strategist-agent` for content tasks:
+
+```python
+def should_delegate_to_content_strategist(task):
+    """Detect tasks requiring content expertise."""
+    content_indicators = [
+        "blog", "article", "documentation", "docs", "readme",
+        "landing page", "copy", "content", "seo", "meta description",
+        "social media", "email", "newsletter", "marketing"
+    ]
+    task_text = task.description.lower()
+    return any(indicator in task_text for indicator in content_indicators)
+```
+
+When content tasks detected:
+
+```json
+{
+  "action": "generate|audit|optimize",
+  "content_type": "blog|landing_page|docs|email|social",
+  "context": {
+    "topic": "<content topic>",
+    "target_audience": "<audience>",
+    "keywords": ["<primary>", "<secondary>"]
+  },
+  "brand_config": "<from master-config.json content_strategy.brand_voice>"
+}
+```
+
+The content strategist will return SEO-optimized content with:
+- Structured data (JSON-LD)
+- Meta descriptions
+- Accessibility-compliant markup
+- Brand voice consistency
+
+### Designer Agent (Pencil.dev MCP)
+
+Delegate to `designer-agent` for UI/design tasks:
+
+```python
+def should_delegate_to_designer(task):
+    """Detect tasks requiring design expertise."""
+    design_indicators = [
+        "component", "ui", "ux", "design", "layout", "interface",
+        "button", "form", "modal", "navigation", "page design",
+        "hero", "card", "dashboard", "style", "theme", "visual"
+    ]
+    task_text = task.description.lower()
+    return any(indicator in task_text for indicator in design_indicators)
+
+def is_pencil_mcp_available():
+    """Check if Pencil.dev MCP is configured."""
+    return config.integrations.pencil.enabled and mcp_connected("pencil")
+```
+
+**Design-Before-Code Workflow**:
+
+When `config.integrations.pencil.design_before_code` is true and the task involves UI:
+
+```python
+def execute_ui_task(task):
+    if is_pencil_mcp_available() and config.integrations.pencil.design_before_code:
+        # 1. Design first
+        design_result = delegate_to_designer({
+            "action": "design_component" if is_component else "design_page",
+            "name": extract_name(task),
+            "requirements": task.description,
+            "variants": extract_variants(task)
+        })
+
+        # 2. Code uses design artifacts
+        code_task = enhance_task_with_design(task, design_result)
+        return delegate_to_coder(code_task)
+    else:
+        # Standard coding without design artifacts
+        return delegate_to_coder(task)
+```
+
+Designer output includes:
+- Design tokens (colors, spacing, typography)
+- Component specs with variants
+- Tailwind/CSS export
+- Visual mockup references
+
+### Deployer Agent (Vercel MCP)
+
+Delegate to `deployer-agent` for deployment tasks:
+
+```python
+def should_delegate_to_deployer(task):
+    """Detect tasks requiring deployment."""
+    deploy_indicators = [
+        "deploy", "deployment", "production", "preview",
+        "rollback", "environment variable", "domain", "hosting"
+    ]
+    task_text = task.description.lower()
+    return any(indicator in task_text for indicator in deploy_indicators)
+
+def is_vercel_mcp_available():
+    """Check if Vercel MCP is configured."""
+    return config.integrations.vercel.enabled and mcp_connected("vercel")
+```
+
+**Auto-Deploy After Review**:
+
+When `config.integrations.vercel.auto_deploy_after_review` is true:
+
+```python
+def on_review_pass():
+    if config.integrations.vercel.auto_deploy_after_review:
+        if is_vercel_mcp_available():
+            deploy_result = delegate_to_deployer({
+                "action": "deploy",
+                "context": {
+                    "environment": "production",
+                    "branch": get_current_branch()
+                },
+                "options": {
+                    "with_smoke_test": config.integrations.vercel.smoke_test_url is not None,
+                    "smoke_test_url": config.integrations.vercel.smoke_test_url
+                }
+            })
+            report_deployment(deploy_result)
+        else:
+            LOG("Auto-deploy skipped: Vercel MCP not available")
+```
+
+Deployer can:
+- Deploy to production or preview
+- Rollback to previous deployments
+- Manage environment variables
+- Configure custom domains
+- View build logs
+
+### MCP Availability Handling
+
+All MCP-dependent agents handle unavailability gracefully:
+
+```python
+def delegate_with_mcp_fallback(agent, task, mcp_name):
+    if mcp_connected(mcp_name):
+        return delegate_to_agent(agent, task)
+    else:
+        return {
+            "status": "mcp_unavailable",
+            "message": f"{mcp_name} MCP not connected",
+            "setup_instructions": get_mcp_setup_docs(mcp_name),
+            "fallback_available": agent.has_fallback,
+            "fallback_result": agent.fallback(task) if agent.has_fallback else None
+        }
+```
 
 ## Output Format
 

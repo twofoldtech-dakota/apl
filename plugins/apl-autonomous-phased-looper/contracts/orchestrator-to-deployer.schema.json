@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orchestrator-to-deployer.schema.json",
+  "title": "OrchestratorToDeployer",
+  "description": "Input contract for deployer agent with Vercel MCP integration",
+  "type": "object",
+  "required": ["action"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": ["deploy", "rollback", "status", "env", "domain", "logs"],
+      "description": "Deployment action to perform"
+    },
+    "context": {
+      "type": "object",
+      "description": "Project and deployment context",
+      "properties": {
+        "project_root": {
+          "type": "string",
+          "description": "Absolute path to project root"
+        },
+        "project_name": {
+          "type": "string",
+          "description": "Human-readable project name"
+        },
+        "team_slug": {
+          "type": "string",
+          "description": "Vercel team slug"
+        },
+        "project_slug": {
+          "type": "string",
+          "description": "Vercel project slug"
+        },
+        "environment": {
+          "type": "string",
+          "enum": ["production", "preview", "development"],
+          "default": "production",
+          "description": "Target deployment environment"
+        },
+        "branch": {
+          "type": "string",
+          "description": "Git branch being deployed"
+        },
+        "commit_sha": {
+          "type": "string",
+          "description": "Git commit SHA"
+        }
+      }
+    },
+    "options": {
+      "type": "object",
+      "description": "Action-specific options",
+      "properties": {
+        "force": {
+          "type": "boolean",
+          "default": false,
+          "description": "Force deployment even with warnings"
+        },
+        "skip_build": {
+          "type": "boolean",
+          "default": false,
+          "description": "Skip local build verification"
+        },
+        "deployment_id": {
+          "type": "string",
+          "description": "Specific deployment ID for rollback/logs"
+        },
+        "env_vars": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Environment variables to set"
+        },
+        "env_action": {
+          "type": "string",
+          "enum": ["list", "set", "remove"],
+          "description": "Environment variable action"
+        },
+        "env_key": {
+          "type": "string",
+          "description": "Environment variable key for remove action"
+        },
+        "domain": {
+          "type": "string",
+          "description": "Domain for domain actions"
+        },
+        "domain_action": {
+          "type": "string",
+          "enum": ["list", "add", "remove"],
+          "description": "Domain management action"
+        },
+        "with_smoke_test": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run smoke tests after deployment"
+        },
+        "smoke_test_url": {
+          "type": "string",
+          "description": "URL path for smoke test"
+        }
+      }
+    },
+    "build_config": {
+      "type": "object",
+      "description": "Build configuration overrides",
+      "properties": {
+        "build_command": {
+          "type": "string",
+          "description": "Custom build command"
+        },
+        "output_directory": {
+          "type": "string",
+          "description": "Build output directory"
+        },
+        "install_command": {
+          "type": "string",
+          "description": "Custom install command"
+        },
+        "root_directory": {
+          "type": "string",
+          "description": "Root directory if not project root"
+        }
+      }
+    }
+  }
+}

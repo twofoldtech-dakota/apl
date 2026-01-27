@@ -12,7 +12,13 @@ export type AgentId =
   | 'reviewer-agent'
   | 'learner-agent'
   | 'meta-orchestrator'
-  | 'requirements-analyst';
+  | 'requirements-analyst'
+  | 'content-strategy-agent'
+  | 'brand-voice-agent'
+  | 'design-agent'
+  | 'accessibility-agent'
+  | 'copy-content-agent'
+  | 'deployer-agent';
 
 // Tool Types
 export type ToolName =

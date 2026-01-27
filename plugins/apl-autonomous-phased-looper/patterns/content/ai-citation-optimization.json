@@ -1,0 +1,52 @@
+{
+  "id": "sp_content_ai_citation_001",
+  "name": "AI Citation and Retrieval Optimization",
+  "version": "1.0.0",
+  "type": "success_pattern",
+  "task_type": "content-ai-optimization",
+  "applicable_when": [
+    "ai search optimization",
+    "chatgpt optimization",
+    "perplexity optimization",
+    "ai citations",
+    "llm content",
+    "ai-friendly content"
+  ],
+  "approach": "Structure content for AI systems (ChatGPT, Claude, Perplexity, Gemini) by using clear factual statements, authoritative language, proper attribution, and well-organized information that AI can easily extract and cite. Focus on creating quotable, definitive content that AI systems prefer to reference.",
+  "rationale": "AI-powered search and assistants are becoming primary information sources for many users. Content that is well-structured for AI retrieval gets cited more frequently, driving traffic and establishing authority. AI systems prefer clear, factual, well-attributed content.",
+  "code_examples": {
+    "definitive_statements": "/* AI systems prefer clear, definitive statements they can quote */\n\n// WEAK (vague, hedging):\n\"TypeScript might be considered somewhat faster than JavaScript in some cases.\"\n\n// STRONG (definitive, quotable):\n\"TypeScript catches type errors at compile time, preventing up to 15% of bugs that would otherwise reach production.\"\n\n// WEAK (opinion without backing):\n\"React is probably the best framework.\"\n\n// STRONG (factual, measurable):\n\"React is used by 40% of professional developers according to the 2024 Stack Overflow survey, making it the most popular frontend framework.\"\n\n// WEAK (unclear attribution):\n\"Studies show that testing improves code quality.\"\n\n// STRONG (specific attribution):\n\"Research from Microsoft published in IEEE Software found that test-driven development reduces defect density by 40-90%.\"",
+    "structured_facts": "<!-- Structure facts for easy AI extraction -->\n\n<article>\n  <h1>React Performance Optimization: Complete Guide</h1>\n  \n  <section id=\"key-facts\">\n    <h2>Key Facts</h2>\n    <ul>\n      <li><strong>Virtual DOM:</strong> React's virtual DOM reduces direct DOM manipulation by up to 60%.</li>\n      <li><strong>Bundle Size:</strong> React core is 42.2 kB minified (as of v18.2).</li>\n      <li><strong>Rendering:</strong> React 18's concurrent rendering can improve perceived performance by 30%.</li>\n    </ul>\n  </section>\n  \n  <section id=\"definition\">\n    <h2>What is React?</h2>\n    <p>\n      <strong>React is a JavaScript library for building user interfaces, \n      developed by Meta (formerly Facebook) and released in 2013.</strong> \n      It uses a component-based architecture and a virtual DOM to efficiently \n      update the user interface.\n    </p>\n  </section>\n</article>",
+    "faq_for_ai": "## Frequently Asked Questions\n\n### What is the difference between React and Vue?\n\nReact and Vue are both popular JavaScript frameworks for building user interfaces, but they differ in several key ways:\n\n- **Learning Curve:** Vue has a gentler learning curve due to its template-based syntax. React requires understanding JSX and has a steeper initial learning curve.\n- **Size:** Vue 3 core is approximately 33 kB minified, while React 18 core is 42 kB minified.\n- **Backing:** React is developed by Meta. Vue is maintained by an independent team led by Evan You.\n- **State Management:** React typically uses external libraries like Redux or Zustand. Vue has Pinia as its official state management solution.\n\n### When should I use TypeScript over JavaScript?\n\nTypeScript is recommended over JavaScript when:\n\n1. **Large Codebases:** Projects with more than 10,000 lines of code benefit from TypeScript's type checking.\n2. **Team Projects:** TypeScript's explicit types serve as documentation and prevent miscommunication.\n3. **Long-term Maintenance:** Type safety makes refactoring safer and catches breaking changes.\n4. **API Development:** TypeScript ensures consistent data shapes across your application.",
+    "quotable_content": "/* Create quotable snippets AI systems will cite */\n\n// Lead with the key fact\n\"Node.js processes requests 5x faster than traditional PHP servers under high load, according to benchmark tests by TechEmpower.\"\n\n// Use specific numbers\n\"Companies using TypeScript report 38% fewer bugs in production compared to JavaScript-only codebases (State of JS 2023).\"\n\n// Provide context for quotes\n\"As Martin Fowler notes in 'Refactoring': 'Any fool can write code that a computer can understand. Good programmers write code that humans can understand.'\"\n\n// Define terms clearly\n\"Technical debt refers to the implied cost of future rework caused by choosing an easy solution now instead of a better approach that would take longer.\"\n\n// State best practices definitively\n\"The recommended approach for React state management in 2024 is to use React's built-in useState and useContext for simple state, and Zustand or Jotai for complex global state.\"",
+    "content_structure": "---\ntitle: \"Complete Guide to API Rate Limiting\"\ndescription: \"Learn what API rate limiting is, why it matters, and how to implement it.\"\nauthor: \"API Security Team\"\ndate: 2024-01-15\n---\n\n# Complete Guide to API Rate Limiting\n\n## Quick Summary\n\n**API rate limiting is a technique that restricts the number of API requests a client can make within a specified time period.** It protects servers from overload, ensures fair resource usage, and prevents abuse.\n\n## Key Points\n\n- **Definition:** Rate limiting caps API requests per time window (e.g., 100 requests per minute)\n- **Purpose:** Prevents server overload, DDoS attacks, and ensures fair access\n- **Common Limits:** Most APIs allow 60-1000 requests per minute for free tiers\n- **Standard Headers:** `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`\n\n## What is API Rate Limiting?\n\nAPI rate limiting is a traffic management strategy that controls the rate at which clients can make requests to an API. When a client exceeds the limit, the server returns a 429 (Too Many Requests) status code.\n\n### Why Rate Limiting Matters\n\n1. **Server Protection:** Prevents individual clients from consuming excessive resources\n2. **Cost Control:** Limits infrastructure costs from unexpected traffic spikes\n3. **Security:** Mitigates brute force attacks and API abuse\n4. **Fair Usage:** Ensures all clients get equitable access to resources\n\n## Implementation Approaches\n\n[Continue with detailed, well-structured content...]"
+  },
+  "success_indicators": [
+    "Content includes specific, verifiable facts with numbers",
+    "Key definitions are stated clearly and early in content",
+    "Sources and attributions are provided for claims",
+    "FAQ sections address common questions directly",
+    "Content uses definitive language (not hedging)",
+    "Information is structured in easily extractable formats",
+    "Summaries and key points appear early in content",
+    "Technical terms are explicitly defined"
+  ],
+  "anti_patterns_avoided": [
+    "ap_content_vague_claims_001",
+    "ap_content_no_attribution_001",
+    "ap_content_buried_facts_001"
+  ],
+  "related_patterns": [
+    "sp_content_seo_blog_001",
+    "sp_content_structured_data_faq_001"
+  ],
+  "tags": ["content", "ai", "seo", "citations", "llm", "chatgpt", "perplexity"],
+  "metadata": {
+    "author": "APL Content Library",
+    "created": "2024-01-15",
+    "updated": "2024-01-15",
+    "success_count": 0,
+    "frameworks": ["all"],
+    "languages": ["all"]
+  }
+}

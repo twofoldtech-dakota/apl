@@ -1,0 +1,51 @@
+{
+  "id": "sp_content_seo_blog_001",
+  "name": "SEO-Optimized Blog Post Structure",
+  "version": "1.0.0",
+  "type": "success_pattern",
+  "task_type": "content-blog",
+  "applicable_when": [
+    "blog post",
+    "article",
+    "content creation",
+    "seo content",
+    "write blog",
+    "blog writing"
+  ],
+  "approach": "Structure blog posts with SEO best practices: compelling title with primary keyword (50-60 chars), meta description under 160 chars with call-to-action, single H1 matching page intent, H2/H3 hierarchy with keywords, primary keyword in first 100 words, internal/external links, structured data markup, and optimized images with descriptive alt text.",
+  "rationale": "Search engines favor well-structured content with clear hierarchy, semantic relevance, and user engagement signals. This structure improves crawlability, featured snippet eligibility, and user experience metrics that influence rankings.",
+  "code_examples": {
+    "blog_template_mdx": "---\ntitle: \"Primary Keyword: Compelling Hook | Brand\"\ndescription: \"Action-oriented description with keyword. Learn how to [benefit]. Get started in [timeframe].\"\ndate: 2024-01-15\nauthor: \"Author Name\"\ntags: [\"keyword1\", \"keyword2\", \"keyword3\"]\nimage: \"/images/blog/featured-image.jpg\"\n---\n\n# {Title with Primary Keyword}\n\n{Hook paragraph that addresses reader's pain point and includes primary keyword within first 100 words. Establish credibility and preview what they'll learn.}\n\n## {H2 with Secondary Keyword}\n\n{Expand on the topic with valuable, actionable content. Use short paragraphs (2-4 sentences) for readability.}\n\n### {H3 Subheading}\n\n{Supporting details, examples, or step-by-step instructions.}\n\n## {Another H2 Section}\n\n{Continue providing value. Include relevant internal links to related content.}\n\n## Conclusion\n\n{Summarize key points. Include clear call-to-action. End with a question to encourage comments.}",
+    "structured_data_article": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Article\",\n  \"headline\": \"Title of the Article\",\n  \"author\": {\n    \"@type\": \"Person\",\n    \"name\": \"Author Name\",\n    \"url\": \"https://example.com/authors/author-name\"\n  },\n  \"datePublished\": \"2024-01-15T08:00:00+00:00\",\n  \"dateModified\": \"2024-01-15T08:00:00+00:00\",\n  \"image\": [\n    \"https://example.com/images/1x1.jpg\",\n    \"https://example.com/images/4x3.jpg\",\n    \"https://example.com/images/16x9.jpg\"\n  ],\n  \"publisher\": {\n    \"@type\": \"Organization\",\n    \"name\": \"Company Name\",\n    \"logo\": {\n      \"@type\": \"ImageObject\",\n      \"url\": \"https://example.com/logo.png\"\n    }\n  },\n  \"description\": \"Meta description of the article\",\n  \"mainEntityOfPage\": {\n    \"@type\": \"WebPage\",\n    \"@id\": \"https://example.com/blog/article-slug\"\n  }\n}",
+    "meta_tags_html": "<title>Primary Keyword: Compelling Hook | Brand Name</title>\n<meta name=\"description\" content=\"Action-oriented description under 160 chars with keyword and CTA.\" />\n<meta name=\"robots\" content=\"index, follow\" />\n<link rel=\"canonical\" href=\"https://example.com/blog/article-slug\" />\n\n<!-- Open Graph -->\n<meta property=\"og:type\" content=\"article\" />\n<meta property=\"og:title\" content=\"Primary Keyword: Compelling Hook\" />\n<meta property=\"og:description\" content=\"Engaging description for social sharing.\" />\n<meta property=\"og:image\" content=\"https://example.com/images/og-image.jpg\" />\n<meta property=\"og:url\" content=\"https://example.com/blog/article-slug\" />\n\n<!-- Twitter Card -->\n<meta name=\"twitter:card\" content=\"summary_large_image\" />\n<meta name=\"twitter:title\" content=\"Primary Keyword: Compelling Hook\" />\n<meta name=\"twitter:description\" content=\"Engaging description for Twitter.\" />\n<meta name=\"twitter:image\" content=\"https://example.com/images/twitter-image.jpg\" />"
+  },
+  "success_indicators": [
+    "Primary keyword appears in title, H1, and first paragraph",
+    "Meta description is 150-160 characters with call-to-action",
+    "Heading hierarchy is logical (H1 > H2 > H3, no skipped levels)",
+    "JSON-LD Article schema is valid and complete",
+    "At least 2 internal links to related content",
+    "At least 1 external link to authoritative source",
+    "All images have descriptive alt text",
+    "Content is at least 1000 words for comprehensive coverage",
+    "Keyword density is 1-2% (not over-optimized)"
+  ],
+  "anti_patterns_avoided": [
+    "ap_content_keyword_stuffing_001",
+    "ap_content_thin_content_001",
+    "ap_content_duplicate_title_001"
+  ],
+  "related_patterns": [
+    "sp_content_structured_data_article_001",
+    "sp_content_accessibility_001"
+  ],
+  "tags": ["content", "seo", "blog", "marketing", "structured-data", "article"],
+  "metadata": {
+    "author": "APL Content Library",
+    "created": "2024-01-15",
+    "updated": "2024-01-15",
+    "success_count": 0,
+    "frameworks": ["next.js", "gatsby", "astro", "hugo"],
+    "languages": ["markdown", "mdx", "html"]
+  }
+}

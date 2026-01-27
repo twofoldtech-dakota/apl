@@ -25,9 +25,16 @@ patterns/
 │   └── repository-pattern.json
 ├── testing/           # Test structure, mocking
 │   └── unit-test-structure.json
-└── react/             # Frontend components
-    ├── functional-component.json
-    └── form-handling.json
+├── react/             # Frontend components
+│   ├── functional-component.json
+│   └── form-handling.json
+└── content/           # SEO, content strategy, accessibility
+    ├── seo-blog-post.json
+    ├── structured-data-article.json
+    ├── structured-data-faq.json
+    ├── brand-voice-templates.json
+    ├── accessibility-content.json
+    └── ai-citation-optimization.json
 ```
 
 ## Pattern Schema
@@ -197,6 +204,12 @@ Anti-patterns have additional fields:
 | `unit-test-structure` | Success | Test organization with mocking |
 | `functional-component` | Success | React hooks component |
 | `form-handling` | Success | React form state management |
+| `seo-blog-post` | Success | SEO-optimized blog post structure |
+| `structured-data-article` | Success | JSON-LD Article schema |
+| `structured-data-faq` | Success | JSON-LD FAQ schema for featured snippets |
+| `brand-voice-templates` | Success | Consistent brand voice patterns |
+| `accessibility-content` | Success | WCAG-compliant content patterns |
+| `ai-citation-optimization` | Success | Content optimized for AI search engines |
 
 ## Best Practices
 
