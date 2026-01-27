@@ -2,170 +2,184 @@
 
 The ultimate autonomous coding plugin for Claude Code. APL transforms Claude into a fully autonomous development agent that plans, executes, reviews, and learns from every coding session.
 
-## Usage
+---
+
+## Quick Start
+
+```bash
+# Run APL with a goal
+/apl Build a REST API with JWT authentication
+
+# Launch the visual dashboard
+/apl gui
+```
+
+That's it. APL handles the rest.
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Commands](#commands)
+- [GUI Dashboard](#gui-dashboard)
+- [How It Works](#how-it-works)
+- [Configuration](#configuration)
+- [Self-Learning](#self-learning)
+- [Troubleshooting](#troubleshooting)
+- [Architecture](#architecture)
+
+---
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **Autonomous Execution** | Set a goal and let APL handle planning, coding, testing, and review |
+| **Multi-Agent System** | 5 specialized agents collaborate: Planner, Coder, Tester, Reviewer, Learner |
+| **Self-Learning** | Learns from every session - remembers what works and what doesn't |
+| **Visual Dashboard** | Web-based GUI for real-time monitoring and control |
+| **Error Recovery** | Automatic retry with graduated fallback strategies |
+| **Checkpoints** | Automatic state saves with one-click rollback |
+
+---
+
+## Commands
+
+### Main Command
 
 ```bash
 /apl <your coding goal>
 ```
 
-### GUI Control Panel
+### Examples
 
-APL includes a web-based dashboard for visual monitoring and control:
+```bash
+/apl Build a REST API with JWT authentication and rate limiting
+/apl Refactor the data access layer to use the repository pattern
+/apl Debug and fix the race condition in the order processing system
+/apl Add unit tests for all service classes with 80% coverage
+/apl Migrate the application from Express to Fastify
+```
+
+### Subcommands
+
+| Command | Description |
+|---------|-------------|
+| `/apl gui` | Launch web-based dashboard |
+| `/apl status` | Show current workflow state |
+| `/apl config` | Display configuration |
+| `/apl reset` | Clear state and start fresh |
+| `/apl rollback <id>` | Restore a checkpoint |
+| `/apl forget <id>` | Remove a learned pattern |
+| `/apl forget --all` | Reset all learnings |
+
+---
+
+## GUI Dashboard
+
+APL includes a powerful web-based control panel for visual monitoring and control.
+
+### Launch
 
 ```bash
 /apl gui
 ```
 
-This launches:
-- **Frontend**: http://localhost:5173 - Visual dashboard
-- **API Server**: http://localhost:3001 - REST API
-- **WebSocket**: ws://localhost:3001/ws - Real-time updates
+### Access
 
-**Features:**
-- Real-time workflow monitoring with phase indicators
-- Visual task progress with parallel group tracking
-- Agent activity monitor (see which of 8 agents is active)
-- ReAct loop visualization (Reason → Act → Observe → Verify)
-- Token usage tracking with context window warnings
-- Configuration management UI
-- Learnings and pattern browser
-- Checkpoint timeline with one-click rollback
-- Goal templates and history
+| Service | URL |
+|---------|-----|
+| **Dashboard** | http://localhost:5173 |
+| **API** | http://localhost:3001 |
+| **WebSocket** | ws://localhost:3001/ws |
+
+### Features
+
+- **Real-time Monitoring** - Watch workflow progress live
+- **Phase Indicators** - See Plan → Execute → Review status
+- **Task Tracking** - Visual task list with parallel group colors
+- **Agent Monitor** - See which agent is currently active
+- **ReAct Visualization** - Watch Reason → Act → Observe → Verify loops
+- **Token Usage** - Context window tracking with warnings
+- **Configuration UI** - Edit settings without touching files
+- **Learnings Browser** - View and manage learned patterns
+- **Checkpoint Timeline** - One-click rollback to any point
 
 See [gui/README.md](gui/README.md) for detailed documentation.
 
-### Examples
-
-```bash
-# Build features
-/apl Build a REST API with JWT authentication and rate limiting
-
-# Refactor code
-/apl Refactor the data access layer to use the repository pattern
-
-# Fix bugs
-/apl Debug and fix the race condition in the order processing system
-
-# Add tests
-/apl Add unit tests for all service classes with 80% coverage
-
-# Complex tasks
-/apl Migrate the application from Express to Fastify while maintaining API compatibility
-```
+---
 
 ## How It Works
 
+APL operates in three phases:
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│    PLAN      │ ──▶ │   EXECUTE    │ ──▶ │    REVIEW    │
+│              │     │              │     │              │
+│ Break down   │     │ ReAct loops  │     │ Self-critique│
+│ into tasks   │     │ with verify  │     │ & learning   │
+└──────────────┘     └──────────────┘     └──────────────┘
+```
+
 ### Phase 1: Plan
 
-APL analyzes your goal and creates a structured execution plan:
+The Planner agent analyzes your goal and creates a structured plan:
 
-1. **Task Decomposition**: Breaks down the goal into atomic, verifiable tasks
-2. **Success Criteria**: Defines measurable criteria for each task
-3. **Dependency Analysis**: Identifies task dependencies and parallel groups
-4. **Pattern Matching**: Consults learned patterns from previous sessions
-5. **Anti-Pattern Filtering**: Removes approaches known to fail
+- Breaks goal into atomic, verifiable tasks
+- Defines success criteria for each task
+- Identifies dependencies and parallel opportunities
+- Consults learned patterns from previous sessions
 
 ### Phase 2: Execute
 
-For each task, APL runs a ReAct loop with verification:
+For each task, the Coder agent runs a ReAct loop:
 
-```
-┌─────────────────────────────────────────┐
-│  REASON: Analyze what needs to be done  │
-│  • Review task requirements             │
-│  • Check learned patterns               │
-│  • Consider past failures               │
-└─────────────────────────────────────────┘
-                    ↓
-┌─────────────────────────────────────────┐
-│  ACT: Execute the implementation        │
-│  • Generate/modify code                 │
-│  • Run necessary commands               │
-│  • Delegate to specialized agents       │
-└─────────────────────────────────────────┘
-                    ↓
-┌─────────────────────────────────────────┐
-│  OBSERVE: Check the results             │
-│  • Analyze output/errors                │
-│  • Run tests                            │
-│  • Check for regressions                │
-└─────────────────────────────────────────┘
-                    ↓
-┌─────────────────────────────────────────┐
-│  VERIFY: Chain-of-Verification          │
-│  • Did this achieve the intent?         │
-│  • Are success criteria met?            │
-│  • Any unintended side effects?         │
-└─────────────────────────────────────────┘
-```
+1. **Reason** - Analyze requirements, check patterns, consider past failures
+2. **Act** - Generate/modify code, run commands
+3. **Observe** - Check results, run tests, look for regressions
+4. **Verify** - Confirm success criteria met, no side effects
 
-**Error Recovery**:
-- Attempt 1: Simple retry with adjusted approach
-- Attempt 2: Deeper analysis of failure cause
-- Attempt 3: Backtrack and try alternative implementation
-- Escalation: Ask user for guidance with full context
+**Error Recovery:**
+- Retry 1: Adjust approach slightly
+- Retry 2: Deeper analysis, different method
+- Retry 3: Backtrack, try alternative
+- Escalate: Ask user with full context
 
 ### Phase 3: Review
 
-APL performs Reflexion-based self-critique:
+The Reviewer agent performs self-critique:
 
-1. **Cross-Task Analysis**: Identifies issues spanning multiple tasks
-2. **Success Verification**: Confirms all criteria are met
-3. **Diff Summary**: Shows all changes made
-4. **Learning Extraction**: Captures insights for future sessions
+- Cross-task analysis for spanning issues
+- Final verification of all success criteria
+- Diff summary of all changes
+- Learning extraction for future sessions
 
-## Specialized Agents
+### Specialized Agents
 
-APL delegates to specialized sub-agents:
-
-| Agent | Purpose |
-|-------|---------|
+| Agent | Role |
+|-------|------|
 | **Planner** | Task decomposition with Tree-of-Thoughts |
 | **Coder** | Code generation and modification |
 | **Tester** | Test execution and analysis |
 | **Reviewer** | Quality assurance and critique |
 | **Learner** | Knowledge extraction and persistence |
 
-## Self-Learning
-
-APL maintains persistent knowledge in `.apl/` in your project:
-
-```
-.apl/
-├── learnings.json           # Main learning database
-├── patterns/
-│   ├── success-patterns.json  # What worked
-│   └── anti-patterns.json     # What to avoid
-├── preferences/
-│   └── user-prefs.json        # Your coding style
-└── project-knowledge/
-    ├── codebase-map.json      # File relationships
-    └── conventions.json       # Project conventions
-```
-
-### What APL Learns
-
-- **Success Patterns**: Effective approaches for task types
-- **Anti-Patterns**: Approaches that consistently fail
-- **User Preferences**: Naming conventions, libraries, architecture
-- **Project Knowledge**: Codebase structure, test patterns, build commands
-- **Technique Stats**: Which agentic patterns work best
+---
 
 ## Configuration
 
-Create `.apl/config.json` to customize behavior:
+APL uses a centralized configuration in `master-config.json`. Override per-project with `.apl/config.json`:
 
 ```json
 {
   "max_iterations": 20,
-  "max_phase_iterations": 5,
-  "max_parallel_agents": 3,
   "max_retry_attempts": 3,
   "confidence_threshold": "medium",
   "auto_test": true,
   "auto_lint": true,
   "learning_enabled": true,
-  "compression_threshold": 80000,
   "model_selection": {
     "simple_tasks": "haiku",
     "complex_tasks": "sonnet",
@@ -174,122 +188,100 @@ Create `.apl/config.json` to customize behavior:
 }
 ```
 
-### Configuration Options
+### Key Options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `max_iterations` | 20 | Maximum total loop iterations |
-| `max_phase_iterations` | 5 | Max iterations per phase |
-| `max_parallel_agents` | 3 | Max concurrent sub-agents |
-| `max_retry_attempts` | 3 | Retries before backtracking |
-| `confidence_threshold` | "medium" | When to escalate (low/medium/high) |
+| `max_iterations` | 20 | Maximum workflow iterations |
+| `max_retry_attempts` | 3 | Retries before escalating |
+| `confidence_threshold` | medium | When to ask for help (low/medium/high) |
 | `auto_test` | true | Run tests after changes |
 | `auto_lint` | true | Run linters after changes |
-| `learning_enabled` | true | Enable persistent learning |
-| `compression_threshold` | 80000 | Token count to trigger compression |
+| `learning_enabled` | true | Persist learnings between sessions |
 
-## State Management
+---
 
-APL maintains structured state throughout execution:
+## Self-Learning
 
-```json
-{
-  "goal": "Build REST API",
-  "phase": "execute",
-  "iteration": 3,
-  "confidence": "high",
-  "tasks": [...],
-  "files_modified": [...],
-  "checkpoints": [...],
-  "scratchpad": {...},
-  "errors": [...],
-  "verification_log": [...]
-}
+APL remembers what works. Knowledge is stored in `.apl/` in your project:
+
+```
+.apl/
+├── learnings.json        # Main learning database
+├── state.json            # Current workflow state
+└── config.json           # Project-specific overrides
 ```
 
-### Checkpoints
+### What APL Learns
 
-State is saved at phase boundaries. If something goes wrong:
-- Automatic rollback to last checkpoint
-- Manual rollback via `/apl rollback <checkpoint_id>`
+| Type | Description |
+|------|-------------|
+| **Success Patterns** | Approaches that worked well |
+| **Anti-Patterns** | Approaches to avoid |
+| **User Preferences** | Your coding style and conventions |
+| **Project Knowledge** | Codebase structure, test commands |
 
-## Hooks Integration
+### Managing Learnings
 
-APL uses hooks for automation:
+```bash
+/apl forget <pattern_id>   # Remove specific pattern
+/apl forget --all          # Reset all learnings
+```
 
-- **PostToolUse**: Validates code changes, runs linters
-- **Stop**: Persists learnings when session ends
+Or use the GUI's Learnings Browser for visual management.
+
+---
 
 ## Troubleshooting
 
-### APL is stuck in a loop
+### APL is stuck
 
-Check `.apl/state.json` for current state. Use:
 ```bash
-/apl status  # View current state
-/apl reset   # Reset to clean state
+/apl status   # Check current state
+/apl reset    # Start fresh
 ```
 
-### Learning seems incorrect
+### Bad learned pattern
 
-Review and edit `.apl/learnings.json`. Remove problematic patterns:
 ```bash
-/apl forget pattern_id  # Remove specific pattern
-/apl forget --all       # Reset all learnings
+/apl forget <pattern_id>
 ```
 
-### Tasks running slowly
+Or browse and delete via the GUI dashboard.
 
-Check if parallel execution is enabled:
-```json
-{
-  "parallel_execution": {
-    "enabled": true,
-    "max_concurrent": 3
-  }
-}
+### Need to rollback
+
+```bash
+/apl rollback <checkpoint_id>
 ```
 
-## Best Practices
+Checkpoints are created automatically at phase boundaries.
 
-1. **Be Specific**: "Add user authentication with JWT" > "Add auth"
-2. **Set Context**: Run in the project root directory
-3. **Review Learnings**: Periodically check `.apl/learnings.json`
-4. **Trust the Process**: Let APL complete phases before intervening
-5. **Provide Feedback**: Corrections help APL learn
+---
 
 ## Architecture
 
 ```
 apl-autonomous-phased-looper/
-├── .claude-plugin/
-│   └── plugin.json
-├── skills/
-│   └── apl/
-│       └── SKILL.md         # Main /apl command
-├── agents/
-│   ├── apl-orchestrator.md  # Main coordinator
-│   ├── planner-agent.md     # Planning specialist
-│   ├── coder-agent.md       # Code generation
-│   ├── tester-agent.md      # Test execution
-│   ├── reviewer-agent.md    # Quality review
-│   └── learner-agent.md     # Learning extraction
-├── gui/                     # Web-based control panel
-│   ├── client/              # React + Vite frontend
-│   ├── server/              # Express + WebSocket backend
-│   ├── shared/              # Shared TypeScript types
-│   └── start.sh             # Launcher script
-├── hooks/
-│   └── hooks.json
-├── scripts/
-│   ├── validate-code.sh
-│   ├── track-progress.sh
-│   └── update-learnings.sh
-├── master-config.json       # Centralized configuration
-└── templates/
-    ├── apl-config.json
-    └── learnings.json
+├── skills/apl/SKILL.md      # Main /apl command
+├── agents/                   # Specialized agents
+│   ├── apl-orchestrator.md   #   Main coordinator
+│   ├── planner-agent.md      #   Planning
+│   ├── coder-agent.md        #   Code generation
+│   ├── tester-agent.md       #   Testing
+│   ├── reviewer-agent.md     #   Review
+│   └── learner-agent.md      #   Learning
+├── gui/                      # Web dashboard
+│   ├── client/               #   React frontend
+│   ├── server/               #   Express backend
+│   └── start.sh              #   Launcher
+├── master-config.json        # Central configuration
+├── contracts/                # JSON schemas
+├── scripts/                  # Automation scripts
+└── templates/                # Default configs
 ```
+
+---
 
 ## License
 
