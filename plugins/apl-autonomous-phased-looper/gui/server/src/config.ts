@@ -34,8 +34,8 @@ function createConfig(): ServerConfig {
 
   return {
     port: parseInt(process.env.APL_GUI_PORT || '3001', 10),
-    host: process.env.APL_GUI_HOST || 'localhost',
-    corsOrigins: (process.env.APL_GUI_CORS_ORIGINS || 'http://localhost:5173').split(','),
+    host: process.env.APL_GUI_HOST || '0.0.0.0',
+    corsOrigins: (process.env.APL_GUI_CORS_ORIGINS || '*').split(','),
 
     // Plugin paths (read-only)
     pluginRoot,
