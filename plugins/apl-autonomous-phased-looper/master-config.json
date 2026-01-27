@@ -1,0 +1,282 @@
+{
+  "$schema": "https://raw.githubusercontent.com/twofoldtech-dakota/apl/main/schemas/master-config.schema.json",
+  "version": "1.0.0",
+  "name": "APL Master Configuration",
+  "description": "Central control hub for the Autonomous Phased Looper workflow",
+
+  "workflow": {
+    "phases": ["plan", "execute", "review"],
+    "default_entry_phase": "plan",
+    "allow_phase_skip": false,
+    "require_review_before_complete": true
+  },
+
+  "execution": {
+    "max_iterations": 20,
+    "max_phase_iterations": 5,
+    "max_retry_attempts": 3,
+    "timeout_minutes": 30,
+    "checkpoint_on_phase_change": true,
+    "auto_rollback_on_failure": false
+  },
+
+  "parallel_execution": {
+    "enabled": true,
+    "max_concurrent_agents": 3,
+    "min_tasks_for_parallel": 2,
+    "conflict_resolution": "sequential_fallback"
+  },
+
+  "agents": {
+    "orchestrator": {
+      "file": "agents/apl-orchestrator.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task", "TodoWrite"],
+      "role": "coordinator",
+      "description": "Main coordinator - drives Plan → Execute → Review cycle"
+    },
+    "planner": {
+      "file": "agents/planner-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Glob", "Grep"],
+      "role": "planning",
+      "description": "Task decomposition with Tree-of-Thoughts reasoning"
+    },
+    "coder": {
+      "file": "agents/coder-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Bash"],
+      "role": "execution",
+      "description": "Code generation using ReAct pattern"
+    },
+    "tester": {
+      "file": "agents/tester-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Glob", "Grep", "Bash"],
+      "role": "verification",
+      "description": "Test execution and failure analysis"
+    },
+    "reviewer": {
+      "file": "agents/reviewer-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Glob", "Grep"],
+      "role": "quality",
+      "description": "Reflexion-based code review"
+    },
+    "learner": {
+      "file": "agents/learner-agent.md",
+      "enabled": true,
+      "model": "haiku",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep"],
+      "role": "learning",
+      "description": "Knowledge extraction and pattern persistence"
+    },
+    "meta_orchestrator": {
+      "file": "agents/meta-orchestrator.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Task", "TodoWrite"],
+      "role": "enterprise",
+      "description": "Epic/Feature/Story hierarchy for large projects"
+    },
+    "requirements_analyst": {
+      "file": "agents/requirements-analyst.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Glob", "Grep"],
+      "role": "analysis",
+      "description": "Domain-specific expert requirements gathering"
+    }
+  },
+
+  "hooks": {
+    "on_code_change": {
+      "enabled": true,
+      "trigger": "PostToolUse:Write|Edit",
+      "action": "scripts/validate-code.sh",
+      "timeout_seconds": 30,
+      "fail_on_error": true
+    },
+    "on_session_end": {
+      "enabled": true,
+      "trigger": "Stop",
+      "action": "scripts/update-learnings.sh",
+      "timeout_seconds": 60,
+      "fail_on_error": false
+    },
+    "on_orchestrator_complete": {
+      "enabled": true,
+      "trigger": "SubagentStop:apl-orchestrator",
+      "action": "scripts/track-progress.sh",
+      "timeout_seconds": 10,
+      "fail_on_error": false
+    }
+  },
+
+  "confidence": {
+    "threshold": "medium",
+    "levels": {
+      "low": {
+        "description": "Uncertain - needs clarification",
+        "action": "escalate_to_user"
+      },
+      "medium": {
+        "description": "Reasonably confident - proceed with verification",
+        "action": "proceed_with_verification"
+      },
+      "high": {
+        "description": "Very confident - auto-proceed",
+        "action": "auto_proceed"
+      }
+    },
+    "escalate_on_low": true,
+    "auto_proceed_on_high": true
+  },
+
+  "verification": {
+    "chain_of_verification": true,
+    "run_tests_after_changes": true,
+    "run_linter_after_changes": true,
+    "require_all_criteria_met": true,
+    "test_commands": {
+      "default": "npm test",
+      "python": "pytest",
+      "go": "go test ./...",
+      "rust": "cargo test"
+    },
+    "lint_commands": {
+      "default": "npm run lint",
+      "python": "ruff check .",
+      "go": "golangci-lint run",
+      "rust": "cargo clippy"
+    }
+  },
+
+  "learning": {
+    "enabled": true,
+    "storage_path": ".apl/learnings.json",
+    "persist_success_patterns": true,
+    "persist_anti_patterns": true,
+    "learn_user_preferences": true,
+    "learn_project_knowledge": true,
+    "track_technique_stats": true,
+    "max_patterns_stored": 100,
+    "pattern_decay_days": 90,
+    "techniques": {
+      "react": { "enabled": true, "weight": 1.0 },
+      "chain_of_verification": { "enabled": true, "weight": 1.0 },
+      "tree_of_thoughts": { "enabled": true, "weight": 1.0 },
+      "reflexion": { "enabled": true, "weight": 1.0 }
+    }
+  },
+
+  "patterns": {
+    "library_path": "patterns/",
+    "categories": [
+      "authentication",
+      "api",
+      "database",
+      "testing",
+      "react"
+    ],
+    "auto_suggest": true,
+    "min_confidence_to_apply": 0.7
+  },
+
+  "context_management": {
+    "compression_threshold_tokens": 80000,
+    "max_scratchpad_entries": 10,
+    "auto_summarize_completed": true,
+    "preserve_error_history": 5,
+    "checkpoint_retention": 10
+  },
+
+  "model_selection": {
+    "default": "sonnet",
+    "by_task_complexity": {
+      "simple": "haiku",
+      "medium": "sonnet",
+      "complex": "sonnet"
+    },
+    "by_phase": {
+      "plan": "sonnet",
+      "execute": "sonnet",
+      "review": "sonnet",
+      "learn": "haiku"
+    },
+    "cost_optimization": {
+      "enabled": true,
+      "prefer_haiku_for_simple": true
+    }
+  },
+
+  "output": {
+    "verbose": false,
+    "show_reasoning": true,
+    "show_phase_transitions": true,
+    "show_task_progress": true,
+    "show_verification_details": false,
+    "show_learning_updates": true,
+    "log_to_file": false,
+    "log_path": ".apl/logs/"
+  },
+
+  "safety": {
+    "require_confirmation_for_destructive": true,
+    "max_files_per_task": 10,
+    "max_lines_per_edit": 500,
+    "blocked_paths": [
+      "node_modules",
+      ".git",
+      ".env",
+      ".env.*",
+      "*.key",
+      "*.pem",
+      "*.secret",
+      "credentials.*"
+    ],
+    "blocked_operations": [
+      "rm -rf /",
+      "DROP DATABASE",
+      "format"
+    ],
+    "require_tests_before_commit": false
+  },
+
+  "domains": {
+    "available": [
+      "healthcare",
+      "e-commerce",
+      "saas",
+      "fintech",
+      "government",
+      "ai-ml",
+      "iot"
+    ],
+    "active": null,
+    "questions_path": "templates/domain-questions/"
+  },
+
+  "integrations": {
+    "vercel": {
+      "enabled": false,
+      "production_branch": "main",
+      "preview_on_pr": true
+    },
+    "github": {
+      "enabled": true,
+      "auto_create_pr": false,
+      "pr_template": "templates/pr-template.md"
+    },
+    "slack": {
+      "enabled": false,
+      "webhook_url": null,
+      "notify_on_complete": false
+    }
+  }
+}

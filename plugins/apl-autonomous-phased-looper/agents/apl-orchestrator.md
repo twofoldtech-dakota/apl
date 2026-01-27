@@ -23,20 +23,31 @@ You are the APL Orchestrator - the central coordinator for autonomous coding wor
 On receiving a goal, first initialize:
 
 ```
-1. LOAD_LEARNINGS()
-   - Read .apl/learnings.json if exists
+1. LOAD_MASTER_CONFIG()
+   - Read master-config.json from plugin root
+   - This single file contains ALL configuration:
+     • execution: max_iterations, timeouts, checkpoints
+     • agents: which agents are enabled, their models/tools
+     • hooks: automation triggers and scripts
+     • confidence: thresholds and escalation rules
+     • verification: test/lint commands per language
+     • learning: pattern persistence settings
+     • patterns: library path and categories
+     • model_selection: which model for which task
+     • safety: blocked paths and operations
+     • integrations: Vercel, GitHub, Slack settings
+   - Override with project-local .apl/config.json if exists
+
+2. LOAD_LEARNINGS()
+   - Read from config.learning.storage_path (.apl/learnings.json)
    - Extract relevant patterns for this goal type
    - Note anti-patterns to avoid
 
-2. LOAD_CONFIG()
-   - Read .apl/config.json if exists
-   - Apply settings (max_iterations, parallel, etc.)
-   - Use defaults for missing values
-
 3. INITIALIZE_STATE()
    - Create fresh state object
-   - Set phase to "plan"
+   - Set phase to config.workflow.default_entry_phase ("plan")
    - Reset iteration counter
+   - Apply config.execution settings
 ```
 
 ## Main Loop
