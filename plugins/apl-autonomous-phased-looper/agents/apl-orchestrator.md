@@ -48,7 +48,43 @@ On receiving a goal, first initialize:
    - Set phase to config.workflow.default_entry_phase ("plan")
    - Reset iteration counter
    - Apply config.execution settings
+
+4. DETECT_ENTERPRISE_HANDOFF()
+   - Check if goal contains meta-orchestrator handoff JSON
+   - If handoff detected, extract and merge:
+     • goal → state.goal
+     • context.epic, context.feature → state.enterprise_context
+     • context.architectural_decisions → project_context
+     • context.cross_cutting → constraints for planner
+     • success_criteria → pre-defined criteria for tasks
+   - This allows seamless delegation from meta-orchestrator
 ```
+
+### Enterprise Handoff Format
+
+When invoked from meta-orchestrator, the goal may contain:
+
+```json
+{
+  "goal": "Implement user registration endpoint",
+  "context": {
+    "project": "my-app",
+    "epic": "User Management",
+    "feature": "Authentication",
+    "story_id": "story_001",
+    "dependencies_completed": ["story_000"],
+    "architectural_decisions": ["Use JWT", "PostgreSQL"],
+    "cross_cutting": ["All endpoints need rate limiting"]
+  },
+  "success_criteria": ["POST /register works", "Tests pass"]
+}
+```
+
+Parse this and use:
+- `architectural_decisions` → Add to `project_context` for planner
+- `cross_cutting` → Add as constraints for all tasks
+- `success_criteria` → Use as baseline criteria (planner may add more)
+- `story_id` → Track for meta-orchestrator result reporting
 
 ## Main Loop
 
@@ -308,6 +344,68 @@ def update_state(action, result):
     SAVE_STATE()
 ```
 
+## Confidence Tracking
+
+Confidence determines whether to auto-proceed or escalate to user:
+
+```python
+def calculate_confidence():
+    """
+    Calculate current confidence level based on execution metrics.
+    Uses thresholds from config.confidence
+    """
+    # Factors that INCREASE confidence
+    tasks_completed = len([t for t in tasks if t.status == "completed"])
+    tasks_total = len(tasks)
+    completion_rate = tasks_completed / tasks_total if tasks_total > 0 else 0
+
+    verification_passes = len([v for v in verification_log if v.passed])
+    verification_total = len(verification_log)
+    verification_rate = verification_passes / verification_total if verification_total > 0 else 1
+
+    # Factors that DECREASE confidence
+    retry_count = sum(t.get("retry_count", 0) for t in tasks)
+    error_count = len(state.get("errors", []))
+    user_corrections = len(state.get("user_corrections", []))
+
+    # Scoring (0-100)
+    score = 100
+    score -= retry_count * 10      # -10 per retry
+    score -= error_count * 15      # -15 per error
+    score -= user_corrections * 20 # -20 per correction
+    score += completion_rate * 20  # +20 max for completions
+    score += verification_rate * 10 # +10 max for verifications
+
+    # Map to levels using config thresholds
+    if score >= 70:
+        return "high"
+    elif score >= 40:
+        return "medium"
+    else:
+        return "low"
+
+def SET_CONFIDENCE(level):
+    """
+    Manually override confidence (e.g., after max retries exhausted).
+    """
+    state["confidence"] = level
+    state["confidence_override"] = True
+    state["confidence_reason"] = "manual_override"
+
+def GET_CONFIDENCE():
+    """
+    Get current confidence, respecting manual overrides.
+    """
+    if state.get("confidence_override"):
+        return state["confidence"]
+    return calculate_confidence()
+```
+
+Confidence affects behavior per `config.confidence`:
+- `high` + `auto_proceed_on_high: true` → Continue without user confirmation
+- `medium` → Proceed with extra verification
+- `low` + `escalate_on_low: true` → Stop and ask user for guidance
+
 ## Checkpointing
 
 Save checkpoints at phase boundaries:
@@ -329,7 +427,36 @@ def save_checkpoint():
 
 ## Context Compression
 
-When approaching token limits:
+Determine when compression is needed:
+
+```python
+def should_compress_context():
+    """
+    Check if context compression is needed based on master config thresholds.
+    Uses config.context_management.compression_threshold_tokens (default: 80000)
+    """
+    threshold = config.context_management.compression_threshold_tokens  # 80000
+
+    # Estimate current token usage (rough heuristic: 4 chars = 1 token)
+    state_size = len(json.dumps(state)) // 4
+    scratchpad_size = len(json.dumps(scratchpad)) // 4
+    completed_tasks_size = sum(
+        len(json.dumps(t)) // 4 for t in tasks if t.status == "completed"
+    )
+
+    estimated_tokens = state_size + scratchpad_size + completed_tasks_size
+
+    # Also compress if scratchpad exceeds max entries
+    max_entries = config.context_management.max_scratchpad_entries  # 10
+    scratchpad_overflow = (
+        len(scratchpad.get("learnings", [])) > max_entries or
+        len(scratchpad.get("failed_approaches", [])) > max_entries
+    )
+
+    return estimated_tokens > threshold or scratchpad_overflow
+```
+
+When compression is needed:
 
 ```python
 def compress_context():

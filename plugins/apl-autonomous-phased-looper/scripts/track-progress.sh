@@ -24,21 +24,36 @@ AGENT_RESULT=$(echo "$INPUT" | jq -r '.result // "completed"')
 # Log the event
 echo "[$TIMESTAMP] Agent: $AGENT_TYPE, Result: $AGENT_RESULT" >> "$LOG_FILE"
 
-# Update state file if it exists
+# Update state file if it exists (with file locking to prevent race conditions)
+LOCK_FILE="$APL_DIR/.state.lock"
 if [ -f "$STATE_FILE" ]; then
-    # Read current state
-    CURRENT_STATE=$(cat "$STATE_FILE")
+    (
+        # Acquire exclusive lock (wait up to 10 seconds)
+        flock -w 10 200 || {
+            echo "{\"continue\": true, \"warning\": \"Could not acquire state lock\"}"
+            exit 0
+        }
 
-    # Update last_activity timestamp
-    UPDATED_STATE=$(echo "$CURRENT_STATE" | jq --arg ts "$TIMESTAMP" '.last_activity = $ts')
+        # Read current state
+        CURRENT_STATE=$(cat "$STATE_FILE")
 
-    # Increment iteration counter for orchestrator
-    if [ "$AGENT_TYPE" = "apl-orchestrator" ]; then
-        UPDATED_STATE=$(echo "$UPDATED_STATE" | jq '.iteration = (.iteration // 0) + 1')
-    fi
+        # Update last_activity timestamp
+        UPDATED_STATE=$(echo "$CURRENT_STATE" | jq --arg ts "$TIMESTAMP" '.last_activity = $ts')
 
-    # Write updated state
-    echo "$UPDATED_STATE" > "$STATE_FILE"
+        # Increment iteration counter for orchestrator
+        if [ "$AGENT_TYPE" = "apl-orchestrator" ]; then
+            UPDATED_STATE=$(echo "$UPDATED_STATE" | jq '.iteration = (.iteration // 0) + 1')
+        fi
+
+        # Validate and write with atomic rename
+        TEMP_FILE=$(mktemp "${STATE_FILE}.XXXXXX")
+        if [ -n "$UPDATED_STATE" ] && echo "$UPDATED_STATE" | jq empty 2>/dev/null; then
+            echo "$UPDATED_STATE" > "$TEMP_FILE"
+            mv "$TEMP_FILE" "$STATE_FILE"
+        else
+            rm -f "$TEMP_FILE"
+        fi
+    ) 200>"$LOCK_FILE"
 fi
 
 # Output success
