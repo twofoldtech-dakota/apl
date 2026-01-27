@@ -1,0 +1,535 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/twofoldtech-dakota/apl/contracts/horizontal-output.schema.json",
+  "title": "HorizontalAgentOutput",
+  "description": "Output contract for horizontal capability agents. Contains evaluation results, applied fixes, and quality scores.",
+  "type": "object",
+  "required": ["agent", "invocation_point", "passed"],
+  "properties": {
+    "agent": {
+      "type": "string",
+      "enum": ["content-strategy", "brand-voice", "design", "accessibility", "copy-content"],
+      "description": "Which horizontal agent produced this output"
+    },
+    "invocation_point": {
+      "type": "string",
+      "enum": ["execute", "review"],
+      "description": "At which phase the agent was invoked"
+    },
+    "files_evaluated": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of file paths that were evaluated"
+    },
+    "scores": {
+      "$ref": "#/$defs/QualityScores",
+      "description": "Quality scores across evaluation dimensions"
+    },
+    "issues": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Issue" },
+      "description": "Issues found during evaluation (critical and warning severity)",
+      "default": []
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Issue" },
+      "description": "Non-blocking suggestions",
+      "default": []
+    },
+    "fixes_applied": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/AppliedFix" },
+      "description": "Auto-fixes that were applied (for agents with auto-fix capability)",
+      "default": []
+    },
+    "issues_remaining": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Issue" },
+      "description": "Issues that could not be auto-fixed",
+      "default": []
+    },
+    "files_written": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/FileWritten" },
+      "description": "For copy-content agent: files that were created or modified"
+    },
+    "content_metadata": {
+      "$ref": "#/$defs/ContentMetadata",
+      "description": "For copy-content agent: metadata about created content"
+    },
+    "test_results": {
+      "$ref": "#/$defs/TestResults",
+      "description": "For accessibility agent: automated test results"
+    },
+    "design_debt": {
+      "$ref": "#/$defs/DesignDebt",
+      "description": "For design agent: tracked design system debt"
+    },
+    "passed": {
+      "type": "boolean",
+      "description": "Whether the evaluation passed quality gates"
+    },
+    "blocking_issues": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of issues that block completion"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Human-readable summary of the evaluation"
+    }
+  },
+  "$defs": {
+    "QualityScores": {
+      "type": "object",
+      "description": "Scores for different quality dimensions (0-100)",
+      "properties": {
+        "seo": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "SEO optimization score (content-strategy)"
+        },
+        "messaging_alignment": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Messaging pillar coverage (content-strategy)"
+        },
+        "content_structure": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Content structure quality (content-strategy)"
+        },
+        "tone": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Tone appropriateness (brand-voice)"
+        },
+        "style": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Style guide adherence (brand-voice)"
+        },
+        "terminology": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Terminology consistency (brand-voice)"
+        },
+        "voice_consistency": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Cross-file voice consistency (brand-voice)"
+        },
+        "token_compliance": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Design token usage (design)"
+        },
+        "pattern_compliance": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Component pattern adherence (design)"
+        },
+        "responsive_design": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Responsive implementation quality (design)"
+        },
+        "visual_hierarchy": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Visual hierarchy clarity (design)"
+        },
+        "design_consistency": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Cross-file design consistency (design)"
+        },
+        "perceivable": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "WCAG Perceivable score (accessibility)"
+        },
+        "operable": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "WCAG Operable score (accessibility)"
+        },
+        "understandable": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "WCAG Understandable score (accessibility)"
+        },
+        "robust": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "WCAG Robust score (accessibility)"
+        },
+        "overall": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Overall quality score"
+        }
+      }
+    },
+    "Issue": {
+      "type": "object",
+      "description": "An issue found during evaluation",
+      "required": ["severity", "category", "description"],
+      "properties": {
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "warning", "suggestion"],
+          "description": "Issue severity level"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "seo", "messaging", "content", "structure",
+            "tone", "style", "terminology", "voice",
+            "tokens", "patterns", "responsive", "hierarchy", "consistency",
+            "perceivable", "operable", "understandable", "robust", "accessibility"
+          ],
+          "description": "Issue category"
+        },
+        "wcag_criterion": {
+          "type": "string",
+          "pattern": "^[0-9]\\.[0-9]\\.[0-9]+$",
+          "description": "WCAG criterion reference (e.g., '1.1.1')"
+        },
+        "wcag_level": {
+          "type": "string",
+          "enum": ["A", "AA", "AAA"],
+          "description": "WCAG conformance level"
+        },
+        "file": {
+          "type": "string",
+          "description": "File where issue was found"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Line number where issue was found"
+        },
+        "description": {
+          "type": "string",
+          "description": "What the issue is"
+        },
+        "current_value": {
+          "type": "string",
+          "description": "Current problematic value"
+        },
+        "expected_value": {
+          "type": "string",
+          "description": "Expected or correct value"
+        },
+        "suggested_fix": {
+          "type": "string",
+          "description": "How to fix the issue"
+        },
+        "example": {
+          "type": "string",
+          "description": "Example of correct implementation"
+        },
+        "auto_fixable": {
+          "type": "boolean",
+          "description": "Whether this issue can be auto-fixed"
+        },
+        "requires_human_review": {
+          "type": "boolean",
+          "description": "Whether this issue needs human review"
+        },
+        "impact": {
+          "type": "string",
+          "description": "Impact of this issue on users"
+        }
+      }
+    },
+    "AppliedFix": {
+      "type": "object",
+      "description": "An auto-fix that was applied",
+      "required": ["file", "type", "description"],
+      "properties": {
+        "file": {
+          "type": "string",
+          "description": "File that was modified"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Line number where fix was applied"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "forbidden_term", "product_naming", "terminology", "tone",
+            "missing_alt", "keyboard_accessibility", "semantic_html", "aria_attributes",
+            "focus_indicator", "form_label", "contrast", "touch_target"
+          ],
+          "description": "Type of fix applied"
+        },
+        "wcag_criterion": {
+          "type": "string",
+          "description": "WCAG criterion addressed (for accessibility fixes)"
+        },
+        "description": {
+          "type": "string",
+          "description": "What was fixed"
+        },
+        "old": {
+          "type": "string",
+          "description": "Original value/code"
+        },
+        "new": {
+          "type": "string",
+          "description": "New value/code after fix"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why this fix was necessary"
+        }
+      }
+    },
+    "FileWritten": {
+      "type": "object",
+      "description": "A file created or modified by copy-content agent",
+      "required": ["path", "action"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "File path"
+        },
+        "action": {
+          "type": "string",
+          "enum": ["create", "modify"],
+          "description": "What action was taken"
+        },
+        "word_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Word count of the content"
+        },
+        "sections": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Sections present in the content"
+        }
+      }
+    },
+    "ContentMetadata": {
+      "type": "object",
+      "description": "Metadata about created content",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Content type"
+        },
+        "target_audience": {
+          "type": "string",
+          "description": "Intended audience"
+        },
+        "reading_time": {
+          "type": "string",
+          "description": "Estimated reading time"
+        },
+        "code_examples": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Languages used in code examples"
+        }
+      }
+    },
+    "TestResults": {
+      "type": "object",
+      "description": "Automated accessibility test results",
+      "properties": {
+        "axe_core": {
+          "type": "object",
+          "properties": {
+            "ran": { "type": "boolean" },
+            "violations": { "type": "integer", "minimum": 0 },
+            "passes": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "pa11y": {
+          "type": "object",
+          "properties": {
+            "ran": { "type": "boolean" },
+            "errors": { "type": "integer", "minimum": 0 },
+            "warnings": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "lighthouse": {
+          "type": "object",
+          "properties": {
+            "ran": { "type": "boolean" },
+            "score": { "type": "integer", "minimum": 0, "maximum": 100 }
+          }
+        }
+      }
+    },
+    "DesignDebt": {
+      "type": "object",
+      "description": "Tracked design system debt",
+      "properties": {
+        "token_violations": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of design token violations"
+        },
+        "pattern_deviations": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of pattern deviations"
+        },
+        "arbitrary_values": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of arbitrary values used"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "agent": "content-strategy",
+      "invocation_point": "review",
+      "files_evaluated": ["src/content/blog/getting-started.mdx"],
+      "scores": {
+        "seo": 65,
+        "messaging_alignment": 70,
+        "content_structure": 75,
+        "overall": 70
+      },
+      "issues": [
+        {
+          "severity": "critical",
+          "category": "seo",
+          "file": "src/content/blog/getting-started.mdx",
+          "description": "Title tag too short (15 chars, min 30)",
+          "current_value": "Getting Started",
+          "suggested_fix": "Expand title to include keywords",
+          "auto_fixable": false
+        }
+      ],
+      "warnings": [],
+      "passed": false,
+      "blocking_issues": 1,
+      "summary": "Content needs SEO improvements. Title and meta description below requirements."
+    },
+    {
+      "agent": "brand-voice",
+      "invocation_point": "review",
+      "files_evaluated": ["docs/api/authentication.md"],
+      "scores": {
+        "tone": 75,
+        "style": 80,
+        "terminology": 95,
+        "voice_consistency": 70,
+        "overall": 80
+      },
+      "fixes_applied": [
+        {
+          "file": "docs/api/authentication.md",
+          "line": 3,
+          "type": "forbidden_term",
+          "description": "Removed 'just' from sentence",
+          "old": "Just run the command",
+          "new": "Run the command",
+          "reason": "'Just' minimizes complexity"
+        }
+      ],
+      "issues_remaining": [],
+      "passed": true,
+      "blocking_issues": 0,
+      "summary": "Applied 3 terminology fixes. Voice consistency improved."
+    },
+    {
+      "agent": "accessibility",
+      "invocation_point": "review",
+      "files_evaluated": ["src/components/Button.tsx"],
+      "scores": {
+        "perceivable": 85,
+        "operable": 90,
+        "understandable": 95,
+        "robust": 80,
+        "overall": 88
+      },
+      "fixes_applied": [
+        {
+          "file": "src/components/Button.tsx",
+          "line": 24,
+          "type": "keyboard_accessibility",
+          "wcag_criterion": "2.1.1",
+          "description": "Added keyboard handler to interactive element",
+          "old": "<div onClick={handleClick}>",
+          "new": "<button onClick={handleClick}>"
+        }
+      ],
+      "test_results": {
+        "axe_core": {
+          "ran": true,
+          "violations": 1,
+          "passes": 23
+        }
+      },
+      "issues_remaining": [
+        {
+          "severity": "critical",
+          "category": "accessibility",
+          "wcag_criterion": "1.4.3",
+          "wcag_level": "AA",
+          "file": "src/components/Button.tsx",
+          "line": 34,
+          "description": "Contrast ratio 4.48:1 fails AA (4.5:1 required)",
+          "auto_fixable": false
+        }
+      ],
+      "passed": false,
+      "blocking_issues": 1,
+      "summary": "Applied 2 auto-fixes. 1 contrast issue requires manual color adjustment."
+    },
+    {
+      "agent": "copy-content",
+      "invocation_point": "execute",
+      "files_evaluated": [],
+      "files_written": [
+        {
+          "path": "docs/api/authentication.md",
+          "action": "create",
+          "word_count": 650,
+          "sections": ["Overview", "Prerequisites", "Usage", "Error Handling", "Troubleshooting"]
+        }
+      ],
+      "content_metadata": {
+        "type": "documentation",
+        "target_audience": "developers",
+        "reading_time": "4 min",
+        "code_examples": ["javascript", "python"]
+      },
+      "scores": {
+        "overall": 90
+      },
+      "passed": true,
+      "blocking_issues": 0,
+      "summary": "Created authentication documentation with JavaScript and Python examples."
+    }
+  ]
+}

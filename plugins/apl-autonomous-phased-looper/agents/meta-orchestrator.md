@@ -28,6 +28,8 @@ INPUT                           → OPERATION
 /meta plan                      → PLAN_PHASE (modify existing)
 /meta loop                      → LOOP_PHASE (next Epic)
 /meta loop <epic_id>            → LOOP_PHASE (specific Epic)
+/meta loop --continuous         → CONTINUOUS_PHASE (all Epics)
+/meta autopilot                 → CONTINUOUS_PHASE (all Epics)
 /meta status                    → STATUS (read-only)
 /meta answer <id> <text>        → ANSWER (record answer)
 /meta export                    → EXPORT (generate docs)
@@ -305,6 +307,408 @@ Run `/meta loop` to start Epic <N>: <Next Epic Title>.
 ```
 
 **DO NOT auto-start next Epic. STOP here.**
+
+---
+
+# CONTINUOUS PHASE (Autopilot Mode)
+
+Invoked via `/meta autopilot` or `/meta loop --continuous`.
+
+## Overview
+
+Continuous mode executes ALL remaining Epics without stopping between them. Unlike LOOP PHASE which stops after each Epic, autopilot continues until:
+- All Epics complete
+- A graceful stop is requested (`.meta/STOP` file)
+- Confidence drops below threshold
+- A story fails (if `pause_on_failure` is true)
+
+## Step 1: Initialize Continuous State
+
+Parse command flags and initialize:
+
+```python
+def parse_continuous_flags(args):
+    return {
+        "continuous": True,
+        "until_epic": args.get("until"),           # Stop after this Epic
+        "confidence_threshold": args.get("confidence", "low"),
+        "checkpoint_interval": args.get("checkpoint_interval", 5),
+        "pause_on_failure": args.get("pause_on_failure", True),
+        "skip_failures": args.get("skip_failures", False)
+    }
+
+def initialize_continuous_state():
+    state = {
+        "mode": "continuous",
+        "started_at": now(),
+        "current_epic": None,
+        "stories_completed_this_run": 0,
+        "last_checkpoint": None,
+        "paused": False,
+        "paused_reason": None,
+        "confidence_history": [],
+        "flags": continuous_flags
+    }
+    write_json(".meta/continuous-state.json", state)
+    return state
+```
+
+## Step 2: Main Execution Loop
+
+```python
+def execute_continuous():
+    """
+    Main autopilot execution loop.
+    Processes all pending Epics without stopping between them.
+    """
+    continuous_state = initialize_continuous_state()
+    pending_epics = get_pending_epics()
+    story_count = 0
+
+    for epic in pending_epics:
+        # Check for graceful stop signal
+        if exists(".meta/STOP"):
+            complete_graceful_stop(epic)
+            break
+
+        # Check until flag
+        if continuous_flags["until_epic"]:
+            if epic.id > continuous_flags["until_epic"]:
+                log("Reached --until target, stopping")
+                break
+
+        # Load Epic context (same as LOOP PHASE)
+        load_epic_context(epic)
+        continuous_state["current_epic"] = epic.id
+        save_continuous_state()
+
+        # Process all stories in Epic
+        for feature in epic.features:
+            for story in feature.stories:
+                story_count += 1
+
+                # Checkpoint if interval reached
+                if story_count % continuous_flags["checkpoint_interval"] == 0:
+                    save_progress_checkpoint(continuous_state, story_count)
+
+                # Check for stop signal before each story
+                if exists(".meta/STOP"):
+                    complete_graceful_stop(epic, story)
+                    return
+
+                # Execute story via APL
+                result = execute_story_via_apl(story, epic, feature)
+
+                # Handle result
+                if result.status == "failure":
+                    if continuous_flags["pause_on_failure"]:
+                        pause_for_failure(story, result)
+                        return  # Exit continuous mode
+                    elif continuous_flags["skip_failures"]:
+                        mark_story_skipped(story, result)
+                        continue
+
+                # Update progress
+                continuous_state["stories_completed_this_run"] += 1
+                update_story_status(story, result)
+                update_progress_metrics()
+
+                # Check confidence
+                current_confidence = calculate_confidence()
+                continuous_state["confidence_history"].append({
+                    "story": story.id,
+                    "confidence": current_confidence
+                })
+
+                if confidence_below_threshold(current_confidence):
+                    pause_for_low_confidence(story, current_confidence)
+                    return  # Exit continuous mode
+
+        # Epic complete - archive and continue
+        complete_epic(epic)
+        # DO NOT STOP - continue to next Epic
+
+    # All Epics complete
+    complete_continuous_run(continuous_state)
+```
+
+## Step 3: Checkpoint System
+
+```python
+def save_progress_checkpoint(state, story_count):
+    """
+    Save checkpoint for recovery purposes.
+    Called every N stories (configurable).
+    """
+    checkpoint_id = f"checkpoint_{story_count:04d}"
+    checkpoint = {
+        "id": checkpoint_id,
+        "timestamp": now(),
+        "continuous_state": state,
+        "current_epic": state["current_epic"],
+        "stories_completed": state["stories_completed_this_run"],
+        "confidence_history": state["confidence_history"][-10:]  # Keep last 10
+    }
+
+    checkpoint_path = f".meta/checkpoints/{checkpoint_id}.json"
+    write_json(checkpoint_path, checkpoint)
+
+    state["last_checkpoint"] = checkpoint_path
+    log(f"Checkpoint saved: {checkpoint_id}")
+```
+
+## Step 4: Graceful Stop
+
+```python
+def complete_graceful_stop(current_epic, current_story=None):
+    """
+    Handle graceful stop request.
+    Completes current story (if in progress), then stops cleanly.
+    """
+    log("Graceful stop requested via .meta/STOP file")
+
+    continuous_state["paused"] = True
+    continuous_state["paused_reason"] = "graceful_stop"
+    save_continuous_state()
+
+    # Remove stop file
+    remove(".meta/STOP")
+
+    # Display stop message
+    display_stop_summary(current_epic, current_story)
+
+
+def display_stop_summary(epic, story):
+    print("""
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[META] Autopilot Stopped (Graceful)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Stopped at: Epic '{epic.title}', Story '{story.title if story else 'between stories'}'
+
+Stories completed this run: {continuous_state['stories_completed_this_run']}
+Last checkpoint: {continuous_state['last_checkpoint']}
+
+To resume: /meta autopilot
+To continue manually: /meta loop
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+""")
+```
+
+## Step 5: Confidence Monitoring
+
+```python
+def calculate_confidence():
+    """
+    Calculate current confidence based on recent execution history.
+    """
+    history = continuous_state["confidence_history"]
+    if len(history) < 3:
+        return "high"
+
+    recent = history[-5:]  # Last 5 stories
+
+    # Factors that decrease confidence
+    failures = sum(1 for h in recent if h.get("failed"))
+    retries = sum(h.get("retry_count", 0) for h in recent)
+    user_corrections = len(state.get("user_corrections", []))
+
+    # Calculate score
+    score = 100 - (failures * 20) - (retries * 10) - (user_corrections * 15)
+
+    if score >= 70:
+        return "high"
+    elif score >= 40:
+        return "medium"
+    else:
+        return "low"
+
+
+def confidence_below_threshold(current):
+    threshold = continuous_flags["confidence_threshold"]
+    levels = {"low": 1, "medium": 2, "high": 3}
+    return levels[current] < levels[threshold]
+
+
+def pause_for_low_confidence(story, confidence):
+    """
+    Pause execution due to low confidence.
+    """
+    continuous_state["paused"] = True
+    continuous_state["paused_reason"] = f"low_confidence: {confidence}"
+    save_continuous_state()
+
+    print(f"""
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[META] Autopilot Paused - Low Confidence
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current confidence: {confidence}
+Threshold: {continuous_flags['confidence_threshold']}
+
+Recent issues:
+{format_recent_issues()}
+
+Options:
+  /meta autopilot          - Resume (reset confidence)
+  /meta loop               - Continue manually
+  /meta status             - Review current state
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+""")
+```
+
+## Step 6: Failure Handling
+
+```python
+def pause_for_failure(story, result):
+    """
+    Pause execution due to story failure.
+    """
+    continuous_state["paused"] = True
+    continuous_state["paused_reason"] = f"story_failure: {story.id}"
+    continuous_state["failed_story"] = {
+        "id": story.id,
+        "title": story.title,
+        "error": result.error,
+        "attempts": result.attempts
+    }
+    save_continuous_state()
+
+    print(f"""
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[META] Autopilot Paused - Story Failed
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Failed story: {story.title} ({story.id})
+Error: {result.error}
+Attempts: {result.attempts}
+
+Options:
+  /meta loop               - Retry this story manually
+  /meta autopilot --skip-failures  - Resume, skipping failed stories
+  /meta plan               - Modify plan to address issue
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+""")
+```
+
+## Step 7: Completion
+
+```python
+def complete_continuous_run(state):
+    """
+    Called when all Epics are complete.
+    """
+    # Archive continuous state
+    archive_path = f".meta/archive/continuous-runs/{state['started_at']}.json"
+    write_json(archive_path, state)
+
+    # Clear active continuous state
+    remove(".meta/continuous-state.json")
+
+    # Update progress
+    update_progress_complete()
+
+    print(f"""
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[META] Autopilot Complete!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+All Epics completed successfully!
+
+Run summary:
+  Stories completed: {state['stories_completed_this_run']}
+  Checkpoints saved: {len(glob('.meta/checkpoints/*.json'))}
+  Duration: {format_duration(state['started_at'], now())}
+
+Run `/meta status` for full project summary.
+Run `/meta export` to generate documentation.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+""")
+```
+
+## Resume from Pause
+
+When `/meta autopilot` is called after a pause:
+
+```python
+def resume_continuous():
+    """
+    Resume a paused continuous run.
+    """
+    if not exists(".meta/continuous-state.json"):
+        # Fresh start
+        return execute_continuous()
+
+    state = load_continuous_state()
+
+    if not state.get("paused"):
+        # Not paused, fresh start
+        return execute_continuous()
+
+    # Resuming from pause
+    log(f"Resuming from: {state['paused_reason']}")
+
+    # Reset pause state
+    state["paused"] = False
+    state["paused_reason"] = None
+
+    # If paused for low confidence, reset confidence history
+    if "low_confidence" in (state.get("paused_reason") or ""):
+        state["confidence_history"] = []
+
+    save_continuous_state()
+
+    # Continue from current Epic
+    return execute_continuous_from(state["current_epic"])
+```
+
+## Continuous State File
+
+`.meta/continuous-state.json`:
+
+```json
+{
+  "mode": "continuous",
+  "started_at": "2024-01-15T10:30:00Z",
+  "current_epic": "epic_002",
+  "stories_completed_this_run": 15,
+  "last_checkpoint": ".meta/checkpoints/checkpoint_0015.json",
+  "paused": false,
+  "paused_reason": null,
+  "confidence_history": [
+    {"story": "story_013", "confidence": "high"},
+    {"story": "story_014", "confidence": "high"},
+    {"story": "story_015", "confidence": "medium"}
+  ],
+  "flags": {
+    "continuous": true,
+    "until_epic": null,
+    "confidence_threshold": "low",
+    "checkpoint_interval": 5,
+    "pause_on_failure": true,
+    "skip_failures": false
+  }
+}
+```
+
+## Output During Continuous Execution
+
+Show progress without stopping:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[META] Autopilot | Epic 2/5 | Story 3/8
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current: Implement user profile page
+Status: Running...
+
+Progress: ████████░░░░░░░░░░░░ 40%
+Confidence: HIGH
+
+[Checkpoint saved: checkpoint_0012]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
 
 ---
 

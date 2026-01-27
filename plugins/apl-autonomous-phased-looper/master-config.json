@@ -91,6 +91,93 @@
       "tools": ["Read", "Glob", "Grep"],
       "role": "analysis",
       "description": "Domain-specific expert requirements gathering"
+    },
+    "content_strategy": {
+      "file": "agents/content-strategy-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Glob", "Grep"],
+      "role": "horizontal",
+      "category": "content",
+      "auto_fix": false,
+      "description": "SEO, content planning, and messaging consistency evaluation"
+    },
+    "brand_voice": {
+      "file": "agents/brand-voice-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep"],
+      "role": "horizontal",
+      "category": "content",
+      "auto_fix": true,
+      "description": "Tone, style guidelines, and terminology consistency"
+    },
+    "design": {
+      "file": "agents/design-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Glob", "Grep"],
+      "role": "horizontal",
+      "category": "ui",
+      "auto_fix": false,
+      "description": "UI/UX patterns, design tokens, and component specifications"
+    },
+    "accessibility": {
+      "file": "agents/accessibility-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Bash"],
+      "role": "horizontal",
+      "category": "quality",
+      "auto_fix": true,
+      "description": "WCAG compliance and accessibility testing"
+    },
+    "copy_content": {
+      "file": "agents/copy-content-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep"],
+      "role": "horizontal",
+      "category": "content",
+      "auto_fix": true,
+      "description": "Content writing following brand guidelines"
+    }
+  },
+
+  "horizontal_agents": {
+    "enabled": true,
+    "invoke_strategy": "auto",
+    "guidelines_path": ".apl/guidelines/",
+    "file_triggers": {
+      "content_strategy": {
+        "patterns": ["*.md", "*.mdx", "src/pages/**", "src/content/**", "docs/**"],
+        "on_phases": ["execute", "review"]
+      },
+      "brand_voice": {
+        "patterns": ["*.md", "*.mdx", "src/pages/**", "src/content/**", "docs/**"],
+        "on_phases": ["review"]
+      },
+      "design": {
+        "patterns": ["*.tsx", "*.jsx", "*.vue", "*.svelte", "src/components/**", "src/pages/**"],
+        "on_phases": ["execute", "review"]
+      },
+      "accessibility": {
+        "patterns": ["*.tsx", "*.jsx", "*.vue", "*.svelte", "*.html", "src/components/**", "src/pages/**"],
+        "on_phases": ["review"]
+      },
+      "copy_content": {
+        "patterns": ["*.md", "*.mdx", "docs/**", "src/content/**"],
+        "on_phases": ["execute"]
+      }
+    },
+    "quality_gates": {
+      "block_on_critical": true,
+      "min_scores": {
+        "seo": 70,
+        "voice": 80,
+        "design": 75,
+        "accessibility": 90
+      }
     }
   },
 
@@ -260,6 +347,17 @@
     ],
     "active": null,
     "questions_path": "templates/domain-questions/"
+  },
+
+  "meta_orchestrator": {
+    "continuous_mode": {
+      "enabled": true,
+      "default_confidence_threshold": "low",
+      "default_checkpoint_interval": 5,
+      "default_pause_on_failure": true,
+      "graceful_stop_file": ".meta/STOP",
+      "state_file": ".meta/continuous-state.json"
+    }
   },
 
   "integrations": {

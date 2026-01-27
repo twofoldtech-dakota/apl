@@ -313,6 +313,318 @@ else:
     phase = "execute"
 ```
 
+## Horizontal Agents Integration
+
+Horizontal agents operate across the workflow to ensure quality in non-code dimensions. They are invoked automatically based on file patterns and phase.
+
+### Configuration
+
+Load horizontal agent settings from `master-config.json`:
+
+```python
+def load_horizontal_config():
+    config = master_config["horizontal_agents"]
+    return {
+        "enabled": config["enabled"],
+        "invoke_strategy": config["invoke_strategy"],  # "auto" or "manual"
+        "file_triggers": config["file_triggers"],
+        "quality_gates": config["quality_gates"],
+        "guidelines_path": config["guidelines_path"]
+    }
+```
+
+### Invocation Logic
+
+Check if horizontal agents should be invoked after file modifications:
+
+```python
+def check_horizontal_triggers(modified_files, current_phase):
+    """
+    Determine which horizontal agents to invoke based on file patterns.
+    """
+    if not horizontal_config["enabled"]:
+        return []
+
+    agents_to_invoke = []
+
+    for agent_name, trigger_config in horizontal_config["file_triggers"].items():
+        # Check if this phase triggers the agent
+        if current_phase not in trigger_config["on_phases"]:
+            continue
+
+        # Check if any modified files match the patterns
+        for file_path in modified_files:
+            for pattern in trigger_config["patterns"]:
+                if matches_glob(file_path, pattern):
+                    agents_to_invoke.append(agent_name)
+                    break
+
+    return list(set(agents_to_invoke))  # Deduplicate
+```
+
+### Horizontal Agent Invocation
+
+Invoke horizontal agents during execution:
+
+```python
+def invoke_horizontal_agents(agents_to_invoke, files, phase):
+    """
+    Invoke horizontal agents and collect their results.
+    """
+    results = []
+
+    for agent_name in agents_to_invoke:
+        agent_config = master_config["agents"][agent_name]
+
+        # Load guidelines for this agent
+        guidelines = load_guidelines(agent_name)
+
+        # Prepare input per orchestrator-to-horizontal contract
+        input_data = {
+            "agent_type": agent_name.replace("_", "-"),
+            "invocation_point": phase,
+            "files_to_evaluate": [
+                {"path": f["path"], "action": f["action"]}
+                for f in files
+            ],
+            "project_context": get_project_context(),
+            "guidelines": guidelines,
+            "auto_fix": agent_config.get("auto_fix", False)
+        }
+
+        # Delegate to horizontal agent
+        result = delegate_to_agent(agent_name, input_data)
+        results.append({
+            "agent": agent_name,
+            "result": result
+        })
+
+    return results
+```
+
+### Execute Phase Integration
+
+After coder-agent completes tasks, check for horizontal triggers:
+
+```python
+def execute_task_with_horizontal(task):
+    # Execute the task normally
+    coder_result = delegate_to_coder(task)
+
+    # Check horizontal triggers for modified files
+    if coder_result.files_created or coder_result.files_modified:
+        modified_files = coder_result.files_created + coder_result.files_modified
+        agents = check_horizontal_triggers(modified_files, "execute")
+
+        if agents:
+            horizontal_results = invoke_horizontal_agents(
+                agents, modified_files, "execute"
+            )
+
+            # Process results - auto-fix agents apply changes
+            for hr in horizontal_results:
+                if hr["result"].get("fixes_applied"):
+                    LOG_FIXES_APPLIED(hr)
+
+                # Check for blocking issues
+                if hr["result"].get("blocking_issues", 0) > 0:
+                    coder_result.needs_follow_up = True
+                    coder_result.horizontal_issues = hr["result"]["issues"]
+
+    return coder_result
+```
+
+### Review Phase Integration
+
+In review phase, run all relevant horizontal agents:
+
+```python
+def execute_review_phase_with_horizontal():
+    """
+    Execute review phase with horizontal agent integration.
+    """
+    # First run standard reviewer
+    review_result = delegate_to_reviewer(review_context)
+
+    # Collect all modified files across all tasks
+    all_modified_files = collect_all_modified_files()
+
+    # Determine which horizontal agents to run in review
+    agents_to_run = []
+    for agent_name, trigger_config in horizontal_config["file_triggers"].items():
+        if "review" in trigger_config["on_phases"]:
+            for file in all_modified_files:
+                for pattern in trigger_config["patterns"]:
+                    if matches_glob(file["path"], pattern):
+                        agents_to_run.append(agent_name)
+                        break
+
+    # Run horizontal agents
+    horizontal_results = invoke_horizontal_agents(
+        list(set(agents_to_run)),
+        all_modified_files,
+        "review"
+    )
+
+    # Aggregate quality scores
+    quality_scores = aggregate_quality_scores(horizontal_results)
+
+    # Check quality gates
+    gate_failures = check_quality_gates(quality_scores)
+
+    if gate_failures:
+        review_result.status = "needs_fixes"
+        review_result.quality_gate_failures = gate_failures
+
+    return review_result, horizontal_results
+```
+
+### Quality Gate Checking
+
+Validate against configured quality gates:
+
+```python
+def check_quality_gates(quality_scores):
+    """
+    Check if quality scores meet configured minimums.
+    """
+    failures = []
+    gates = horizontal_config["quality_gates"]
+    min_scores = gates["min_scores"]
+
+    for category, min_score in min_scores.items():
+        actual_score = quality_scores.get(category)
+        if actual_score is not None and actual_score < min_score:
+            failures.append({
+                "category": category,
+                "required": min_score,
+                "actual": actual_score,
+                "blocking": gates["block_on_critical"]
+            })
+
+    return failures
+```
+
+### Loading Guidelines
+
+Load agent-specific guidelines from project:
+
+```python
+def load_guidelines(agent_name):
+    """
+    Load guidelines from .apl/guidelines/ directory.
+    """
+    guidelines_path = horizontal_config["guidelines_path"]
+
+    # Map agent names to guideline files
+    guideline_files = {
+        "content_strategy": "content-strategy.json",
+        "brand_voice": "brand-voice.json",
+        "design": "design-system.json",
+        "accessibility": "accessibility.json",
+        "copy_content": "content-strategy.json"  # Shares with content strategy
+    }
+
+    file_name = guideline_files.get(agent_name)
+    if not file_name:
+        return {}
+
+    guideline_path = os.path.join(guidelines_path, file_name)
+
+    if os.path.exists(guideline_path):
+        return read_json(guideline_path)
+    else:
+        return get_default_guidelines(agent_name)
+```
+
+### Horizontal Agent Output Handling
+
+Process results from horizontal agents:
+
+```python
+def process_horizontal_results(results):
+    """
+    Process horizontal agent results and update state.
+    """
+    all_issues = []
+    all_fixes = []
+    quality_summary = {}
+
+    for result in results:
+        agent = result["agent"]
+        output = result["result"]
+
+        # Collect issues that need attention
+        if output.get("issues_remaining"):
+            all_issues.extend([
+                {"agent": agent, **issue}
+                for issue in output["issues_remaining"]
+            ])
+
+        # Track fixes that were applied
+        if output.get("fixes_applied"):
+            all_fixes.extend([
+                {"agent": agent, **fix}
+                for fix in output["fixes_applied"]
+            ])
+
+        # Aggregate quality scores
+        if output.get("scores"):
+            quality_summary[agent] = {
+                "overall": output["scores"].get("overall"),
+                "passed": output.get("passed", False)
+            }
+
+    return {
+        "issues": all_issues,
+        "fixes": all_fixes,
+        "quality": quality_summary
+    }
+```
+
+### Horizontal Status Output
+
+Report horizontal agent activity:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[APL] Horizontal Agents | Review Phase
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Running quality checks on 5 modified files...
+
+Content Strategy:
+  Score: 85/100 ✓
+  SEO: Title and meta description optimized
+  Messaging: All pillars covered
+
+Brand Voice:
+  Score: 92/100 ✓
+  Fixes Applied: 3 terminology corrections
+  - Replaced "just" → (removed)
+  - Replaced "simple" → "straightforward"
+
+Design:
+  Score: 78/100 ✓
+  Token compliance: Good
+  Warning: 2 arbitrary spacing values
+
+Accessibility:
+  Score: 95/100 ✓
+  Fixes Applied: 2 auto-fixes
+  - Added alt text to images
+  - Added keyboard handler
+
+Quality Gates:
+  ✓ SEO: 85 >= 70
+  ✓ Voice: 92 >= 80
+  ✓ Design: 78 >= 75
+  ✓ Accessibility: 95 >= 90
+
+All quality gates passed!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
 ## State Updates
 
 After each significant action, update state:

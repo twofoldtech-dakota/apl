@@ -1,0 +1,420 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/twofoldtech-dakota/apl/contracts/orchestrator-to-horizontal.schema.json",
+  "title": "OrchestratorToHorizontalInput",
+  "description": "Input contract for horizontal capability agents (content-strategy, brand-voice, design, accessibility, copy-content). Provides files to evaluate and relevant guidelines.",
+  "type": "object",
+  "required": ["agent_type", "invocation_point", "files_to_evaluate"],
+  "properties": {
+    "agent_type": {
+      "type": "string",
+      "enum": ["content-strategy", "brand-voice", "design", "accessibility", "copy-content"],
+      "description": "Which horizontal agent is being invoked"
+    },
+    "invocation_point": {
+      "type": "string",
+      "enum": ["execute", "review"],
+      "description": "At which phase the agent is being invoked"
+    },
+    "files_to_evaluate": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/FileToEvaluate"
+      },
+      "description": "Files that need evaluation or processing"
+    },
+    "project_context": {
+      "$ref": "#/$defs/ProjectContext",
+      "description": "Information about the project being worked on"
+    },
+    "guidelines": {
+      "$ref": "#/$defs/Guidelines",
+      "description": "Agent-specific guidelines loaded from .apl/guidelines/"
+    },
+    "auto_fix": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the agent should auto-fix issues (for agents with auto-fix capability)"
+    },
+    "related_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Related files for context (existing content, source code, etc.)"
+    },
+    "task": {
+      "$ref": "#/$defs/ContentTask",
+      "description": "For copy-content agent: the content creation task"
+    }
+  },
+  "$defs": {
+    "FileToEvaluate": {
+      "type": "object",
+      "description": "A file to be evaluated by the horizontal agent",
+      "required": ["path"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "File path relative to project root"
+        },
+        "action": {
+          "type": "string",
+          "enum": ["create", "modify", "unchanged"],
+          "description": "What action triggered evaluation"
+        },
+        "content_type": {
+          "type": "string",
+          "enum": ["documentation", "blog_post", "landing_page", "release_notes", "ui_component", "page", "config", "other"],
+          "description": "Type of content in the file"
+        },
+        "component_type": {
+          "type": "string",
+          "enum": ["ui", "layout", "form", "navigation", "data-display", "feedback", "other"],
+          "description": "For design agent: type of UI component"
+        }
+      }
+    },
+    "ProjectContext": {
+      "type": "object",
+      "description": "Context about the project",
+      "properties": {
+        "project_root": {
+          "type": "string",
+          "description": "Absolute path to project root"
+        },
+        "framework": {
+          "type": "string",
+          "enum": ["react", "vue", "angular", "svelte", "next", "nuxt", "astro", "other"],
+          "description": "Frontend framework in use"
+        },
+        "ui_library": {
+          "type": "string",
+          "enum": ["tailwind", "css-modules", "styled-components", "emotion", "scss", "other"],
+          "description": "CSS/styling approach"
+        },
+        "content_directories": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Directories containing content files"
+        },
+        "design_system_path": {
+          "type": "string",
+          "description": "Path to design system definitions"
+        },
+        "brand_name": {
+          "type": "string",
+          "description": "Product/company brand name"
+        },
+        "target_audience": {
+          "type": "string",
+          "description": "Primary audience for content"
+        }
+      }
+    },
+    "Guidelines": {
+      "type": "object",
+      "description": "Agent-specific guidelines",
+      "properties": {
+        "seo": {
+          "$ref": "#/$defs/SEOGuidelines"
+        },
+        "voice": {
+          "$ref": "#/$defs/VoiceGuidelines"
+        },
+        "style": {
+          "$ref": "#/$defs/StyleGuidelines"
+        },
+        "terminology": {
+          "$ref": "#/$defs/TerminologyGuidelines"
+        },
+        "tokens": {
+          "$ref": "#/$defs/DesignTokens"
+        },
+        "patterns": {
+          "$ref": "#/$defs/DesignPatterns"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/AccessibilityGuidelines"
+        },
+        "content_structure": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/ContentStructureRule"
+          }
+        }
+      }
+    },
+    "SEOGuidelines": {
+      "type": "object",
+      "properties": {
+        "min_title_length": { "type": "integer", "default": 30 },
+        "max_title_length": { "type": "integer", "default": 60 },
+        "min_meta_description_length": { "type": "integer", "default": 120 },
+        "max_meta_description_length": { "type": "integer", "default": 160 },
+        "min_word_count": { "type": "integer", "default": 300 },
+        "keyword_density_range": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "required_heading_structure": { "type": "boolean", "default": true }
+      }
+    },
+    "VoiceGuidelines": {
+      "type": "object",
+      "properties": {
+        "tone": {
+          "type": "string",
+          "description": "Overall tone description"
+        },
+        "personality": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Personality traits to embody"
+        },
+        "avoid": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Tones or styles to avoid"
+        }
+      }
+    },
+    "StyleGuidelines": {
+      "type": "object",
+      "properties": {
+        "sentence_length": { "type": "string" },
+        "paragraphs": { "type": "string" },
+        "active_voice_preference": { "type": "boolean" },
+        "contractions": { "type": "string" },
+        "headings": { "type": "string", "enum": ["sentence-case", "title-case", "lowercase"] }
+      }
+    },
+    "TerminologyGuidelines": {
+      "type": "object",
+      "properties": {
+        "preferred_terms": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Term → usage note mapping"
+        },
+        "forbidden_terms": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Term → reason mapping"
+        },
+        "product_naming": {
+          "type": "object",
+          "properties": {
+            "first_mention": { "type": "string" },
+            "subsequent": { "type": "string" },
+            "never": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "DesignTokens": {
+      "type": "object",
+      "properties": {
+        "colors": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "spacing": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "typography": {
+          "type": "object",
+          "properties": {
+            "font_family": { "type": "string" },
+            "font_sizes": {
+              "type": "object",
+              "additionalProperties": { "type": "string" }
+            }
+          }
+        },
+        "radii": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    },
+    "DesignPatterns": {
+      "type": "object",
+      "properties": {
+        "button_variants": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "form_layout": { "type": "string" },
+        "modal_width": { "type": "string" },
+        "card_shadow": { "type": "string" }
+      }
+    },
+    "AccessibilityGuidelines": {
+      "type": "object",
+      "properties": {
+        "wcag_level": {
+          "type": "string",
+          "enum": ["A", "AA", "AAA"],
+          "default": "AA"
+        },
+        "wcag_version": {
+          "type": "string",
+          "default": "2.1"
+        },
+        "min_contrast_ratio": { "type": "number", "default": 4.5 },
+        "focus_visible_required": { "type": "boolean", "default": true },
+        "interactive_min_size": { "type": "string", "default": "44px" }
+      }
+    },
+    "ContentStructureRule": {
+      "type": "object",
+      "properties": {
+        "sections": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "code_examples": { "type": "string" },
+        "max_section_length": { "type": "integer" },
+        "min_word_count": { "type": "integer" },
+        "include_meta": { "type": "boolean" }
+      }
+    },
+    "ContentTask": {
+      "type": "object",
+      "description": "Task definition for copy-content agent",
+      "required": ["type", "description", "target_file"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["create", "edit", "improve"]
+        },
+        "description": {
+          "type": "string",
+          "description": "What content needs to be written/edited"
+        },
+        "target_file": {
+          "type": "string",
+          "description": "Path for the output file"
+        },
+        "content_type": {
+          "type": "string",
+          "enum": ["documentation", "blog_post", "landing_page", "release_notes", "other"]
+        },
+        "requirements": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Specific requirements for the content"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "agent_type": "content-strategy",
+      "invocation_point": "review",
+      "files_to_evaluate": [
+        {
+          "path": "src/content/blog/getting-started.mdx",
+          "action": "create",
+          "content_type": "blog_post"
+        }
+      ],
+      "project_context": {
+        "project_root": "/path/to/project",
+        "content_directories": ["src/content/", "src/pages/"],
+        "target_audience": "developers",
+        "brand_name": "APL"
+      },
+      "guidelines": {
+        "seo": {
+          "min_title_length": 30,
+          "max_title_length": 60,
+          "min_word_count": 300
+        }
+      },
+      "auto_fix": false
+    },
+    {
+      "agent_type": "brand-voice",
+      "invocation_point": "review",
+      "files_to_evaluate": [
+        {
+          "path": "docs/api/authentication.md",
+          "action": "create",
+          "content_type": "documentation"
+        }
+      ],
+      "guidelines": {
+        "voice": {
+          "tone": "professional yet approachable",
+          "personality": ["confident", "helpful"]
+        },
+        "terminology": {
+          "forbidden_terms": {
+            "simple": "Use 'straightforward' instead",
+            "just": "Remove or rephrase"
+          }
+        }
+      },
+      "auto_fix": true
+    },
+    {
+      "agent_type": "accessibility",
+      "invocation_point": "review",
+      "files_to_evaluate": [
+        {
+          "path": "src/components/Button.tsx",
+          "action": "create",
+          "component_type": "ui"
+        }
+      ],
+      "project_context": {
+        "framework": "react"
+      },
+      "guidelines": {
+        "accessibility": {
+          "wcag_level": "AA",
+          "wcag_version": "2.1"
+        }
+      },
+      "auto_fix": true
+    },
+    {
+      "agent_type": "copy-content",
+      "invocation_point": "execute",
+      "files_to_evaluate": [],
+      "task": {
+        "type": "create",
+        "description": "Write documentation for the API authentication endpoint",
+        "target_file": "docs/api/authentication.md",
+        "content_type": "documentation",
+        "requirements": [
+          "Explain how to authenticate",
+          "Include code examples",
+          "Cover error handling"
+        ]
+      },
+      "related_files": ["src/routes/auth.ts"],
+      "guidelines": {
+        "voice": {
+          "tone": "professional yet approachable"
+        },
+        "content_structure": {
+          "documentation": {
+            "sections": ["Overview", "Prerequisites", "Usage", "Troubleshooting"],
+            "code_examples": "required"
+          }
+        }
+      },
+      "auto_fix": true
+    }
+  ]
+}
