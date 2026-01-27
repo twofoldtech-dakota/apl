@@ -1,7 +1,6 @@
-// WebSocket Hook
+// WebSocket Hook with Agentic Event Support
 import { useCallback, useRef } from 'react';
 import { useAplStore } from '../store/aplStore';
-import type { WebSocketMessage } from '@apl-gui/shared';
 
 const WS_URL = `ws://${window.location.hostname}:3001/ws`;
 
@@ -18,12 +17,22 @@ export function useWebSocket() {
     setConnected,
     setAplRunning,
     addActivityEvent,
+    // Agentic actions
+    setAgentActivity,
+    setActiveAgent,
+    setReActStep,
+    addToDelegationChain,
+    clearDelegationChain,
+    addToolInvocation,
+    updateToolInvocation,
+    setTokenUsage,
+    addToTokenHistory,
   } = useAplStore();
 
   const handleMessage = useCallback(
     (event: MessageEvent) => {
       try {
-        const message: WebSocketMessage = JSON.parse(event.data);
+        const message = JSON.parse(event.data);
 
         switch (message.type) {
           case 'connection:established':
@@ -31,16 +40,19 @@ export function useWebSocket() {
             break;
 
           case 'state:update':
-            setState((message as any).payload.state);
+            setState(message.payload.state);
             break;
 
           case 'state:phase_change':
             addActivityEvent({
               timestamp: message.timestamp,
               type: 'phase',
-              message: `Phase: ${(message as any).payload.previousPhase} → ${(message as any).payload.newPhase}`,
-              details: (message as any).payload,
+              message: `Phase: ${message.payload.previousPhase} → ${message.payload.newPhase}`,
+              details: message.payload,
             });
+            // Reset ReAct loop on phase change
+            setReActStep('idle', 0);
+            clearDelegationChain();
             break;
 
           case 'state:cleared':
@@ -55,19 +67,19 @@ export function useWebSocket() {
           case 'task:started':
           case 'task:completed':
           case 'task:failed':
-            updateTask((message as any).payload.task || (message as any).payload);
+            updateTask(message.payload.task || message.payload);
             break;
 
           case 'checkpoint:created':
-            addCheckpoint((message as any).payload.checkpoint);
+            addCheckpoint(message.payload.checkpoint);
             break;
 
           case 'config:update':
-            setConfig((message as any).payload.config);
+            setConfig(message.payload.config);
             break;
 
           case 'learnings:update':
-            setLearnings((message as any).payload.learnings);
+            setLearnings(message.payload.learnings);
             break;
 
           case 'apl:started':
@@ -75,18 +87,21 @@ export function useWebSocket() {
             addActivityEvent({
               timestamp: message.timestamp,
               type: 'info',
-              message: `APL started: ${(message as any).payload.goal}`,
-              details: (message as any).payload,
+              message: `APL started: ${message.payload.goal}`,
+              details: message.payload,
             });
             break;
 
           case 'apl:stopped':
             setAplRunning(false);
+            setActiveAgent(null);
+            setReActStep('idle', 0);
+            clearDelegationChain();
             addActivityEvent({
               timestamp: message.timestamp,
               type: 'info',
-              message: `APL stopped: ${(message as any).payload.reason}`,
-              details: (message as any).payload,
+              message: `APL stopped: ${message.payload.reason}`,
+              details: message.payload,
             });
             break;
 
@@ -98,17 +113,74 @@ export function useWebSocket() {
             addActivityEvent({
               timestamp: message.timestamp,
               type: 'error',
-              message: `APL Error: ${(message as any).payload.error}`,
-              details: (message as any).payload,
+              message: `APL Error: ${message.payload.error}`,
+              details: message.payload,
             });
+            break;
+
+          // Agentic Events
+          case 'agent:activity':
+            setAgentActivity(message.payload);
+            if (message.payload.activeAgent) {
+              setActiveAgent(message.payload.activeAgent);
+            }
+            if (message.payload.reactStep) {
+              setReActStep(message.payload.reactStep, message.payload.reactIteration);
+            }
+            break;
+
+          case 'agent:delegated':
+            addToDelegationChain(message.payload.toAgent);
+            setActiveAgent(message.payload.toAgent);
+            addActivityEvent({
+              timestamp: message.timestamp,
+              type: 'agent',
+              message: `Delegated: ${message.payload.fromAgent} → ${message.payload.toAgent}`,
+              agentId: message.payload.toAgent,
+              details: message.payload,
+            });
+            break;
+
+          case 'agent:returned':
+            setActiveAgent(message.payload.toAgent);
+            addActivityEvent({
+              timestamp: message.timestamp,
+              type: 'agent',
+              message: `Returned: ${message.payload.fromAgent} → ${message.payload.toAgent}`,
+              agentId: message.payload.toAgent,
+              details: message.payload,
+            });
+            break;
+
+          case 'react:step':
+            setReActStep(message.payload.step, message.payload.iteration);
+            break;
+
+          case 'tool:invocation':
+            addToolInvocation(message.payload);
+            break;
+
+          case 'tool:completed':
+            updateToolInvocation(message.payload.id, {
+              status: message.payload.success ? 'success' : 'error',
+              duration: message.payload.duration,
+              result: message.payload.result,
+            });
+            break;
+
+          case 'token:usage':
+            setTokenUsage(message.payload);
+            if (message.payload.totalTokens) {
+              addToTokenHistory(message.payload.totalTokens);
+            }
             break;
 
           case 'error':
             addActivityEvent({
               timestamp: message.timestamp,
               type: 'error',
-              message: (message as any).payload.message,
-              details: (message as any).payload,
+              message: message.payload.message,
+              details: message.payload,
             });
             break;
 
@@ -119,7 +191,25 @@ export function useWebSocket() {
         console.error('Failed to parse WebSocket message:', error);
       }
     },
-    [setState, updateTask, addCheckpoint, setConfig, setLearnings, setConnected, setAplRunning, addActivityEvent]
+    [
+      setState,
+      updateTask,
+      addCheckpoint,
+      setConfig,
+      setLearnings,
+      setConnected,
+      setAplRunning,
+      addActivityEvent,
+      setAgentActivity,
+      setActiveAgent,
+      setReActStep,
+      addToDelegationChain,
+      clearDelegationChain,
+      addToolInvocation,
+      updateToolInvocation,
+      setTokenUsage,
+      addToTokenHistory,
+    ]
   );
 
   const connect = useCallback(() => {

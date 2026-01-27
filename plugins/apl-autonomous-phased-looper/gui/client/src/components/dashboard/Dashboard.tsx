@@ -1,13 +1,25 @@
+import { useState } from 'react';
 import { useAplStore } from '../../store/aplStore';
 import PhaseIndicator from './PhaseIndicator';
 import TaskList from './TaskList';
 import MetricsPanel from './MetricsPanel';
 import ActivityFeed from './ActivityFeed';
+import ScratchpadPanel from './ScratchpadPanel';
+import VerificationPanel from './VerificationPanel';
 import ControlBar from '../control/ControlBar';
+import AgentActivityMonitor from '../agentic/AgentActivityMonitor';
+import ReActLoopIndicator from '../agentic/ReActLoopIndicator';
+import ToolInvocationLog from '../agentic/ToolInvocationLog';
+import TokenUsageTracker from '../agentic/TokenUsageTracker';
 import LoadingSpinner from '../common/LoadingSpinner';
+import { LayoutDashboard, Bot, Brain } from 'lucide-react';
+import { clsx } from 'clsx';
+
+type ViewMode = 'overview' | 'agentic';
 
 export default function Dashboard() {
   const { state, isLoading, error } = useAplStore();
+  const [viewMode, setViewMode] = useState<ViewMode>('overview');
 
   if (isLoading) {
     return (
@@ -53,25 +65,78 @@ export default function Dashboard() {
           {/* Phase Indicator */}
           <PhaseIndicator phase={state.phase} iteration={state.iteration} maxIterations={state.max_iterations} />
 
-          {/* Main Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Tasks - 2 columns */}
-            <div className="lg:col-span-2">
-              <TaskList tasks={state.tasks} />
-            </div>
-
-            {/* Right Sidebar */}
-            <div className="space-y-6">
-              {/* Metrics */}
-              <MetricsPanel
-                metrics={state.metrics}
-                confidence={state.confidence}
-              />
-
-              {/* Activity Feed */}
-              <ActivityFeed />
-            </div>
+          {/* View Mode Toggle */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewMode('overview')}
+              className={clsx(
+                'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                viewMode === 'overview'
+                  ? 'bg-apl-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:text-white'
+              )}
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Overview
+            </button>
+            <button
+              onClick={() => setViewMode('agentic')}
+              className={clsx(
+                'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                viewMode === 'agentic'
+                  ? 'bg-apl-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:text-white'
+              )}
+            >
+              <Bot className="h-4 w-4" />
+              Agentic View
+            </button>
           </div>
+
+          {viewMode === 'overview' ? (
+            /* Overview Mode */
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Tasks - 2 columns */}
+              <div className="lg:col-span-2 space-y-6">
+                <TaskList tasks={state.tasks} />
+
+                {/* Scratchpad below tasks */}
+                <ScratchpadPanel />
+              </div>
+
+              {/* Right Sidebar */}
+              <div className="space-y-6">
+                {/* Metrics */}
+                <MetricsPanel
+                  metrics={state.metrics}
+                  confidence={state.confidence}
+                />
+
+                {/* Verification Evidence */}
+                <VerificationPanel />
+
+                {/* Activity Feed */}
+                <ActivityFeed />
+              </div>
+            </div>
+          ) : (
+            /* Agentic View */
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Agent & ReAct */}
+              <div className="space-y-6">
+                <AgentActivityMonitor />
+                <ReActLoopIndicator />
+                <TokenUsageTracker />
+              </div>
+
+              {/* Right Column - Tools & Activity */}
+              <div className="space-y-6">
+                <ToolInvocationLog />
+                <ScratchpadPanel />
+                <ActivityFeed />
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
