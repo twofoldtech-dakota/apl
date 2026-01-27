@@ -17,7 +17,7 @@ interface CheckpointTimelineItem {
 }
 
 export default function CheckpointPanel() {
-  const { state, fetchInitialState } = useAplStore();
+  const { fetchInitialState } = useAplStore();
   const [timeline, setTimeline] = useState<CheckpointTimelineItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [rollbackModal, setRollbackModal] = useState<{ open: boolean; checkpointId: string | null }>({
@@ -110,7 +110,7 @@ export default function CheckpointPanel() {
             {/* Vertical line */}
             <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-700" />
 
-            {timeline.map((checkpoint, index) => (
+            {timeline.map((checkpoint) => (
               <div key={checkpoint.id} className="relative flex gap-4 pb-6">
                 {/* Timeline dot */}
                 <div

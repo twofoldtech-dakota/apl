@@ -6,7 +6,6 @@ import {
   Library,
   Clock,
   Terminal,
-  FolderOpen,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAplStore } from '../../store/aplStore';

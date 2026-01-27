@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, RefreshCw, History, ChevronDown, Sparkles, FolderOpen } from 'lucide-react';
+import { Play, Square, RefreshCw, History, Sparkles } from 'lucide-react';
 import { useAplStore } from '../../store/aplStore';
 import { api } from '../../api/client';
 import { clsx } from 'clsx';

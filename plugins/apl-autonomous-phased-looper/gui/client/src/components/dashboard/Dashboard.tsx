@@ -12,7 +12,7 @@ import ReActLoopIndicator from '../agentic/ReActLoopIndicator';
 import ToolInvocationLog from '../agentic/ToolInvocationLog';
 import TokenUsageTracker from '../agentic/TokenUsageTracker';
 import LoadingSpinner from '../common/LoadingSpinner';
-import { LayoutDashboard, Bot, Brain } from 'lucide-react';
+import { LayoutDashboard, Bot } from 'lucide-react';
 import { clsx } from 'clsx';
 
 type ViewMode = 'overview' | 'agentic';

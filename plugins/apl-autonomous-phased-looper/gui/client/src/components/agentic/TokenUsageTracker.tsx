@@ -62,7 +62,7 @@ export default function TokenUsageTracker() {
         <ProgressBar
           value={usagePercent}
           max={100}
-          color={isCriticalUsage ? 'red' : isHighUsage ? 'yellow' : 'green'}
+          variant={isCriticalUsage ? 'danger' : isHighUsage ? 'warning' : 'success'}
           showLabel={false}
         />
         {isHighUsage && (

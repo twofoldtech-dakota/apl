@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Save, RefreshCw, ChevronDown, ChevronRight } from 'lucide-react';
+import { RefreshCw, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAplStore } from '../../store/aplStore';
 import { api } from '../../api/client';
 import type { MasterConfig } from '@apl-gui/shared';
@@ -36,8 +36,6 @@ function ConfigSection({ title, children, defaultOpen = false }: ConfigSectionPr
 export default function ConfigPanel() {
   const { config, fetchConfig } = useAplStore();
   const [localConfig, setLocalConfig] = useState<MasterConfig | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     fetchConfig();

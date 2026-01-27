@@ -16,20 +16,6 @@ export default function AgentActivityMonitor() {
   const { agentActivity } = useAplStore();
   const { activeAgent, delegationChain, agentStats } = agentActivity;
 
-  // Determine which agents should be shown as active based on phase
-  const getAgentsForPhase = (phase: string) => {
-    switch (phase) {
-      case 'plan':
-        return ['apl-orchestrator', 'planner-agent'];
-      case 'execute':
-        return ['apl-orchestrator', 'coder-agent', 'tester-agent'];
-      case 'review':
-        return ['apl-orchestrator', 'reviewer-agent', 'learner-agent'];
-      default:
-        return ['apl-orchestrator'];
-    }
-  };
-
   return (
     <div className="card p-6">
       <div className="flex items-center justify-between mb-4">
