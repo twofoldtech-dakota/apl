@@ -37,44 +37,67 @@ add_error() {
 }
 
 # Check for common issues based on file type
+# Note: Syntax errors are ERRORS (blocking), type errors are WARNINGS (non-blocking)
 case "$EXT" in
     ts|tsx)
         # TypeScript validation
         if command -v npx &> /dev/null; then
-            # Check for TypeScript errors (non-blocking)
-            TSC_OUTPUT=$(npx tsc --noEmit 2>&1 || true)
-            if echo "$TSC_OUTPUT" | grep -q "error TS"; then
-                # Extract just the errors for the modified file
-                FILE_ERRORS=$(echo "$TSC_OUTPUT" | grep "$FILE_PATH" | head -3)
+            TSC_OUTPUT=$(npx tsc --noEmit 2>&1)
+            TSC_EXIT=$?
+
+            if [ $TSC_EXIT -ne 0 ]; then
+                # Extract errors for the modified file
+                FILE_ERRORS=$(echo "$TSC_OUTPUT" | grep -E "^$FILE_PATH|error TS" | head -5)
                 if [ -n "$FILE_ERRORS" ]; then
-                    add_warning "TypeScript issues detected in $FILE_PATH"
+                    # Distinguish syntax errors (blocking) from type errors (warning)
+                    if echo "$FILE_ERRORS" | grep -qE "error TS1[0-9]{3}"; then
+                        # TS1xxx = syntax errors - these are blocking
+                        add_error "TypeScript syntax error in $FILE_PATH: $(echo "$FILE_ERRORS" | head -1)"
+                    else
+                        # TS2xxx+ = type errors - report but don't block
+                        add_warning "TypeScript type issues in $FILE_PATH ($(echo "$TSC_OUTPUT" | grep -c 'error TS') errors)"
+                    fi
                 fi
             fi
         fi
         ;;
     js|jsx)
-        # JavaScript validation - basic syntax check
+        # JavaScript validation - syntax check (blocking on syntax errors)
         if command -v node &> /dev/null; then
-            SYNTAX_CHECK=$(node --check "$FILE_PATH" 2>&1 || true)
-            if [ -n "$SYNTAX_CHECK" ]; then
-                add_warning "JavaScript syntax issues in $FILE_PATH"
+            SYNTAX_CHECK=$(node --check "$FILE_PATH" 2>&1)
+            SYNTAX_EXIT=$?
+
+            if [ $SYNTAX_EXIT -ne 0 ]; then
+                add_error "JavaScript syntax error in $FILE_PATH: $(echo "$SYNTAX_CHECK" | head -1)"
             fi
         fi
         ;;
     py)
-        # Python validation
+        # Python validation - syntax check (blocking on syntax errors)
         if command -v python3 &> /dev/null; then
-            SYNTAX_CHECK=$(python3 -m py_compile "$FILE_PATH" 2>&1 || true)
-            if [ -n "$SYNTAX_CHECK" ]; then
-                add_warning "Python syntax issues in $FILE_PATH"
+            SYNTAX_CHECK=$(python3 -m py_compile "$FILE_PATH" 2>&1)
+            SYNTAX_EXIT=$?
+
+            if [ $SYNTAX_EXIT -ne 0 ]; then
+                add_error "Python syntax error in $FILE_PATH: $(echo "$SYNTAX_CHECK" | head -1)"
             fi
         fi
         ;;
     json)
-        # JSON validation
+        # JSON validation (blocking - invalid JSON is always an error)
         if command -v jq &> /dev/null; then
-            if ! jq empty "$FILE_PATH" 2>/dev/null; then
-                add_error "Invalid JSON in $FILE_PATH"
+            JQ_OUTPUT=$(jq empty "$FILE_PATH" 2>&1)
+            if [ $? -ne 0 ]; then
+                add_error "Invalid JSON in $FILE_PATH: $JQ_OUTPUT"
+            fi
+        fi
+        ;;
+    sh|bash)
+        # Shell script validation
+        if command -v bash &> /dev/null; then
+            SYNTAX_CHECK=$(bash -n "$FILE_PATH" 2>&1)
+            if [ $? -ne 0 ]; then
+                add_error "Shell syntax error in $FILE_PATH: $(echo "$SYNTAX_CHECK" | head -1)"
             fi
         fi
         ;;
