@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$comment": "Template for .meta/plan.json - Project overview and Epic ordering",
+  "$comment": "Template for .apl/plan.json - Project overview and Epic ordering",
   "version": "1.0.0",
   "project_id": "",
   "project_name": "",

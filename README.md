@@ -59,9 +59,9 @@ APL: ┌─────────┐     ┌─────────┐    
 | Feature | Description |
 |---------|-------------|
 | **Autonomous Execution** | Plans, codes, tests, and reviews without hand-holding |
-| **10 Specialized Agents** | Planner, Coder, Tester, Reviewer, Learner + 5 horizontal quality agents |
+| **26 Specialized Agents** | Full digital team: coding, design, content, QA, analytics, research, docs, perf |
 | **Horizontal Quality Agents** | Content strategy, brand voice, design, accessibility, copy/content |
-| **Enterprise Scale** | `/meta` for Epic/Feature/Story hierarchies with autopilot mode |
+| **Enterprise Scale** | Epic/Feature/Story hierarchies with autopilot mode |
 | **Self-Learning** | Remembers successful patterns and avoids past failures |
 | **Web Dashboard** | Visual monitoring and control via `/apl gui` |
 | **Error Recovery** | Automatic retry with graduated fallback strategies |
@@ -108,15 +108,14 @@ APL includes a web-based control panel for visual monitoring.
 | `/apl rollback <id>` | Restore checkpoint |
 | `/apl forget <id>` | Remove learned pattern |
 
-### Enterprise Meta Commands
+### Enterprise Commands
 
 | Command | Description |
 |---------|-------------|
-| `/meta <goal>` | Plan enterprise-scale project |
-| `/meta loop` | Execute next Epic |
-| `/meta autopilot` | Execute ALL remaining Epics continuously |
-| `/meta status` | View project progress |
-| `/meta answer <id> <text>` | Answer clarifying question |
+| `/apl <goal>` | Plan enterprise-scale project (auto-detects complexity) |
+| `/apl loop` | Execute next Epic |
+| `/apl autopilot` | Execute ALL remaining Epics continuously |
+| `/apl answer <id> <text>` | Answer clarifying question |
 
 ---
 
@@ -144,16 +143,16 @@ APL includes a web-based control panel for visual monitoring.
 ### Enterprise Projects
 
 ```bash
-# Plan a large project
-/meta Build a healthcare patient portal with appointments and medical records
+# Plan a large project (APL auto-detects complexity)
+/apl Build a healthcare patient portal with appointments and medical records
 
 # Run through all Epics automatically
-/meta autopilot
+/apl autopilot
 
 # Or step through manually
-/meta loop          # Epic 1
-/meta loop          # Epic 2
-/meta loop          # Epic 3
+/apl loop          # Epic 1
+/apl loop          # Epic 2
+/apl loop          # Epic 3
 ```
 
 ---
@@ -200,30 +199,30 @@ APL improves with each session. Learnings stored in `.apl/`:
 
 ---
 
-## Enterprise Scale (/meta)
+## Enterprise Scale
 
-For projects too large for a single session, use the meta-orchestrator:
+For projects too large for a single session, APL automatically switches to structured mode:
 
 ```bash
-# Plan a large project
-/meta Build an e-commerce platform with user accounts, product catalog, and checkout
+# Plan a large project (auto-detects enterprise complexity)
+/apl Build an e-commerce platform with user accounts, product catalog, and checkout
 
 # Answer expert questions
-/meta answer 1 "PostgreSQL"
-/meta answer 2 "Stripe for payments"
+/apl answer 1 "PostgreSQL"
+/apl answer 2 "Stripe for payments"
 
 # Execute one Epic at a time
-/meta loop
+/apl loop
 
 # Or run ALL Epics automatically
-/meta autopilot
+/apl autopilot
 ```
 
 **Autopilot Features:**
 - Executes all remaining Epics without stopping
 - Checkpoints every 5 stories (configurable)
 - Pauses on failure or low confidence
-- Graceful stop: create `.meta/STOP` file
+- Graceful stop: create `.apl/STOP` file
 - Resume from where it stopped
 
 ---

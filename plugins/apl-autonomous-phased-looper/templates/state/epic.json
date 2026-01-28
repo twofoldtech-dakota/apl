@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$comment": "Template for .meta/epics/<epic_id>.json - Full Epic with Features and Stories",
+  "$comment": "Template for .apl/epics/<epic_id>.json - Full Epic with Features and Stories",
   "id": "",
   "title": "",
   "description": "",

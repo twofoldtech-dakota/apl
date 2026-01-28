@@ -91,7 +91,6 @@ controlRouter.post('/project', (req: Request, res: Response) => {
       previousProjectRoot,
       newProjectRoot: config.projectRoot,
       aplDir: config.aplDir,
-      metaDir: config.metaDir,
     });
 
     res.json({

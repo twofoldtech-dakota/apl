@@ -57,7 +57,7 @@ The GUI opens automatically at:
 | **Goal History** | Reuse previous goals | Click 🕒 icon in input |
 | **Goal Templates** | Pre-built goal library | Click ✨ icon in input |
 | **Quick Actions** | One-click common tasks | Dashboard → Quick buttons |
-| **Meta Commands** | Enterprise orchestration | Commands → /meta tab |
+| **Enterprise Commands** | Loop, autopilot, answer | Commands page |
 | **Project Switching** | Change target project | Commands → Project panel |
 
 ### 📊 Real-Time Monitoring
@@ -210,14 +210,13 @@ Navigate to **Commands** page in the sidebar.
 | `rollback` | Go to Checkpoints page |
 | `forget` | Clear all learned patterns |
 
-#### /meta Commands (Enterprise)
+#### Enterprise Commands
 
 | Command | Description |
 |---------|-------------|
-| `meta <goal>` | Start enterprise project planning |
-| `meta loop` | Execute the next Epic |
-| `meta status` | View Epic/Feature/Story progress |
-| `meta export` | Generate project documentation |
+| `/apl loop` | Execute the next Epic |
+| `/apl autopilot` | Execute all Epics continuously |
+| `/apl answer <id> <text>` | Answer clarifying questions |
 
 ---
 
@@ -269,7 +268,7 @@ Toggle between views using the buttons below the phase indicator:
 
 **Components:**
 - Control Bar
-- Command Panel (/apl and /meta)
+- Command Panel (/apl commands)
 - Project Selector
 - Quick Reference Guide
 
@@ -406,7 +405,6 @@ APL_GUI_PORT=3002 APL_GUI_CLIENT_PORT=5174 ./start.sh
 | `.apl/learnings.json` | Learned patterns |
 | `.apl/config.json` | Project overrides |
 | `master-config.json` | Plugin defaults |
-| `.meta/` | Enterprise state |
 
 ---
 

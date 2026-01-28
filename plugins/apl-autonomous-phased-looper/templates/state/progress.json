@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$comment": "Template for .meta/progress.json - Lightweight progress tracking (always small)",
+  "$comment": "Template for .apl/progress.json - Lightweight progress tracking (always small)",
   "project_id": "",
   "current_epic_id": null,
   "current_story_id": null,

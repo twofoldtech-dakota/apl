@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$comment": "Template for .meta/archive/sessions/<story_id>_result.json - Full APL result (archived, not loaded)",
+  "$comment": "Template for .apl/archive/sessions/<story_id>_result.json - Full APL result (archived, not loaded)",
   "story_id": "",
   "epic_id": "",
   "feature_id": "",

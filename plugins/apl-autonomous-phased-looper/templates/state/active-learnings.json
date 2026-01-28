@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$comment": "Template for .meta/active/active-learnings.json - Last 5 learnings kept in context",
+  "$comment": "Template for .apl/active/active-learnings.json - Last 5 learnings kept in context",
   "max_learnings": 5,
   "learnings": []
 }

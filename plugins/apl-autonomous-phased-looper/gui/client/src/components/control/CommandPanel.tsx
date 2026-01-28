@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { Terminal, Play, RotateCcw, FileText, HelpCircle, Trash2, Building2, ChevronRight } from 'lucide-react';
+import { Terminal, Play, RotateCcw, FileText, HelpCircle, Trash2, ChevronRight } from 'lucide-react';
 import { api } from '../../api/client';
 import { useAplStore } from '../../store/aplStore';
 import { clsx } from 'clsx';
-
-type CommandCategory = 'apl' | 'meta';
 
 interface Command {
   name: string;
@@ -17,7 +15,6 @@ interface Command {
 }
 
 export default function CommandPanel() {
-  const [activeCategory, setActiveCategory] = useState<CommandCategory>('apl');
   const [inputValue, setInputValue] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
   const [activeCommand, setActiveCommand] = useState<string | null>(null);
@@ -38,13 +35,29 @@ export default function CommandPanel() {
     }
   };
 
-  const aplCommands: Command[] = [
+  const commands: Command[] = [
     {
       name: 'status',
       description: 'View current APL state and progress',
       icon: FileText,
       action: async () => {
         await fetchInitialState();
+      },
+    },
+    {
+      name: 'loop',
+      description: 'Execute next Epic in the plan',
+      icon: Play,
+      action: async () => {
+        await api.startApl('/apl loop');
+      },
+    },
+    {
+      name: 'autopilot',
+      description: 'Execute ALL remaining Epics continuously',
+      icon: Play,
+      action: async () => {
+        await api.startApl('/apl autopilot');
       },
     },
     {
@@ -82,82 +95,13 @@ export default function CommandPanel() {
     },
   ];
 
-  const metaCommands: Command[] = [
-    {
-      name: 'meta',
-      description: 'Start enterprise project planning',
-      icon: Building2,
-      action: async () => {
-        if (!inputValue.trim()) {
-          alert('Please enter a project goal');
-          return;
-        }
-        await api.startApl(`/meta ${inputValue.trim()}`);
-      },
-      requiresInput: true,
-      inputPlaceholder: 'Enter enterprise project goal...',
-    },
-    {
-      name: 'meta loop',
-      description: 'Execute next Epic in the plan',
-      icon: Play,
-      action: async () => {
-        await api.startApl('/meta loop');
-      },
-    },
-    {
-      name: 'meta status',
-      description: 'View Epic/Feature/Story progress',
-      icon: FileText,
-      action: async () => {
-        await api.startApl('/meta status');
-      },
-    },
-    {
-      name: 'meta export',
-      description: 'Generate project documentation',
-      icon: FileText,
-      action: async () => {
-        await api.startApl('/meta export');
-      },
-    },
-  ];
-
-  const commands = activeCategory === 'apl' ? aplCommands : metaCommands;
-
   return (
     <div className="card">
       {/* Header */}
       <div className="p-4 border-b border-gray-700">
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2">
           <Terminal className="h-5 w-5 text-apl-400" />
           <h3 className="font-medium text-white">Commands</h3>
-        </div>
-
-        {/* Category Tabs */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => setActiveCategory('apl')}
-            className={clsx(
-              'px-3 py-1.5 text-sm rounded-lg transition-colors',
-              activeCategory === 'apl'
-                ? 'bg-apl-600 text-white'
-                : 'bg-gray-700 text-gray-400 hover:text-white'
-            )}
-          >
-            /apl
-          </button>
-          <button
-            onClick={() => setActiveCategory('meta')}
-            className={clsx(
-              'px-3 py-1.5 text-sm rounded-lg transition-colors',
-              activeCategory === 'meta'
-                ? 'bg-apl-600 text-white'
-                : 'bg-gray-700 text-gray-400 hover:text-white'
-            )}
-          >
-            /meta
-          </button>
         </div>
       </div>
 
@@ -236,9 +180,7 @@ export default function CommandPanel() {
         <div className="flex items-start gap-2 text-xs text-gray-500">
           <HelpCircle className="h-3 w-3 mt-0.5" />
           <span>
-            {activeCategory === 'apl'
-              ? 'APL commands control the autonomous coding workflow'
-              : 'Meta commands handle enterprise-scale project orchestration'}
+            APL commands control the autonomous coding workflow
           </span>
         </div>
       </div>
