@@ -37,18 +37,20 @@ Opens a web dashboard at http://localhost:5173
 ## What It Does
 
 ```
-You: /apl Add user authentication with OAuth
+You: /apl Build a healthcare patient portal
 
-APL: ┌─────────┐     ┌─────────┐     ┌─────────┐
-     │  PLAN   │ ──▶ │ EXECUTE │ ──▶ │ REVIEW  │
-     └─────────┘     └─────────┘     └─────────┘
-         │               │               │
-         ▼               ▼               ▼
-     Break into      Code each       Verify all
-     tasks with      task using      criteria met,
-     success         ReAct loops     extract
-     criteria        + verification  learnings
+APL: ┌──────────┐    ┌──────────┐    ┌─────────┐    ┌─────────┐
+     │ DETECT   │ ─▶ │   PLAN   │ ─▶ │ EXECUTE │ ─▶ │ REVIEW  │
+     └──────────┘    └──────────┘    └─────────┘    └─────────┘
+          │               │               │              │
+          ▼               ▼               ▼              ▼
+     Auto-detect     Generate        Code each      Verify all
+     complexity,     .apl/plan.md    story using    criteria,
+     ask critical    with progress   ReAct loops    extract
+     questions       checkboxes      + tests        learnings
 ```
+
+**Zero-config.** Planning flows directly into execution. Progress tracked via checkboxes.
 
 **Then remembers what worked for next time.**
 
@@ -188,7 +190,15 @@ The Reviewer agent validates everything:
 
 ## Self-Learning
 
-APL improves with each session. Learnings stored in `.apl/`:
+APL improves with each session. All state is **auto-managed** in `.apl/`:
+
+```
+.apl/
+├── plan.md           # Human-readable: progress with checkboxes
+├── state.json        # Internal: machine state
+├── learnings.json    # Internal: accumulated patterns
+└── checkpoints/      # Internal: recovery points
+```
 
 | Type | What It Learns |
 |------|----------------|
@@ -197,6 +207,8 @@ APL improves with each session. Learnings stored in `.apl/`:
 | **User Preferences** | Your coding style |
 | **Project Knowledge** | Codebase structure |
 
+The `plan.md` is the source of truth. View progress at a glance, track in git, resume any session.
+
 ---
 
 ## Enterprise Scale
@@ -204,18 +216,28 @@ APL improves with each session. Learnings stored in `.apl/`:
 For projects too large for a single session, APL automatically switches to structured mode:
 
 ```bash
-# Plan a large project (auto-detects enterprise complexity)
+# Start an enterprise project (auto-detects complexity)
 /apl Build an e-commerce platform with user accounts, product catalog, and checkout
 
-# Answer expert questions
-/apl answer 1 "PostgreSQL"
-/apl answer 2 "Stripe for payments"
+# APL will:
+# 1. Detect enterprise complexity
+# 2. Ask 5-10 critical questions (inline)
+# 3. Generate .apl/plan.md with Epics/Features/Stories
+# 4. Start executing Story 1 immediately
 
-# Execute one Epic at a time
-/apl loop
+# Resume later (APL finds next incomplete task)
+/apl
 
-# Or run ALL Epics automatically
+# Or run ALL remaining Epics automatically
 /apl autopilot
+```
+
+**The plan.md tracks everything:**
+```markdown
+## Epic 1: User Authentication
+- [x] **Story 1.1.1**: Create User model
+- [x] **Story 1.1.2**: Build registration endpoint
+- [ ] **Story 1.1.3**: Implement login flow  <-- Next
 ```
 
 **Autopilot Features:**
@@ -267,7 +289,7 @@ These agents are invoked automatically based on file patterns during execute and
 
 ## Configuration
 
-Customize via `.apl/config.json` in your project:
+APL works out of the box with zero configuration. For customization, edit `.apl/config.json`:
 
 ```json
 {
@@ -278,7 +300,9 @@ Customize via `.apl/config.json` in your project:
 }
 ```
 
-Or use the GUI configuration panel.
+**Note:** The `.apl/` directory is auto-created on first run. Most files are internal and auto-managed. Only edit `config.json` if needed.
+
+Or use the GUI configuration panel: `/apl gui`
 
 ---
 

@@ -14,6 +14,22 @@ agent: apl-orchestrator
 
 You are APL, an intelligent autonomous agent. You handle coding, content, deployment, and design through a unified command interface with automatic complexity detection.
 
+## Zero-Config Philosophy
+
+**APL generates plans, not configs.** The user never edits JSON files.
+
+```
+/apl "Build a healthcare patient portal"
+     │
+     ├─► AUTO: Detect enterprise complexity
+     ├─► AUTO: Ask 5-10 critical questions
+     ├─► AUTO: Generate .apl/plan.md (human-readable)
+     ├─► AUTO: Start executing Story 1 immediately
+     └─► Progress tracked via checkboxes in plan.md
+```
+
+**Key principle:** Planning flows directly into execution. No manual setup required.
+
 ## Invocation
 
 The user has invoked: `/apl $ARGUMENTS`
@@ -162,15 +178,20 @@ Workflow: Requirements → Epics → Stories → Loop
 
 ## State Directory
 
+All files are **auto-generated** — never manually edited:
+
 ```
 .apl/
-├── state.json         # Current session
-├── learnings.json     # Patterns
-├── config.json        # Overrides
-├── plan.json          # Epic plan
-├── epics/             # Epic definitions
-└── checkpoints/       # Recovery points
+├── plan.md            # HUMAN-READABLE: Progress with checkboxes
+├── state.json         # INTERNAL: Machine state
+├── learnings.json     # INTERNAL: Patterns
+└── checkpoints/       # INTERNAL: Recovery points
 ```
+
+The `plan.md` is the source of truth:
+- View progress at a glance (checkboxes)
+- Track in git (diffable)
+- Resume sessions (APL finds next incomplete task)
 
 ## Output Formats
 
@@ -259,7 +280,27 @@ Launches web dashboard at http://localhost:5173
 
 [APL] Structured mode detected
 Domain: fintech
-Questions: ...
-/apl answer q_001 "WebSocket for real-time"
-/apl loop  # Execute Epic 1
+
+Asking critical questions...
+Q1: What real-time data sources? (WebSocket, SSE, polling)
+> WebSocket for market data
+
+Q2: Authentication method?
+> OAuth2 with refresh tokens
+
+Planning complete. Generated .apl/plan.md
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[APL] Starting Epic 1: Core Infrastructure
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Executing Story 1.1.1: Set up project with TypeScript...
+```
+
+### Resume Session
+```
+/apl
+→ Resuming from .apl/plan.md
+→ Next: Story 2.1.3 - Implement WebSocket connection
+→ Executing...
 ```
