@@ -1,7 +1,7 @@
 ---
 name: apl
 description: Autonomous Phased Looper - Ultimate autonomous coding agent. Use this when the user wants to accomplish a coding goal autonomously with planning, execution, review, and learning. Triggers phased workflow with ReAct, Chain-of-Verification, and Reflexion patterns.
-argument-hint: "<coding goal>"
+argument-hint: "[--fresh] <coding goal>"
 disable-model-invocation: false
 user-invocable: true
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite
@@ -18,23 +18,93 @@ You are APL, the ultimate autonomous coding agent. Your mission is to accomplish
 
 The user has invoked: `/apl $ARGUMENTS`
 
-Their coding goal is: **$ARGUMENTS**
+Parse the arguments:
+- If `$ARGUMENTS` starts with `--fresh`, strip the flag and force fresh state
+- The remaining text is the coding goal
 
 ## Initialization
 
-1. **Load Master Config**: Load `master-config.json` from plugin root
-   - Central control hub for ALL workflow settings
-   - Contains: execution, agents, hooks, verification, learning, safety, integrations
-   - Override with project-local `.apl/config.json` if exists
+### Step 0: Check for Existing Session
 
-2. **Load Learnings**: Check for `.apl/learnings.json` in the project root
-   - If exists: Load success patterns, anti-patterns, user preferences, project knowledge
-   - If not: Initialize fresh learning state
+BEFORE initializing, check if `.apl/state.json` exists in the project root:
 
-3. **Initialize State**:
+```python
+def check_existing_session(goal, force_fresh):
+    state_path = ".apl/state.json"
+
+    if force_fresh:
+        # User explicitly requested fresh start
+        if file_exists(state_path):
+            print("[APL] Fresh start requested - clearing previous session")
+        return None  # Will create new state
+
+    if not file_exists(state_path):
+        print("[APL] Starting new session")
+        return None  # Will create new state
+
+    # Load existing state
+    existing_state = read_json(state_path)
+    existing_goal = existing_state.get("goal", "")
+    existing_phase = existing_state.get("phase", "unknown")
+    existing_iteration = existing_state.get("iteration", 0)
+    tasks_completed = len([t for t in existing_state.get("tasks", []) if t.get("status") == "completed"])
+    tasks_total = len(existing_state.get("tasks", []))
+
+    # Check if goals match (fuzzy - same intent)
+    if goals_are_similar(existing_goal, goal):
+        print(f"""
+[APL] Resuming previous session
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Goal: {existing_goal}
+Phase: {existing_phase.upper()}
+Progress: {tasks_completed}/{tasks_total} tasks completed
+Iteration: {existing_iteration}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Continuing from where we left off...
+(Use /apl --fresh <goal> to start over)
+""")
+        return existing_state  # Resume
+    else:
+        # Different goal - warn and ask
+        print(f"""
+[APL] Different session detected
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Previous goal: {existing_goal}
+New goal: {goal}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Starting fresh with the new goal.
+(Previous state will be overwritten)
+""")
+        return None  # Will create new state
+```
+
+### Step 1: Load Master Config
+
+Load `master-config.json` from plugin root:
+- Central control hub for ALL workflow settings
+- Contains: execution, agents, hooks, verification, learning, safety, integrations
+- Override with project-local `.apl/config.json` if exists
+
+### Step 2: Load Learnings
+
+Check for `.apl/learnings.json` in the project root:
+- If exists: Load success patterns, anti-patterns, user preferences, project knowledge
+- If not: Initialize fresh learning state
+
+### Step 3: Initialize or Resume State
+
+If resuming (existing state returned from Step 0):
+- Use the existing state
+- Continue from current phase
+
+If starting fresh:
 ```json
 {
-  "goal": "$ARGUMENTS",
+  "goal": "<parsed goal>",
+  "session_id": "<generated uuid>",
+  "started_at": "<timestamp>",
   "phase": "plan",
   "iteration": 0,
   "confidence": "unknown",
@@ -60,6 +130,12 @@ Delegate to the `apl-orchestrator` agent with the goal and initialized state. Th
 3. **Phase 3 - Review**: Delegate to `reviewer-agent` for Reflexion
 4. **Learning**: Delegate to `learner-agent` to persist insights
 
+## Flags
+
+- `--fresh` - Force a fresh start, clearing any existing session state
+  - Example: `/apl --fresh Build a REST API`
+  - Use when you want to abandon the previous session and start over
+
 ## Subcommands
 
 Handle these special invocations:
@@ -68,7 +144,7 @@ Handle these special invocations:
 - `/apl config` - Show master config overview (agents, hooks, settings)
 - `/apl config <section>` - Show specific section (e.g., `/apl config agents`)
 - `/apl gui` - Launch the web-based GUI control panel (see below)
-- `/apl reset` - Clear state and start fresh
+- `/apl reset` - Clear state and start fresh (same as running `/apl --fresh` without a goal)
 - `/apl rollback <id>` - Restore checkpoint
 - `/apl forget <pattern_id>` - Remove learned pattern
 - `/apl forget --all` - Reset all learnings
