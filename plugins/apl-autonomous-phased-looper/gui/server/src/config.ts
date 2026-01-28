@@ -20,7 +20,6 @@ export interface ServerConfig {
   stateFilePath: string;
   learningsFilePath: string;
   projectConfigPath: string;
-  metaDir: string;
 }
 
 function resolvePluginRoot(): string {
@@ -49,7 +48,6 @@ function createConfig(): ServerConfig {
     stateFilePath: path.join(projectRoot, '.apl/state.json'),
     learningsFilePath: path.join(projectRoot, '.apl/learnings.json'),
     projectConfigPath: path.join(projectRoot, '.apl/config.json'),
-    metaDir: path.join(projectRoot, '.meta'),
   };
 }
 
@@ -61,5 +59,4 @@ export function updateProjectRoot(newRoot: string): void {
   config.stateFilePath = path.join(newRoot, '.apl/state.json');
   config.learningsFilePath = path.join(newRoot, '.apl/learnings.json');
   config.projectConfigPath = path.join(newRoot, '.apl/config.json');
-  config.metaDir = path.join(newRoot, '.meta');
 }

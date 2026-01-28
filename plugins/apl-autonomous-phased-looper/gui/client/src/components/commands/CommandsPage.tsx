@@ -35,22 +35,14 @@ export default function CommandsPage() {
               <div>
                 <h4 className="text-white font-medium mb-1">/apl Commands</h4>
                 <ul className="text-gray-400 space-y-1">
-                  <li><code className="text-apl-400">/apl &lt;goal&gt;</code> - Start autonomous coding</li>
+                  <li><code className="text-apl-400">/apl &lt;goal&gt;</code> - Start autonomous coding (auto-detects complexity)</li>
                   <li><code className="text-apl-400">/apl status</code> - View current state</li>
+                  <li><code className="text-apl-400">/apl loop</code> - Execute next Epic</li>
+                  <li><code className="text-apl-400">/apl autopilot</code> - Execute all Epics continuously</li>
+                  <li><code className="text-apl-400">/apl answer &lt;id&gt; &lt;answer&gt;</code> - Answer questions</li>
                   <li><code className="text-apl-400">/apl reset</code> - Clear and start fresh</li>
                   <li><code className="text-apl-400">/apl rollback &lt;id&gt;</code> - Restore checkpoint</li>
                   <li><code className="text-apl-400">/apl forget</code> - Clear learned patterns</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-white font-medium mb-1">/meta Commands</h4>
-                <ul className="text-gray-400 space-y-1">
-                  <li><code className="text-apl-400">/meta &lt;goal&gt;</code> - Plan enterprise project</li>
-                  <li><code className="text-apl-400">/meta loop</code> - Execute next Epic</li>
-                  <li><code className="text-apl-400">/meta status</code> - View progress</li>
-                  <li><code className="text-apl-400">/meta answer &lt;id&gt; &lt;answer&gt;</code> - Answer questions</li>
-                  <li><code className="text-apl-400">/meta export</code> - Generate docs</li>
                 </ul>
               </div>
 

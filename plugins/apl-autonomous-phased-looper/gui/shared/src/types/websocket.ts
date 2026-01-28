@@ -175,7 +175,6 @@ export interface ProjectChangedMessage extends BaseWebSocketMessage {
     previousProjectRoot: string;
     newProjectRoot: string;
     aplDir: string;
-    metaDir: string;
   };
 }
 

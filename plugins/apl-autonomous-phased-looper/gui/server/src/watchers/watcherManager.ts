@@ -3,20 +3,17 @@ import { EventEmitter } from 'events';
 import { StateWatcher } from './stateWatcher.js';
 import { LearningsWatcher } from './learningsWatcher.js';
 import { ConfigWatcher } from './configWatcher.js';
-import { MetaWatcher } from './metaWatcher.js';
 
 export class WatcherManager extends EventEmitter {
   private stateWatcher: StateWatcher;
   private learningsWatcher: LearningsWatcher;
   private configWatcher: ConfigWatcher;
-  private metaWatcher: MetaWatcher;
 
   constructor() {
     super();
     this.stateWatcher = new StateWatcher();
     this.learningsWatcher = new LearningsWatcher();
     this.configWatcher = new ConfigWatcher();
-    this.metaWatcher = new MetaWatcher();
 
     this.setupEventForwarding();
   }
@@ -42,41 +39,29 @@ export class WatcherManager extends EventEmitter {
     this.configWatcher.on('update', (data) => this.emit('config:update', data));
     this.configWatcher.on('project_removed', (data) => this.emit('config:project_removed', data));
     this.configWatcher.on('error', (data) => this.emit('error', { ...data, source: 'config' }));
-
-    // Forward meta events
-    this.metaWatcher.on('update', (data) => this.emit('meta:update', data));
-    this.metaWatcher.on('plan_update', (data) => this.emit('meta:plan_update', data));
-    this.metaWatcher.on('progress_update', (data) => this.emit('meta:progress_update', data));
-    this.metaWatcher.on('epic_update', (data) => this.emit('meta:epic_update', data));
-    this.metaWatcher.on('file_removed', (data) => this.emit('meta:file_removed', data));
-    this.metaWatcher.on('error', (data) => this.emit('error', { ...data, source: 'meta' }));
   }
 
   start(): void {
     this.stateWatcher.start();
     this.learningsWatcher.start();
     this.configWatcher.start();
-    this.metaWatcher.start();
   }
 
   stop(): void {
     this.stateWatcher.stop();
     this.learningsWatcher.stop();
     this.configWatcher.stop();
-    this.metaWatcher.stop();
   }
 
   getStatus(): {
     state: boolean;
     learnings: boolean;
     config: boolean;
-    meta: boolean;
   } {
     return {
       state: this.stateWatcher.isRunning(),
       learnings: this.learningsWatcher.isRunning(),
       config: this.configWatcher.isRunning(),
-      meta: this.metaWatcher.isRunning(),
     };
   }
 }
