@@ -11,14 +11,19 @@ export type AgentId =
   | 'tester-agent'
   | 'reviewer-agent'
   | 'learner-agent'
-  | 'meta-orchestrator'
   | 'requirements-analyst'
   | 'horizontal-coordinator'
   | 'content-strategy-agent'
   | 'brand-voice-agent'
   | 'design-agent'
   | 'accessibility-agent'
-  | 'deployer-agent';
+  | 'deployer-agent'
+  | 'product-agent'
+  | 'analytics-agent'
+  | 'qa-automation-agent'
+  | 'documentation-agent'
+  | 'research-agent'
+  | 'performance-agent';
 
 // Tool Types
 export type ToolName =

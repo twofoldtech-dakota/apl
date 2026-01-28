@@ -76,14 +76,6 @@
       "role": "learning",
       "description": "Knowledge extraction and pattern persistence"
     },
-    "meta_orchestrator": {
-      "file": "agents/meta-orchestrator.md",
-      "enabled": true,
-      "model": "sonnet",
-      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Task", "TodoWrite"],
-      "role": "enterprise",
-      "description": "Epic/Feature/Story hierarchy for large projects"
-    },
     "requirements_analyst": {
       "file": "agents/requirements-analyst.md",
       "enabled": true,
@@ -213,6 +205,54 @@
       "tools": ["Read", "Glob", "Grep", "Task"],
       "role": "utility",
       "description": "Coordinates horizontal agent invocation and aggregates results"
+    },
+    "product": {
+      "file": "agents/product-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep"],
+      "role": "product",
+      "description": "Product roadmap, prioritization, and user story management"
+    },
+    "analytics": {
+      "file": "agents/analytics-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Bash"],
+      "role": "analytics",
+      "description": "Data tracking, A/B testing, and metrics analysis"
+    },
+    "qa_automation": {
+      "file": "agents/qa-automation-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Bash"],
+      "role": "quality",
+      "description": "E2E tests, visual regression, and performance testing"
+    },
+    "documentation": {
+      "file": "agents/documentation-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Bash"],
+      "role": "documentation",
+      "description": "API docs, user guides, changelogs, and READMEs"
+    },
+    "research": {
+      "file": "agents/research-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "WebSearch", "WebFetch"],
+      "role": "research",
+      "description": "User research, competitive analysis, and market insights"
+    },
+    "performance": {
+      "file": "agents/performance-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Bash"],
+      "role": "performance",
+      "description": "Core Web Vitals, load testing, and optimization"
     }
   },
 
@@ -552,31 +592,20 @@
     "questions_path": "templates/domain-questions/"
   },
 
-  "meta_orchestrator": {
-    "continuous_mode": {
+  "structured_mode": {
+    "autopilot": {
       "enabled": true,
       "default_confidence_threshold": "low",
       "default_checkpoint_interval": 5,
       "default_pause_on_failure": true,
-      "graceful_stop_file": ".meta/STOP",
-      "state_file": ".meta/continuous-state.json"
-    },
-    "multi_repository": {
-      "enabled": true,
-      "workspace_root": null,
-      "repositories": [],
-      "cross_repo_tasks": true,
-      "shared_state_path": ".meta/shared/",
-      "dependency_graph": true,
-      "parallel_repo_execution": true,
-      "max_concurrent_repos": 3
+      "graceful_stop_file": ".apl/STOP",
+      "state_file": ".apl/autopilot-state.json"
     },
     "enterprise_workflow": {
       "require_adr_for_new_patterns": true,
       "security_scan_before_merge": true,
       "auto_generate_migration": true,
-      "enforce_api_versioning": true,
-      "generate_observability": true
+      "enforce_api_versioning": true
     }
   },
 
