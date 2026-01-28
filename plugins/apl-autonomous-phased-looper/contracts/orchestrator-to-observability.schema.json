@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orchestrator-to-observability.schema.json",
+  "title": "Orchestrator to Observability Agent Contract",
+  "description": "Contract for delegating observability setup tasks",
+  "type": "object",
+  "required": ["action", "context"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": ["instrument", "configure", "dashboard", "alerts", "verify"],
+      "description": "The observability action to perform"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "goal": {
+          "type": "string",
+          "description": "Original goal for context"
+        },
+        "current_phase": {
+          "type": "string",
+          "enum": ["plan", "execute", "review"]
+        },
+        "project_path": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string",
+          "enum": ["typescript", "javascript", "python", "go", "rust", "java"]
+        },
+        "framework": {
+          "type": "string",
+          "description": "Web framework in use (express, fastify, fastapi, etc.)"
+        }
+      },
+      "required": ["goal"]
+    },
+    "observability_config": {
+      "type": "object",
+      "properties": {
+        "stack": {
+          "type": "string",
+          "enum": ["cloud-native", "aws", "gcp", "datadog", "newrelic", "custom"],
+          "default": "cloud-native",
+          "description": "Observability stack to use"
+        },
+        "pillars": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["metrics", "logs", "traces"]
+          },
+          "default": ["metrics", "logs", "traces"]
+        },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "type": "string",
+              "enum": ["prometheus", "cloudwatch", "datadog", "custom"]
+            },
+            "custom_metrics": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "type": { "type": "string", "enum": ["counter", "gauge", "histogram"] },
+                  "description": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "logging": {
+          "type": "object",
+          "properties": {
+            "format": {
+              "type": "string",
+              "enum": ["json", "text"],
+              "default": "json"
+            },
+            "level": {
+              "type": "string",
+              "enum": ["debug", "info", "warn", "error"],
+              "default": "info"
+            },
+            "include_request_id": { "type": "boolean", "default": true },
+            "redact_fields": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["password", "token", "authorization"]
+            }
+          }
+        },
+        "tracing": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "type": "string",
+              "enum": ["opentelemetry", "jaeger", "xray", "datadog"]
+            },
+            "sample_rate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.1
+            }
+          }
+        },
+        "error_tracking": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "type": "string",
+              "enum": ["sentry", "datadog", "rollbar", "custom"]
+            },
+            "enabled": { "type": "boolean", "default": true }
+          }
+        }
+      }
+    },
+    "alerts_config": {
+      "type": "object",
+      "properties": {
+        "slis": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "target": { "type": "number" },
+              "window": { "type": "string" }
+            }
+          }
+        },
+        "notification_channels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["slack", "pagerduty", "email", "webhook"]
+          }
+        }
+      }
+    },
+    "health_checks": {
+      "type": "object",
+      "properties": {
+        "liveness": { "type": "boolean", "default": true },
+        "readiness": { "type": "boolean", "default": true },
+        "detailed": { "type": "boolean", "default": true }
+      }
+    }
+  }
+}

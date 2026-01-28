@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orchestrator-to-security.schema.json",
+  "title": "Orchestrator to Security Agent Contract",
+  "description": "Contract for delegating security scanning and remediation tasks",
+  "type": "object",
+  "required": ["action", "context"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": ["scan", "fix", "audit", "report", "check_compliance"],
+      "description": "The security action to perform"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "goal": {
+          "type": "string",
+          "description": "Original goal for context"
+        },
+        "current_phase": {
+          "type": "string",
+          "enum": ["plan", "execute", "review"]
+        },
+        "project_path": {
+          "type": "string"
+        },
+        "files_changed": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Files that were modified"
+        }
+      },
+      "required": ["goal"]
+    },
+    "scan_config": {
+      "type": "object",
+      "properties": {
+        "types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["sast", "sca", "secrets", "iac", "container", "dast"]
+          },
+          "default": ["sast", "sca", "secrets"]
+        },
+        "severity_threshold": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"],
+          "default": "high"
+        },
+        "paths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Specific paths to scan"
+        },
+        "exclude_paths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["node_modules", "vendor", ".git"]
+        },
+        "auto_fix": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically fix safe issues"
+        }
+      }
+    },
+    "compliance": {
+      "type": "object",
+      "properties": {
+        "frameworks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["soc2", "hipaa", "pci-dss", "gdpr", "iso27001", "owasp-top-10"]
+          }
+        },
+        "generate_report": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "fix_config": {
+      "type": "object",
+      "properties": {
+        "issue_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Specific issues to fix"
+        },
+        "fix_all_safe": {
+          "type": "boolean",
+          "default": false
+        },
+        "create_pr": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    }
+  }
+}

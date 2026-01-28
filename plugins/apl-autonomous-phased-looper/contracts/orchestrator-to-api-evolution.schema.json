@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orchestrator-to-api-evolution.schema.json",
+  "title": "Orchestrator to API Evolution Agent Contract",
+  "description": "Contract for delegating API versioning and contract tasks",
+  "type": "object",
+  "required": ["action", "context"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": ["analyze", "update_spec", "generate_types", "check_breaking", "deprecate", "validate_contracts"],
+      "description": "The API evolution action to perform"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "goal": {
+          "type": "string",
+          "description": "Original goal for context"
+        },
+        "current_phase": {
+          "type": "string",
+          "enum": ["plan", "execute", "review"]
+        },
+        "project_path": {
+          "type": "string"
+        },
+        "api_type": {
+          "type": "string",
+          "enum": ["rest", "graphql", "grpc", "websocket"],
+          "default": "rest"
+        }
+      },
+      "required": ["goal"]
+    },
+    "api_config": {
+      "type": "object",
+      "properties": {
+        "spec_format": {
+          "type": "string",
+          "enum": ["openapi3", "openapi2", "graphql", "protobuf", "asyncapi"],
+          "default": "openapi3"
+        },
+        "spec_path": {
+          "type": "string",
+          "description": "Path to API specification file"
+        },
+        "versioning_strategy": {
+          "type": "string",
+          "enum": ["url_path", "header", "query_param"],
+          "default": "url_path"
+        },
+        "current_version": {
+          "type": "string",
+          "description": "Current API version"
+        }
+      }
+    },
+    "change": {
+      "type": "object",
+      "description": "Details of API change for analyze/update actions",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["additive", "modification", "removal", "deprecation"]
+        },
+        "endpoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": { "type": "string" },
+              "method": { "type": "string" },
+              "change_description": { "type": "string" }
+            }
+          }
+        },
+        "schemas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "change_description": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "type_generation": {
+      "type": "object",
+      "properties": {
+        "output_path": {
+          "type": "string",
+          "default": "src/generated"
+        },
+        "language": {
+          "type": "string",
+          "enum": ["typescript", "python", "go"],
+          "default": "typescript"
+        },
+        "generate_client": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "deprecation": {
+      "type": "object",
+      "properties": {
+        "endpoints": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "sunset_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "replacement": {
+          "type": "string",
+          "description": "Replacement endpoint/version"
+        }
+      }
+    },
+    "contract_testing": {
+      "type": "object",
+      "properties": {
+        "consumer": { "type": "string" },
+        "provider": { "type": "string" },
+        "pact_broker_url": { "type": "string" }
+      }
+    }
+  }
+}
