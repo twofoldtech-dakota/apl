@@ -96,11 +96,11 @@
       "file": "agents/content-strategy-agent.md",
       "enabled": true,
       "model": "sonnet",
-      "tools": ["Read", "Glob", "Grep"],
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep"],
       "role": "horizontal",
       "category": "content",
-      "auto_fix": false,
-      "description": "SEO, content planning, and messaging consistency evaluation"
+      "auto_fix": true,
+      "description": "SEO-optimized content evaluation and generation"
     },
     "brand_voice": {
       "file": "agents/brand-voice-agent.md",
@@ -131,16 +131,6 @@
       "category": "quality",
       "auto_fix": true,
       "description": "WCAG compliance and accessibility testing"
-    },
-    "copy_content": {
-      "file": "agents/copy-content-agent.md",
-      "enabled": true,
-      "model": "sonnet",
-      "tools": ["Read", "Write", "Edit", "Glob", "Grep"],
-      "role": "horizontal",
-      "category": "content",
-      "auto_fix": true,
-      "description": "Content writing following brand guidelines"
     },
     "deployer": {
       "file": "agents/deployer-agent.md",
@@ -215,6 +205,14 @@
       "role": "enterprise",
       "category": "data",
       "description": "Database schema migrations and evolution"
+    },
+    "horizontal_coordinator": {
+      "file": "agents/horizontal-coordinator.md",
+      "enabled": true,
+      "model": "haiku",
+      "tools": ["Read", "Glob", "Grep", "Task"],
+      "role": "utility",
+      "description": "Coordinates horizontal agent invocation and aggregates results"
     }
   },
 
@@ -238,10 +236,6 @@
       "accessibility": {
         "patterns": ["*.tsx", "*.jsx", "*.vue", "*.svelte", "*.html", "src/components/**", "src/pages/**"],
         "on_phases": ["review"]
-      },
-      "copy_content": {
-        "patterns": ["*.md", "*.mdx", "docs/**", "src/content/**"],
-        "on_phases": ["execute"]
       }
     },
     "quality_gates": {
