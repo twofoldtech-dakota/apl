@@ -13,11 +13,11 @@ export type AgentId =
   | 'learner-agent'
   | 'meta-orchestrator'
   | 'requirements-analyst'
+  | 'horizontal-coordinator'
   | 'content-strategy-agent'
   | 'brand-voice-agent'
   | 'design-agent'
   | 'accessibility-agent'
-  | 'copy-content-agent'
   | 'deployer-agent';
 
 // Tool Types

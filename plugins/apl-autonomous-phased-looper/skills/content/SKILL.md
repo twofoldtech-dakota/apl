@@ -7,7 +7,7 @@ user-invocable: true
 allowed-tools: Read, Write, Edit, Glob, Grep, Task, TodoWrite
 model: sonnet
 context: fork
-agent: content-strategist-agent
+agent: content-strategy-agent
 ---
 
 # /apl content - Content Strategy Command

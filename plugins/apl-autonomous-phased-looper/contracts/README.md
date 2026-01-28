@@ -23,13 +23,19 @@ APL uses a multi-agent architecture where specialized agents communicate through
        │ Planner │   │  Coder  │   │ Tester  │   │Reviewer │   │ Learner │
        └─────────┘   └─────────┘   └─────────┘   └─────────┘   └─────────┘
                                         │
-                    ┌───────────────────┼───────────────────┐
-                    │                   │                   │
-                    ▼                   ▼                   ▼
-             ┌───────────┐       ┌───────────┐       ┌───────────┐
-             │ Content   │       │ Designer  │       │ Deployer  │
-             │ Strategist│       │(Pencil)   │       │(Vercel)   │
-             └───────────┘       └───────────┘       └───────────┘
+                           ┌────────────┴────────────┐
+                           ▼                         ▼
+                  ┌─────────────────┐        ┌───────────┐
+                  │   Horizontal    │        │ Deployer  │
+                  │  Coordinator    │        │ (Vercel)  │
+                  └─────────────────┘        └───────────┘
+                           │
+         ┌─────────┬───────┼───────┬─────────┐
+         ▼         ▼       ▼       ▼         ▼
+    ┌─────────┐┌───────┐┌──────┐┌───────┐┌────────┐
+    │ Content ││ Brand ││Design││Access-││Designer│
+    │Strategy ││ Voice ││      ││ibility││(Pencil)│
+    └─────────┘└───────┘└──────┘└───────┘└────────┘
 
 Each arrow represents a contract-defined handoff.
 ```
@@ -72,8 +78,8 @@ These agents provide specialized capabilities across all project types:
 
 | Contract | From | To | Purpose |
 |----------|------|-----|---------|
-| `orchestrator-to-content-strategist.schema.json` | Orchestrator | Content Strategist | SEO content generation request |
-| `content-strategist-output.schema.json` | Content Strategist | Orchestrator | Generated content with SEO data |
+| `orchestrator-to-horizontal.schema.json` | Orchestrator | Horizontal Agents | Content, design, accessibility requests |
+| `horizontal-output.schema.json` | Horizontal Agents | Orchestrator | Evaluation results and fixes |
 | `orchestrator-to-designer.schema.json` | Orchestrator | Designer | UI design request (Pencil.dev MCP) |
 | `designer-output.schema.json` | Designer | Orchestrator | Design tokens and component specs |
 | `orchestrator-to-deployer.schema.json` | Orchestrator | Deployer | Deployment request (Vercel MCP) |

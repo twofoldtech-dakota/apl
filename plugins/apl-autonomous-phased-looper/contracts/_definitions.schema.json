@@ -8,13 +8,13 @@
     "TaskId": {
       "type": "integer",
       "minimum": 1,
-      "description": "Unique task identifier (always starts at 1)"
+      "description": "Unique task identifier"
     },
 
     "Timestamp": {
       "type": "string",
       "format": "date-time",
-      "description": "ISO 8601 timestamp (e.g., 2024-01-15T14:30:00Z)"
+      "description": "ISO 8601 timestamp"
     },
 
     "FilePath": {
@@ -26,233 +26,297 @@
     "Percentage": {
       "type": "number",
       "minimum": 0,
-      "maximum": 100,
-      "description": "Percentage value as number (0-100), not string"
+      "maximum": 100
     },
 
     "TaskStatus": {
       "type": "string",
-      "enum": ["pending", "in_progress", "completed", "failed", "skipped"],
-      "description": "Canonical task execution status"
+      "enum": ["pending", "in_progress", "completed", "failed", "skipped"]
     },
 
     "AgentOutcome": {
       "type": "string",
-      "enum": ["success", "partial", "failure", "needs_retry"],
-      "description": "Canonical agent execution outcome"
+      "enum": ["success", "partial", "failure", "needs_retry"]
     },
 
     "ReviewStatus": {
       "type": "string",
-      "enum": ["pass", "needs_fixes", "blocked"],
-      "description": "Review phase outcome"
+      "enum": ["pass", "needs_fixes", "blocked"]
     },
 
     "TestStatus": {
       "type": "string",
-      "enum": ["pass", "fail", "error", "skipped"],
-      "description": "Individual test result status"
-    },
-
-    "PlanStatus": {
-      "type": "string",
-      "enum": ["ready", "needs_clarification", "scope_warning"],
-      "description": "Plan readiness status"
+      "enum": ["pass", "fail", "error", "skipped"]
     },
 
     "Complexity": {
       "type": "string",
-      "enum": ["simple", "medium", "complex"],
-      "description": "Task or goal complexity level"
+      "enum": ["simple", "medium", "complex"]
     },
 
     "Confidence": {
       "type": "string",
-      "enum": ["low", "medium", "high"],
-      "description": "Execution confidence level"
+      "enum": ["low", "medium", "high"]
     },
 
     "Severity": {
       "type": "string",
-      "enum": ["critical", "warning", "suggestion"],
-      "description": "Issue severity level"
+      "enum": ["critical", "warning", "suggestion"]
     },
 
     "ErrorType": {
       "type": "string",
-      "enum": ["syntax", "type", "runtime", "logic", "dependency", "environment", "timeout", "unknown"],
-      "description": "Classified error type for recovery strategy selection"
-    },
-
-    "VerificationMethod": {
-      "type": "string",
-      "enum": ["code_inspection", "compilation", "type_check", "test", "lint", "manual"],
-      "description": "How a criterion was verified"
+      "enum": ["syntax", "type", "runtime", "logic", "dependency", "environment", "timeout", "unknown"]
     },
 
     "FileAction": {
       "type": "string",
-      "enum": ["create", "modify", "delete", "rename"],
-      "description": "Type of file operation"
+      "enum": ["create", "modify", "delete", "rename"]
+    },
+
+    "VerificationMethod": {
+      "type": "string",
+      "enum": ["code_inspection", "compilation", "type_check", "test", "lint", "manual"]
     },
 
     "PatternId": {
       "type": "string",
-      "pattern": "^(sp|ap)_[a-z][a-z0-9_]*_[0-9]{3}$",
-      "description": "Pattern identifier: sp_category_name_NNN (success) or ap_category_name_NNN (anti)"
+      "pattern": "^(sp|ap)_[a-z][a-z0-9_]*_[0-9]{3}$"
     },
 
     "Error": {
       "type": "object",
-      "description": "Standardized error object",
       "required": ["message", "type"],
       "properties": {
-        "message": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Human-readable error message"
-        },
-        "type": {
-          "$ref": "#/$defs/ErrorType"
-        },
-        "file_path": {
-          "$ref": "#/$defs/FilePath"
-        },
-        "line": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "column": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "stack_trace": {
-          "type": "string"
-        },
-        "recovery_hint": {
-          "type": "string",
-          "description": "Suggested recovery action"
-        }
+        "message": { "type": "string" },
+        "type": { "$ref": "#/$defs/ErrorType" },
+        "file_path": { "$ref": "#/$defs/FilePath" },
+        "line": { "type": "integer", "minimum": 1 },
+        "column": { "type": "integer", "minimum": 1 },
+        "stack_trace": { "type": "string" },
+        "recovery_hint": { "type": "string" }
       }
     },
 
     "FileChange": {
       "type": "object",
-      "description": "Standardized file modification record",
       "required": ["file_path", "action"],
       "properties": {
-        "file_path": {
-          "$ref": "#/$defs/FilePath"
-        },
-        "action": {
-          "$ref": "#/$defs/FileAction"
-        },
-        "diff": {
-          "type": "string",
-          "description": "Unified diff (required for modify action)"
-        },
-        "task_id": {
-          "$ref": "#/$defs/TaskId"
-        },
-        "timestamp": {
-          "$ref": "#/$defs/Timestamp"
-        }
-      },
-      "if": {
-        "properties": { "action": { "const": "modify" } }
-      },
-      "then": {
-        "required": ["file_path", "action", "diff"]
+        "file_path": { "$ref": "#/$defs/FilePath" },
+        "action": { "$ref": "#/$defs/FileAction" },
+        "diff": { "type": "string" },
+        "task_id": { "$ref": "#/$defs/TaskId" },
+        "timestamp": { "$ref": "#/$defs/Timestamp" }
       }
     },
 
-    "CriterionVerification": {
+    "Task": {
       "type": "object",
-      "description": "Verification of a single success criterion",
-      "required": ["criterion", "met", "verified_by"],
+      "required": ["id", "description", "success_criteria"],
       "properties": {
-        "task_id": {
-          "$ref": "#/$defs/TaskId"
+        "id": { "$ref": "#/$defs/TaskId" },
+        "description": { "type": "string" },
+        "success_criteria": {
+          "type": "array",
+          "items": { "type": "string" }
         },
-        "criterion": {
-          "type": "string",
-          "minLength": 5
+        "complexity": { "$ref": "#/$defs/Complexity" },
+        "dependencies": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TaskId" }
         },
-        "met": {
-          "type": "boolean"
+        "suggested_approach": { "type": ["string", "null"] },
+        "estimated_files": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "CompletedTask": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/TaskId" },
+        "description": { "type": "string" },
+        "status": { "$ref": "#/$defs/TaskStatus" },
+        "files_created": {
+          "type": "array",
+          "items": { "type": "string" }
         },
-        "evidence": {
-          "type": "string",
-          "description": "Proof that criterion was met/not met"
+        "files_modified": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "ExecutionContext": {
+      "type": "object",
+      "required": ["project_root"],
+      "properties": {
+        "project_root": { "type": "string" },
+        "language": { "type": "string" },
+        "framework": { "type": "string" },
+        "existing_patterns": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
         },
-        "verified_by": {
-          "$ref": "#/$defs/VerificationMethod"
+        "scratchpad": { "$ref": "#/$defs/Scratchpad" },
+        "completed_tasks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/CompletedTask" }
+        }
+      }
+    },
+
+    "ProjectContext": {
+      "type": "object",
+      "properties": {
+        "framework": { "type": "string" },
+        "language": { "type": "string" },
+        "test_framework": { "type": "string" },
+        "conventions": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
         },
-        "timestamp": {
-          "$ref": "#/$defs/Timestamp"
+        "key_files": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "entry_points": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "Scratchpad": {
+      "type": "object",
+      "properties": {
+        "learnings": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "failed_approaches": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "open_questions": {
+          "type": "array",
+          "items": { "type": "string" }
         }
       }
     },
 
     "SuccessPattern": {
       "type": "object",
-      "description": "A learned successful approach",
       "required": ["id", "task_type", "approach"],
       "properties": {
-        "id": {
-          "$ref": "#/$defs/PatternId"
-        },
-        "task_type": {
-          "type": "string"
-        },
-        "approach": {
-          "type": "string",
-          "minLength": 10
-        },
+        "id": { "$ref": "#/$defs/PatternId" },
+        "task_type": { "type": "string" },
+        "approach": { "type": "string" },
         "applicable_when": {
           "type": "array",
           "items": { "type": "string" }
         },
-        "success_count": {
-          "type": "integer",
-          "minimum": 0,
-          "default": 1
-        },
-        "last_used": {
-          "$ref": "#/$defs/Timestamp"
-        }
+        "success_count": { "type": "integer", "minimum": 0, "default": 1 },
+        "last_used": { "$ref": "#/$defs/Timestamp" },
+        "code_example": { "type": "string" }
       }
     },
 
     "AntiPattern": {
       "type": "object",
-      "description": "A learned approach to avoid",
       "required": ["id", "task_type", "approach", "why_fails"],
       "properties": {
-        "id": {
-          "$ref": "#/$defs/PatternId"
+        "id": { "$ref": "#/$defs/PatternId" },
+        "task_type": { "type": "string" },
+        "approach": { "type": "string" },
+        "why_fails": { "type": "string" },
+        "alternative": { "type": "string" },
+        "failure_count": { "type": "integer", "minimum": 1, "default": 1 },
+        "last_encountered": { "$ref": "#/$defs/Timestamp" }
+      }
+    },
+
+    "CriterionVerification": {
+      "type": "object",
+      "required": ["criterion", "met", "verified_by"],
+      "properties": {
+        "task_id": { "$ref": "#/$defs/TaskId" },
+        "criterion": { "type": "string" },
+        "met": { "type": "boolean" },
+        "evidence": { "type": "string" },
+        "verified_by": { "$ref": "#/$defs/VerificationMethod" },
+        "timestamp": { "$ref": "#/$defs/Timestamp" }
+      }
+    },
+
+    "Issue": {
+      "type": "object",
+      "required": ["severity", "description"],
+      "properties": {
+        "severity": { "$ref": "#/$defs/Severity" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "file": { "$ref": "#/$defs/FilePath" },
+        "line": { "type": "integer" },
+        "suggested_fix": { "type": "string" },
+        "auto_fixable": { "type": "boolean", "default": false }
+      }
+    },
+
+    "QualityScore": {
+      "type": "object",
+      "properties": {
+        "seo": { "$ref": "#/$defs/Percentage" },
+        "voice": { "$ref": "#/$defs/Percentage" },
+        "design": { "$ref": "#/$defs/Percentage" },
+        "accessibility": { "$ref": "#/$defs/Percentage" },
+        "overall": { "$ref": "#/$defs/Percentage" }
+      }
+    },
+
+    "HorizontalAgentResult": {
+      "type": "object",
+      "properties": {
+        "agent": { "type": "string" },
+        "score": { "$ref": "#/$defs/Percentage" },
+        "passed": { "type": "boolean" },
+        "issues": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Issue" }
         },
-        "task_type": {
-          "type": "string"
-        },
-        "approach": {
-          "type": "string"
-        },
-        "why_fails": {
-          "type": "string",
-          "minLength": 10
-        },
-        "alternative": {
-          "type": "string",
-          "description": "What to do instead"
-        },
-        "failure_count": {
-          "type": "integer",
-          "minimum": 1,
-          "default": 1
-        },
-        "last_encountered": {
-          "$ref": "#/$defs/Timestamp"
+        "fixes_applied": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/FileChange" }
+        }
+      }
+    },
+
+    "TestResult": {
+      "type": "object",
+      "required": ["name", "status"],
+      "properties": {
+        "name": { "type": "string" },
+        "status": { "$ref": "#/$defs/TestStatus" },
+        "duration_ms": { "type": "number" },
+        "error_message": { "type": "string" },
+        "file": { "$ref": "#/$defs/FilePath" }
+      }
+    },
+
+    "TestSummary": {
+      "type": "object",
+      "properties": {
+        "total": { "type": "integer" },
+        "passed": { "type": "integer" },
+        "failed": { "type": "integer" },
+        "skipped": { "type": "integer" },
+        "duration_ms": { "type": "number" },
+        "results": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TestResult" }
         }
       }
     }
