@@ -31,12 +31,12 @@ APL uses a multi-agent architecture where specialized agents communicate through
      │  Analyst  │  │Coordinator│  │ (Vercel)  │
      └───────────┘  └───────────┘  └───────────┘
                            │
-         ┌─────────┬───────┼───────┬─────────┐
-         ▼         ▼       ▼       ▼         ▼
-    ┌─────────┐┌───────┐┌──────┐┌───────┐┌────────┐
-    │ Content ││ Brand ││Design││Access-││Designer│
-    │Strategy ││ Voice ││      ││ibility││(Pencil)│
-    └─────────┘└───────┘└──────┘└───────┘└────────┘
+         ┌─────────────────┼─────────────────┐
+         ▼                 ▼                 ▼
+    ┌─────────────┐  ┌───────────┐  ┌─────────────┐
+    │   Content   │  │   Design  │  │Accessibility│
+    │  Strategy   │  │           │  │             │
+    └─────────────┘  └───────────┘  └─────────────┘
 
 Each arrow represents a contract-defined handoff.
 ```
@@ -81,8 +81,6 @@ These agents provide specialized capabilities across all project types:
 |----------|------|-----|---------|
 | `orchestrator-to-horizontal.schema.json` | Orchestrator | Horizontal Agents | Content, design, accessibility requests |
 | `horizontal-output.schema.json` | Horizontal Agents | Orchestrator | Evaluation results and fixes |
-| `orchestrator-to-designer.schema.json` | Orchestrator | Designer | UI design request (Pencil.dev MCP) |
-| `designer-output.schema.json` | Designer | Orchestrator | Design tokens and component specs |
 | `orchestrator-to-deployer.schema.json` | Orchestrator | Deployer | Deployment request (Vercel MCP) |
 | `deployer-output.schema.json` | Deployer | Orchestrator | Deployment status and URLs |
 
