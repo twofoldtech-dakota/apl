@@ -10,6 +10,14 @@ const AGENTS = [
   { id: 'tester-agent', name: 'Tester', color: 'text-green-400', bgColor: 'bg-green-900/50', role: 'Test execution' },
   { id: 'reviewer-agent', name: 'Reviewer', color: 'text-purple-400', bgColor: 'bg-purple-900/50', role: 'Code review' },
   { id: 'learner-agent', name: 'Learner', color: 'text-orange-400', bgColor: 'bg-orange-900/50', role: 'Pattern extraction' },
+  { id: 'meta-orchestrator', name: 'Meta', color: 'text-indigo-400', bgColor: 'bg-indigo-900/50', role: 'Enterprise planning' },
+  { id: 'requirements-analyst', name: 'Analyst', color: 'text-rose-400', bgColor: 'bg-rose-900/50', role: 'Requirements' },
+  { id: 'content-strategy-agent', name: 'Content', color: 'text-emerald-400', bgColor: 'bg-emerald-900/50', role: 'SEO & content' },
+  { id: 'brand-voice-agent', name: 'Voice', color: 'text-amber-400', bgColor: 'bg-amber-900/50', role: 'Brand voice' },
+  { id: 'design-agent', name: 'Design', color: 'text-pink-400', bgColor: 'bg-pink-900/50', role: 'UI patterns' },
+  { id: 'accessibility-agent', name: 'A11y', color: 'text-cyan-400', bgColor: 'bg-cyan-900/50', role: 'Accessibility' },
+  { id: 'copy-content-agent', name: 'Copy', color: 'text-lime-400', bgColor: 'bg-lime-900/50', role: 'Copywriting' },
+  { id: 'deployer-agent', name: 'Deployer', color: 'text-sky-400', bgColor: 'bg-sky-900/50', role: 'Deployment' },
 ] as const;
 
 export default function AgentActivityMonitor() {

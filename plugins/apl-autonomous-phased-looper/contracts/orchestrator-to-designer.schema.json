@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orchestrator-to-designer.schema.json",
+  "title": "OrchestratorToDesigner",
+  "description": "Input contract for designer agent with Pencil.dev MCP integration",
+  "type": "object",
+  "required": ["design_type", "requirements"],
+  "properties": {
+    "design_type": {
+      "type": "string",
+      "enum": ["component", "page", "layout", "system", "export"],
+      "description": "Type of design work requested"
+    },
+    "action": {
+      "type": "string",
+      "enum": ["create", "update", "export", "status"],
+      "default": "create",
+      "description": "Action to perform"
+    },
+    "context": {
+      "type": "object",
+      "description": "Project and design system context",
+      "properties": {
+        "project_type": {
+          "type": "string",
+          "enum": ["web", "mobile", "desktop", "hybrid"],
+          "default": "web"
+        },
+        "framework": {
+          "type": "string",
+          "enum": ["react", "vue", "svelte", "next.js", "nuxt", "astro", "solid"],
+          "description": "Frontend framework in use"
+        },
+        "style_approach": {
+          "type": "string",
+          "enum": ["tailwind", "css-modules", "styled-components", "emotion", "vanilla-css", "sass"],
+          "default": "tailwind"
+        },
+        "design_system": {
+          "$ref": "#/$defs/DesignTokens"
+        },
+        "existing_components": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of existing component names"
+        },
+        "component_library": {
+          "type": "string",
+          "description": "Base component library if using one (shadcn, radix, etc.)"
+        }
+      }
+    },
+    "requirements": {
+      "type": "object",
+      "required": ["description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of component/page/layout to design"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human description of what to design"
+        },
+        "user_flow": {
+          "type": "string",
+          "description": "How users interact with this design"
+        },
+        "constraints": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Design constraints (e.g., 'mobile-first', 'dark mode required')"
+        },
+        "reference_designs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "URLs or descriptions of reference designs"
+        },
+        "variants": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Required variants (e.g., 'small', 'large', 'primary', 'secondary')"
+        },
+        "states": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Required states (e.g., 'hover', 'disabled', 'loading')"
+        },
+        "accessibility_requirements": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Specific accessibility requirements"
+        }
+      }
+    },
+    "export_options": {
+      "type": "object",
+      "description": "Options for export action",
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": ["tailwind", "css", "styled-components", "tokens", "all"],
+          "default": "tailwind"
+        },
+        "output_path": {
+          "type": "string",
+          "description": "Output directory for exported files"
+        },
+        "include_types": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include TypeScript type definitions"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "DesignTokens": {
+      "type": "object",
+      "description": "Design system tokens",
+      "properties": {
+        "colors": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "object", "additionalProperties": { "type": "string" } }
+            ]
+          }
+        },
+        "typography": {
+          "type": "object",
+          "properties": {
+            "fontFamily": { "type": "object" },
+            "fontSize": { "type": "object" },
+            "fontWeight": { "type": "object" },
+            "lineHeight": { "type": "object" }
+          }
+        },
+        "spacing": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "borderRadius": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "shadows": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    }
+  }
+}

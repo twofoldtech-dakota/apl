@@ -1,0 +1,47 @@
+{
+  "id": "sp_content_structured_data_article_001",
+  "name": "Article Schema Structured Data",
+  "version": "1.0.0",
+  "type": "success_pattern",
+  "task_type": "content-structured-data",
+  "applicable_when": [
+    "article schema",
+    "blog structured data",
+    "json-ld article",
+    "rich snippets blog",
+    "schema markup article"
+  ],
+  "approach": "Implement Article schema using JSON-LD format in the document head. Include all required and recommended properties: headline, author, datePublished, dateModified, image (multiple sizes), publisher with logo, description, and mainEntityOfPage. Use BlogPosting for blog posts or NewsArticle for news content.",
+  "rationale": "Article schema helps search engines understand content type, authorship, and publication details. This enables rich results in search including author bylines, publication dates, and thumbnail images, which can improve click-through rates by 20-30%.",
+  "code_examples": {
+    "article_schema": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Article\",\n  \"headline\": \"How to Build a REST API with Node.js\",\n  \"author\": {\n    \"@type\": \"Person\",\n    \"name\": \"Jane Developer\",\n    \"url\": \"https://example.com/authors/jane-developer\",\n    \"sameAs\": [\n      \"https://twitter.com/janedev\",\n      \"https://linkedin.com/in/janedev\"\n    ]\n  },\n  \"datePublished\": \"2024-01-15T08:00:00+00:00\",\n  \"dateModified\": \"2024-01-20T10:30:00+00:00\",\n  \"image\": [\n    \"https://example.com/images/api-guide-1x1.jpg\",\n    \"https://example.com/images/api-guide-4x3.jpg\",\n    \"https://example.com/images/api-guide-16x9.jpg\"\n  ],\n  \"publisher\": {\n    \"@type\": \"Organization\",\n    \"name\": \"Tech Blog\",\n    \"logo\": {\n      \"@type\": \"ImageObject\",\n      \"url\": \"https://example.com/logo.png\",\n      \"width\": 600,\n      \"height\": 60\n    }\n  },\n  \"description\": \"Learn how to build a production-ready REST API with Node.js, Express, and best practices for authentication and error handling.\",\n  \"mainEntityOfPage\": {\n    \"@type\": \"WebPage\",\n    \"@id\": \"https://example.com/blog/build-rest-api-nodejs\"\n  },\n  \"wordCount\": 2500,\n  \"keywords\": \"REST API, Node.js, Express, API development\"\n}",
+    "blog_posting_schema": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"BlogPosting\",\n  \"headline\": \"10 TypeScript Tips Every Developer Should Know\",\n  \"author\": {\n    \"@type\": \"Person\",\n    \"name\": \"John Smith\"\n  },\n  \"datePublished\": \"2024-01-15\",\n  \"dateModified\": \"2024-01-15\",\n  \"image\": \"https://example.com/images/typescript-tips.jpg\",\n  \"publisher\": {\n    \"@type\": \"Organization\",\n    \"name\": \"Dev Blog\",\n    \"logo\": {\n      \"@type\": \"ImageObject\",\n      \"url\": \"https://example.com/logo.png\"\n    }\n  },\n  \"description\": \"Master TypeScript with these essential tips.\",\n  \"articleBody\": \"Full article text here...\",\n  \"mainEntityOfPage\": \"https://example.com/blog/typescript-tips\"\n}",
+    "news_article_schema": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"NewsArticle\",\n  \"headline\": \"New JavaScript Framework Released\",\n  \"datePublished\": \"2024-01-15T14:00:00+00:00\",\n  \"dateModified\": \"2024-01-15T15:30:00+00:00\",\n  \"author\": {\n    \"@type\": \"Person\",\n    \"name\": \"Reporter Name\"\n  },\n  \"image\": \"https://example.com/news-image.jpg\",\n  \"publisher\": {\n    \"@type\": \"Organization\",\n    \"name\": \"Tech News\",\n    \"logo\": {\n      \"@type\": \"ImageObject\",\n      \"url\": \"https://example.com/logo.png\"\n    }\n  }\n}",
+    "next_js_implementation": "// pages/blog/[slug].tsx or app/blog/[slug]/page.tsx\nimport Script from 'next/script';\n\nexport default function BlogPost({ post }) {\n  const structuredData = {\n    '@context': 'https://schema.org',\n    '@type': 'Article',\n    headline: post.title,\n    author: {\n      '@type': 'Person',\n      name: post.author.name,\n    },\n    datePublished: post.publishedAt,\n    dateModified: post.updatedAt,\n    image: post.coverImage,\n    publisher: {\n      '@type': 'Organization',\n      name: 'Your Company',\n      logo: {\n        '@type': 'ImageObject',\n        url: 'https://yoursite.com/logo.png',\n      },\n    },\n    description: post.excerpt,\n  };\n\n  return (\n    <>\n      <Script\n        id=\"structured-data\"\n        type=\"application/ld+json\"\n        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}\n      />\n      {/* Rest of your component */}\n    </>\n  );\n}"
+  },
+  "success_indicators": [
+    "JSON-LD is valid (test with Google Rich Results Test)",
+    "All required properties are present (headline, author, datePublished, image, publisher)",
+    "Image array includes multiple aspect ratios (1:1, 4:3, 16:9)",
+    "Publisher includes logo with dimensions",
+    "dateModified is updated when content changes",
+    "URL in mainEntityOfPage matches canonical URL"
+  ],
+  "anti_patterns_avoided": [
+    "ap_content_invalid_schema_001",
+    "ap_content_missing_author_001"
+  ],
+  "related_patterns": [
+    "sp_content_seo_blog_001",
+    "sp_content_structured_data_faq_001"
+  ],
+  "tags": ["content", "seo", "structured-data", "schema", "json-ld", "rich-snippets"],
+  "metadata": {
+    "author": "APL Content Library",
+    "created": "2024-01-15",
+    "updated": "2024-01-15",
+    "success_count": 0,
+    "frameworks": ["next.js", "gatsby", "astro", "nuxt"],
+    "languages": ["json", "typescript", "javascript"]
+  }
+}

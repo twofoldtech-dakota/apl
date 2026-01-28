@@ -1,0 +1,48 @@
+{
+  "id": "sp_content_structured_data_faq_001",
+  "name": "FAQ Schema for Featured Snippets",
+  "version": "1.0.0",
+  "type": "success_pattern",
+  "task_type": "content-structured-data",
+  "applicable_when": [
+    "faq page",
+    "frequently asked questions",
+    "faq schema",
+    "featured snippets faq",
+    "question and answer content"
+  ],
+  "approach": "Implement FAQPage schema using JSON-LD to enable FAQ rich results in search. Structure content with clear questions and concise answers. Each Q&A pair should be self-contained and directly answer the question. Limit to 5-10 questions per page for best results.",
+  "rationale": "FAQPage schema can trigger rich results that display expandable Q&A pairs directly in search results, significantly increasing SERP real estate and click-through rates. FAQ rich results are especially valuable for informational queries and can appear alongside other rich results.",
+  "code_examples": {
+    "faq_schema_basic": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"FAQPage\",\n  \"mainEntity\": [\n    {\n      \"@type\": \"Question\",\n      \"name\": \"What is TypeScript?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"TypeScript is a strongly typed programming language that builds on JavaScript, giving you better tooling at any scale. It adds optional static typing and class-based object-oriented programming to the language.\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Why should I use TypeScript instead of JavaScript?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"TypeScript offers several advantages: 1) Catch errors during development with static type checking, 2) Better IDE support with autocompletion and refactoring, 3) Easier code maintenance in large codebases, 4) Enhanced readability through explicit types.\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Is TypeScript free to use?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"Yes, TypeScript is free and open-source. It's developed and maintained by Microsoft and released under the Apache 2.0 license. You can use it for personal and commercial projects without any licensing fees.\"\n      }\n    }\n  ]\n}",
+    "faq_with_links": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"FAQPage\",\n  \"mainEntity\": [\n    {\n      \"@type\": \"Question\",\n      \"name\": \"How do I install the product?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"You can install our product in three ways: <ol><li>Download from our <a href='https://example.com/downloads'>downloads page</a></li><li>Install via npm: <code>npm install product-name</code></li><li>Use our Docker image: <code>docker pull example/product</code></li></ol> For detailed instructions, see our <a href='https://example.com/docs/installation'>installation guide</a>.\"\n      }\n    }\n  ]\n}",
+    "react_component": "// components/FAQSection.tsx\nimport Script from 'next/script';\n\ninterface FAQ {\n  question: string;\n  answer: string;\n}\n\ninterface FAQSectionProps {\n  faqs: FAQ[];\n}\n\nexport function FAQSection({ faqs }: FAQSectionProps) {\n  const structuredData = {\n    '@context': 'https://schema.org',\n    '@type': 'FAQPage',\n    mainEntity: faqs.map(faq => ({\n      '@type': 'Question',\n      name: faq.question,\n      acceptedAnswer: {\n        '@type': 'Answer',\n        text: faq.answer,\n      },\n    })),\n  };\n\n  return (\n    <section>\n      <Script\n        id=\"faq-structured-data\"\n        type=\"application/ld+json\"\n        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}\n      />\n      <h2>Frequently Asked Questions</h2>\n      <dl>\n        {faqs.map((faq, index) => (\n          <div key={index}>\n            <dt>{faq.question}</dt>\n            <dd>{faq.answer}</dd>\n          </div>\n        ))}\n      </dl>\n    </section>\n  );\n}",
+    "markdown_with_schema": "---\ntitle: \"Frequently Asked Questions\"\ndescription: \"Find answers to common questions about our product.\"\nschema:\n  type: FAQPage\n---\n\n# Frequently Asked Questions\n\n## What is your return policy?\n\nWe offer a 30-day money-back guarantee on all purchases. If you're not satisfied, contact our support team for a full refund.\n\n## How long does shipping take?\n\nStandard shipping takes 5-7 business days. Express shipping (2-3 days) is available for an additional fee.\n\n## Do you ship internationally?\n\nYes, we ship to over 50 countries. International shipping typically takes 10-14 business days."
+  },
+  "success_indicators": [
+    "FAQPage schema validates in Google Rich Results Test",
+    "Each Question has a corresponding Answer",
+    "Answers directly address the question (no filler content)",
+    "Answer text is between 50-300 words for optimal display",
+    "Questions use natural language (how people actually search)",
+    "5-10 questions per page (not overwhelming)",
+    "HTML in answers is properly escaped/formatted"
+  ],
+  "anti_patterns_avoided": [
+    "ap_content_fake_faq_001",
+    "ap_content_promotional_faq_001"
+  ],
+  "related_patterns": [
+    "sp_content_seo_blog_001",
+    "sp_content_structured_data_article_001"
+  ],
+  "tags": ["content", "seo", "structured-data", "faq", "rich-snippets", "featured-snippets"],
+  "metadata": {
+    "author": "APL Content Library",
+    "created": "2024-01-15",
+    "updated": "2024-01-15",
+    "success_count": 0,
+    "frameworks": ["next.js", "gatsby", "astro"],
+    "languages": ["json", "typescript", "markdown"]
+  }
+}

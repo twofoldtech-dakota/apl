@@ -1,7 +1,7 @@
 // APL Configuration Types - based on master-config.json structure
 
 export type ModelType = 'haiku' | 'sonnet' | 'opus';
-export type AgentRole = 'coordinator' | 'planning' | 'execution' | 'verification' | 'quality' | 'learning' | 'enterprise' | 'analysis';
+export type AgentRole = 'coordinator' | 'planning' | 'execution' | 'verification' | 'quality' | 'learning' | 'enterprise' | 'analysis' | 'content' | 'design' | 'deployment';
 export type ConflictResolution = 'sequential_fallback' | 'abort' | 'manual';
 
 export interface WorkflowConfig {
@@ -171,6 +171,30 @@ export interface DomainsConfig {
   questions_path: string;
 }
 
+export interface ContentStrategyConfig {
+  enabled: boolean;
+  default_accessibility_level: string;
+  seo: {
+    keyword_density_target: number;
+    meta_description_max_length: number;
+    title_max_length: number;
+    include_structured_data: boolean;
+    structured_data_types: string[];
+  };
+  brand_voice: {
+    tone: string;
+    personality_traits: string[];
+    vocabulary_level: string;
+    avoid_words: string[];
+    preferred_phrases: string[];
+  };
+  ai_citation_optimization: {
+    enabled: boolean;
+    include_definitive_statements: boolean;
+    include_authoritative_references: boolean;
+  };
+}
+
 export interface IntegrationConfig {
   enabled: boolean;
   [key: string]: unknown;
@@ -178,8 +202,21 @@ export interface IntegrationConfig {
 
 export interface IntegrationsConfig {
   vercel: IntegrationConfig & {
+    mcp_server?: string;
+    mcp_url?: string;
+    team_slug?: string | null;
+    project_slug?: string | null;
     production_branch: string;
     preview_on_pr: boolean;
+    auto_deploy_after_review?: boolean;
+    smoke_test_url?: string | null;
+  };
+  pencil: IntegrationConfig & {
+    mcp_server?: string;
+    design_data_path: string;
+    auto_export_on_change: boolean;
+    export_format: string;
+    design_before_code: boolean;
   };
   github: IntegrationConfig & {
     auto_create_pr: boolean;
@@ -205,6 +242,7 @@ export interface MasterConfig {
   verification: VerificationConfig;
   learning: LearningConfig;
   patterns: PatternsConfig;
+  content_strategy: ContentStrategyConfig;
   context_management: ContextManagementConfig;
   model_selection: ModelSelectionConfig;
   output: OutputConfig;
