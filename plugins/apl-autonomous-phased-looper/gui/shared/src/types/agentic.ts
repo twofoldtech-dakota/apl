@@ -17,7 +17,13 @@ export type AgentId =
   | 'brand-voice-agent'
   | 'design-agent'
   | 'accessibility-agent'
-  | 'deployer-agent';
+  | 'deployer-agent'
+  | 'product-agent'
+  | 'analytics-agent'
+  | 'qa-automation-agent'
+  | 'documentation-agent'
+  | 'research-agent'
+  | 'performance-agent';
 
 // Tool Types
 export type ToolName =

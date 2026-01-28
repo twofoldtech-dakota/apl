@@ -1,7 +1,7 @@
 ---
 name: apl
-description: Autonomous Phased Looper - Intelligent autonomous coding agent. Handles coding, content, deployment, and design through unified command interface.
-argument-hint: "<goal> | content | deploy | design | loop | autopilot | status | gui"
+description: Autonomous Phased Looper - Complete digital experience agent. Handles coding, content, deployment, design, research, analytics, QA, docs, and performance.
+argument-hint: "<goal> | content | deploy | design | docs | research | analytics | test | perf | roadmap | status"
 disable-model-invocation: false
 user-invocable: true
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite
@@ -44,6 +44,30 @@ COMMAND                        → AGENT                → ACTION
 /apl design component <name>   → design               → Design component
 /apl design page <name>        → design               → Design page layout
 /apl design export <format>    → design               → Export to code
+
+/apl docs api                  → documentation        → Generate API docs
+/apl docs guide <topic>        → documentation        → Create user guide
+/apl docs changelog            → documentation        → Generate changelog
+
+/apl research user <topic>     → research             → User research
+/apl research competitive      → research             → Competitive analysis
+/apl research market <topic>   → research             → Market research
+
+/apl analytics track <events>  → analytics            → Implement tracking
+/apl analytics experiment      → analytics            → Design A/B test
+/apl analytics dashboard       → analytics            → Create dashboard
+
+/apl test e2e <feature>        → qa-automation        → Generate E2E tests
+/apl test visual               → qa-automation        → Visual regression tests
+/apl test load                 → qa-automation        → Load testing
+
+/apl perf audit                → performance          → Performance audit
+/apl perf optimize             → performance          → Apply optimizations
+/apl perf budget               → performance          → Set perf budgets
+
+/apl roadmap                   → product              → Generate roadmap
+/apl prioritize <features>     → product              → Prioritize features
+/apl stories <epic>            → product              → Generate user stories
 
 /apl gui                       → (internal)           → Launch dashboard
 /apl reset                     → (internal)           → Clear state
