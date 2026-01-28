@@ -1,0 +1,155 @@
+{
+  "category": "microservices",
+  "description": "Patterns for building distributed microservices architectures",
+  "patterns": [
+    {
+      "id": "ms-001",
+      "name": "API Gateway",
+      "description": "Single entry point for all client requests with routing, authentication, and rate limiting",
+      "applicable_when": [
+        "building microservices",
+        "need central authentication",
+        "multiple backend services",
+        "API aggregation"
+      ],
+      "approach": [
+        "Implement gateway using Express/Fastify or Kong/Traefik",
+        "Add JWT validation middleware",
+        "Configure route mappings to downstream services",
+        "Implement rate limiting and circuit breakers",
+        "Add request/response logging"
+      ],
+      "code_examples": {
+        "gateway": "// src/gateway/index.ts\nimport express from 'express';\nimport { createProxyMiddleware } from 'http-proxy-middleware';\nimport { authenticate } from './middleware/auth';\nimport { rateLimit } from './middleware/rateLimit';\n\nconst app = express();\n\n// Global middleware\napp.use(rateLimit({ windowMs: 60000, max: 100 }));\napp.use(authenticate);\n\n// Service routes\napp.use('/api/users', createProxyMiddleware({\n  target: process.env.USER_SERVICE_URL,\n  changeOrigin: true,\n  pathRewrite: { '^/api/users': '' }\n}));\n\napp.use('/api/orders', createProxyMiddleware({\n  target: process.env.ORDER_SERVICE_URL,\n  changeOrigin: true\n}));",
+        "circuit_breaker": "// src/lib/circuitBreaker.ts\nimport CircuitBreaker from 'opossum';\n\nexport function createBreaker<T>(fn: () => Promise<T>) {\n  return new CircuitBreaker(fn, {\n    timeout: 3000,\n    errorThresholdPercentage: 50,\n    resetTimeout: 30000\n  });\n}"
+      },
+      "technologies": ["Express", "Kong", "Traefik", "Envoy"],
+      "tradeoffs": {
+        "pros": ["Centralized auth", "Simplified clients", "Cross-cutting concerns"],
+        "cons": ["Single point of failure", "Added latency", "Complexity"]
+      },
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "ms-002",
+      "name": "Service Discovery",
+      "description": "Dynamic service registration and discovery for microservices",
+      "applicable_when": [
+        "services scale dynamically",
+        "container orchestration",
+        "need load balancing",
+        "multi-instance deployments"
+      ],
+      "approach": [
+        "Use Kubernetes Services for container environments",
+        "Implement Consul/etcd for non-K8s environments",
+        "Configure health checks for service instances",
+        "Use DNS-based or client-side discovery"
+      ],
+      "code_examples": {
+        "kubernetes_service": "# k8s/user-service.yaml\napiVersion: v1\nkind: Service\nmetadata:\n  name: user-service\nspec:\n  selector:\n    app: user-service\n  ports:\n    - port: 80\n      targetPort: 3000\n  type: ClusterIP",
+        "client_discovery": "// src/lib/serviceDiscovery.ts\nimport Consul from 'consul';\n\nconst consul = new Consul();\n\nexport async function getServiceUrl(name: string): Promise<string> {\n  const services = await consul.catalog.service.nodes(name);\n  const healthy = services.filter(s => s.ServiceAddress);\n  const idx = Math.floor(Math.random() * healthy.length);\n  return `http://${healthy[idx].ServiceAddress}:${healthy[idx].ServicePort}`;\n}"
+      },
+      "technologies": ["Kubernetes", "Consul", "etcd", "Eureka"],
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "ms-003",
+      "name": "Database per Service",
+      "description": "Each microservice owns its data with isolated databases",
+      "applicable_when": [
+        "need service autonomy",
+        "different data requirements",
+        "independent scaling",
+        "polyglot persistence"
+      ],
+      "approach": [
+        "Assign dedicated database per service",
+        "Define clear data ownership boundaries",
+        "Use events for cross-service data needs",
+        "Implement saga pattern for distributed transactions"
+      ],
+      "code_examples": {
+        "service_db": "// user-service/src/db.ts\nimport { PrismaClient } from '@prisma/client';\n\nexport const db = new PrismaClient({\n  datasources: {\n    db: { url: process.env.USER_DB_URL }\n  }\n});\n\n// order-service uses separate database\n// order-service/src/db.ts\nexport const db = new PrismaClient({\n  datasources: {\n    db: { url: process.env.ORDER_DB_URL }\n  }\n});"
+      },
+      "technologies": ["PostgreSQL", "MongoDB", "Redis"],
+      "tradeoffs": {
+        "pros": ["Service autonomy", "Independent scaling", "Technology freedom"],
+        "cons": ["Data duplication", "Complex queries", "Eventual consistency"]
+      },
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "ms-004",
+      "name": "Saga Pattern",
+      "description": "Manage distributed transactions across multiple services",
+      "applicable_when": [
+        "cross-service transactions",
+        "need compensation logic",
+        "eventual consistency acceptable",
+        "complex workflows"
+      ],
+      "approach": [
+        "Choose orchestration or choreography approach",
+        "Define compensating transactions for each step",
+        "Implement saga state machine",
+        "Add idempotency to all operations"
+      ],
+      "code_examples": {
+        "orchestrated_saga": "// src/sagas/orderSaga.ts\nimport { SagaOrchestrator, SagaStep } from './sagaFramework';\n\nconst createOrderSaga = new SagaOrchestrator([\n  {\n    name: 'reserveInventory',\n    execute: async (ctx) => {\n      ctx.inventoryReservation = await inventoryService.reserve(ctx.items);\n    },\n    compensate: async (ctx) => {\n      await inventoryService.release(ctx.inventoryReservation.id);\n    }\n  },\n  {\n    name: 'processPayment',\n    execute: async (ctx) => {\n      ctx.payment = await paymentService.charge(ctx.amount);\n    },\n    compensate: async (ctx) => {\n      await paymentService.refund(ctx.payment.id);\n    }\n  },\n  {\n    name: 'createOrder',\n    execute: async (ctx) => {\n      ctx.order = await orderService.create(ctx);\n    },\n    compensate: async (ctx) => {\n      await orderService.cancel(ctx.order.id);\n    }\n  }\n]);\n\nexport async function executeOrderSaga(orderData: OrderInput) {\n  return createOrderSaga.execute(orderData);\n}"
+      },
+      "technologies": ["Temporal", "AWS Step Functions", "Custom"],
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "ms-005",
+      "name": "Circuit Breaker",
+      "description": "Prevent cascade failures by failing fast on unhealthy services",
+      "applicable_when": [
+        "calling external services",
+        "need fault tolerance",
+        "prevent cascade failures",
+        "unreliable dependencies"
+      ],
+      "approach": [
+        "Wrap external calls with circuit breaker",
+        "Configure failure thresholds and timeouts",
+        "Implement fallback responses",
+        "Add monitoring and alerting"
+      ],
+      "code_examples": {
+        "circuit_breaker": "// src/lib/resilience.ts\nimport CircuitBreaker from 'opossum';\n\nconst options = {\n  timeout: 3000,\n  errorThresholdPercentage: 50,\n  resetTimeout: 30000,\n  volumeThreshold: 10\n};\n\nexport function withCircuitBreaker<T>(\n  fn: () => Promise<T>,\n  fallback?: () => T\n): CircuitBreaker<[], T> {\n  const breaker = new CircuitBreaker(fn, options);\n  \n  breaker.on('open', () => {\n    logger.warn('Circuit breaker opened');\n    metrics.circuitBreakerOpen.inc();\n  });\n  \n  breaker.on('halfOpen', () => {\n    logger.info('Circuit breaker half-open');\n  });\n  \n  if (fallback) {\n    breaker.fallback(fallback);\n  }\n  \n  return breaker;\n}\n\n// Usage\nconst getUserBreaker = withCircuitBreaker(\n  () => userService.getUser(id),\n  () => ({ id, name: 'Unknown', cached: true })\n);"
+      },
+      "technologies": ["Opossum", "Resilience4j", "Polly"],
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "ms-006",
+      "name": "Sidecar Pattern",
+      "description": "Deploy helper processes alongside main application container",
+      "applicable_when": [
+        "need service mesh",
+        "cross-cutting infrastructure concerns",
+        "language-agnostic features",
+        "observability injection"
+      ],
+      "approach": [
+        "Deploy sidecar container in same pod",
+        "Configure traffic routing through sidecar",
+        "Use for logging, security, monitoring",
+        "Consider Istio/Linkerd for service mesh"
+      ],
+      "code_examples": {
+        "kubernetes_sidecar": "# k8s/deployment-with-sidecar.yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: user-service\nspec:\n  template:\n    spec:\n      containers:\n        - name: app\n          image: user-service:latest\n          ports:\n            - containerPort: 3000\n        - name: envoy-sidecar\n          image: envoyproxy/envoy:v1.28\n          ports:\n            - containerPort: 9901\n          volumeMounts:\n            - name: envoy-config\n              mountPath: /etc/envoy\n      volumes:\n        - name: envoy-config\n          configMap:\n            name: envoy-config"
+      },
+      "technologies": ["Istio", "Linkerd", "Envoy", "Dapr"],
+      "success_count": 0,
+      "last_used": null
+    }
+  ]
+}

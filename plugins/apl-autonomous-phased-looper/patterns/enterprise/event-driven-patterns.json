@@ -1,0 +1,128 @@
+{
+  "category": "event-driven",
+  "description": "Patterns for building event-driven and message-based architectures",
+  "patterns": [
+    {
+      "id": "ed-001",
+      "name": "Event Sourcing",
+      "description": "Store state changes as a sequence of events rather than current state",
+      "applicable_when": [
+        "need complete audit trail",
+        "temporal queries required",
+        "complex business rules",
+        "regulatory compliance"
+      ],
+      "approach": [
+        "Define domain events as immutable records",
+        "Store events in append-only event store",
+        "Rebuild state by replaying events",
+        "Create projections for read models"
+      ],
+      "code_examples": {
+        "event_store": "// src/eventStore/index.ts\nimport { EventEmitter } from 'events';\n\ninterface DomainEvent {\n  id: string;\n  aggregateId: string;\n  type: string;\n  data: unknown;\n  timestamp: Date;\n  version: number;\n}\n\nexport class EventStore {\n  private events: Map<string, DomainEvent[]> = new Map();\n  private emitter = new EventEmitter();\n\n  async append(aggregateId: string, events: DomainEvent[]): Promise<void> {\n    const existing = this.events.get(aggregateId) || [];\n    const versioned = events.map((e, i) => ({\n      ...e,\n      version: existing.length + i + 1\n    }));\n    \n    this.events.set(aggregateId, [...existing, ...versioned]);\n    \n    for (const event of versioned) {\n      this.emitter.emit(event.type, event);\n    }\n  }\n\n  async getEvents(aggregateId: string): Promise<DomainEvent[]> {\n    return this.events.get(aggregateId) || [];\n  }\n\n  subscribe(eventType: string, handler: (e: DomainEvent) => void): void {\n    this.emitter.on(eventType, handler);\n  }\n}",
+        "aggregate": "// src/domain/order.ts\nimport { DomainEvent, EventStore } from '../eventStore';\n\ninterface OrderState {\n  id: string;\n  status: 'pending' | 'confirmed' | 'shipped' | 'delivered';\n  items: { productId: string; quantity: number }[];\n  total: number;\n}\n\nexport class Order {\n  private state: OrderState;\n  private changes: DomainEvent[] = [];\n\n  constructor(private eventStore: EventStore) {}\n\n  async load(id: string): Promise<void> {\n    const events = await this.eventStore.getEvents(id);\n    this.state = events.reduce(this.apply, { id, status: 'pending', items: [], total: 0 });\n  }\n\n  private apply(state: OrderState, event: DomainEvent): OrderState {\n    switch (event.type) {\n      case 'OrderCreated':\n        return { ...state, ...event.data };\n      case 'ItemAdded':\n        return { ...state, items: [...state.items, event.data] };\n      case 'OrderConfirmed':\n        return { ...state, status: 'confirmed' };\n      default:\n        return state;\n    }\n  }\n\n  addItem(productId: string, quantity: number): void {\n    this.changes.push({\n      id: crypto.randomUUID(),\n      aggregateId: this.state.id,\n      type: 'ItemAdded',\n      data: { productId, quantity },\n      timestamp: new Date(),\n      version: 0\n    });\n  }\n\n  async save(): Promise<void> {\n    await this.eventStore.append(this.state.id, this.changes);\n    this.changes = [];\n  }\n}"
+      },
+      "technologies": ["EventStoreDB", "Kafka", "PostgreSQL"],
+      "tradeoffs": {
+        "pros": ["Complete audit trail", "Temporal queries", "Debug-friendly"],
+        "cons": ["Complexity", "Event versioning", "Eventual consistency"]
+      },
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "ed-002",
+      "name": "Message Queue",
+      "description": "Asynchronous communication between services using message brokers",
+      "applicable_when": [
+        "async processing needed",
+        "need to decouple services",
+        "handle traffic spikes",
+        "reliable delivery required"
+      ],
+      "approach": [
+        "Choose message broker (RabbitMQ, SQS, etc.)",
+        "Define message schemas with versioning",
+        "Implement producers and consumers",
+        "Add dead letter queues for failures"
+      ],
+      "code_examples": {
+        "producer": "// src/messaging/producer.ts\nimport amqp from 'amqplib';\n\nexport class MessageProducer {\n  private channel: amqp.Channel;\n\n  async connect(): Promise<void> {\n    const connection = await amqp.connect(process.env.RABBITMQ_URL!);\n    this.channel = await connection.createChannel();\n  }\n\n  async publish(exchange: string, routingKey: string, message: unknown): Promise<void> {\n    await this.channel.assertExchange(exchange, 'topic', { durable: true });\n    \n    this.channel.publish(\n      exchange,\n      routingKey,\n      Buffer.from(JSON.stringify({\n        id: crypto.randomUUID(),\n        timestamp: new Date().toISOString(),\n        data: message\n      })),\n      {\n        persistent: true,\n        contentType: 'application/json'\n      }\n    );\n  }\n}",
+        "consumer": "// src/messaging/consumer.ts\nimport amqp from 'amqplib';\n\nexport class MessageConsumer {\n  private channel: amqp.Channel;\n\n  async connect(): Promise<void> {\n    const connection = await amqp.connect(process.env.RABBITMQ_URL!);\n    this.channel = await connection.createChannel();\n    await this.channel.prefetch(10);\n  }\n\n  async subscribe(\n    queue: string,\n    exchange: string,\n    routingKey: string,\n    handler: (msg: unknown) => Promise<void>\n  ): Promise<void> {\n    await this.channel.assertQueue(queue, {\n      durable: true,\n      deadLetterExchange: `${exchange}.dlx`\n    });\n    \n    await this.channel.bindQueue(queue, exchange, routingKey);\n\n    this.channel.consume(queue, async (msg) => {\n      if (!msg) return;\n      \n      try {\n        const data = JSON.parse(msg.content.toString());\n        await handler(data);\n        this.channel.ack(msg);\n      } catch (error) {\n        logger.error('Message processing failed', error);\n        this.channel.nack(msg, false, false); // Send to DLQ\n      }\n    });\n  }\n}"
+      },
+      "technologies": ["RabbitMQ", "Apache Kafka", "AWS SQS", "Redis Streams"],
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "ed-003",
+      "name": "Pub/Sub Pattern",
+      "description": "Publishers emit events that multiple subscribers can receive",
+      "applicable_when": [
+        "one-to-many communication",
+        "loosely coupled services",
+        "event notifications",
+        "broadcasting updates"
+      ],
+      "approach": [
+        "Define event topics/channels",
+        "Publishers emit without knowing subscribers",
+        "Subscribers register interest in topics",
+        "Use message broker or in-memory for distribution"
+      ],
+      "code_examples": {
+        "event_bus": "// src/events/eventBus.ts\nimport { EventEmitter } from 'events';\nimport { Redis } from 'ioredis';\n\ninterface Event {\n  type: string;\n  data: unknown;\n  timestamp: Date;\n  correlationId?: string;\n}\n\nexport class EventBus {\n  private local = new EventEmitter();\n  private publisher: Redis;\n  private subscriber: Redis;\n\n  constructor() {\n    this.publisher = new Redis(process.env.REDIS_URL);\n    this.subscriber = new Redis(process.env.REDIS_URL);\n  }\n\n  async publish(event: Event): Promise<void> {\n    // Local listeners\n    this.local.emit(event.type, event);\n    \n    // Distributed listeners\n    await this.publisher.publish(\n      `events:${event.type}`,\n      JSON.stringify(event)\n    );\n  }\n\n  subscribe(eventType: string, handler: (e: Event) => void): void {\n    // Local subscription\n    this.local.on(eventType, handler);\n    \n    // Distributed subscription\n    this.subscriber.subscribe(`events:${eventType}`);\n    this.subscriber.on('message', (channel, message) => {\n      if (channel === `events:${eventType}`) {\n        handler(JSON.parse(message));\n      }\n    });\n  }\n}\n\n// Usage\nconst eventBus = new EventBus();\n\n// Publisher\neventBus.publish({\n  type: 'UserRegistered',\n  data: { userId: '123', email: 'user@example.com' },\n  timestamp: new Date()\n});\n\n// Subscribers\neventBus.subscribe('UserRegistered', async (event) => {\n  await sendWelcomeEmail(event.data);\n});\n\neventBus.subscribe('UserRegistered', async (event) => {\n  await createUserProfile(event.data);\n});"
+      },
+      "technologies": ["Redis Pub/Sub", "Kafka", "Google Pub/Sub", "SNS"],
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "ed-004",
+      "name": "Outbox Pattern",
+      "description": "Ensure reliable event publishing alongside database transactions",
+      "applicable_when": [
+        "need transactional guarantees",
+        "database and message broker updates",
+        "prevent lost events",
+        "exactly-once semantics needed"
+      ],
+      "approach": [
+        "Store events in outbox table within same transaction",
+        "Background process polls and publishes events",
+        "Mark events as published after successful send",
+        "Implement retry logic for failures"
+      ],
+      "code_examples": {
+        "outbox_implementation": "// src/patterns/outbox.ts\nimport { PrismaClient } from '@prisma/client';\n\nconst prisma = new PrismaClient();\n\nexport async function createOrderWithEvent(orderData: OrderInput) {\n  // Both operations in same transaction\n  return prisma.$transaction(async (tx) => {\n    const order = await tx.order.create({ data: orderData });\n    \n    await tx.outboxEvent.create({\n      data: {\n        aggregateType: 'Order',\n        aggregateId: order.id,\n        eventType: 'OrderCreated',\n        payload: JSON.stringify(order),\n        createdAt: new Date()\n      }\n    });\n    \n    return order;\n  });\n}\n\n// Background processor\nexport async function processOutbox() {\n  const events = await prisma.outboxEvent.findMany({\n    where: { processedAt: null },\n    orderBy: { createdAt: 'asc' },\n    take: 100\n  });\n  \n  for (const event of events) {\n    try {\n      await messageQueue.publish(event.eventType, JSON.parse(event.payload));\n      \n      await prisma.outboxEvent.update({\n        where: { id: event.id },\n        data: { processedAt: new Date() }\n      });\n    } catch (error) {\n      logger.error('Failed to process outbox event', { eventId: event.id, error });\n    }\n  }\n}",
+        "schema": "// prisma/schema.prisma\nmodel OutboxEvent {\n  id            String    @id @default(cuid())\n  aggregateType String\n  aggregateId   String\n  eventType     String\n  payload       String\n  createdAt     DateTime  @default(now())\n  processedAt   DateTime?\n\n  @@index([processedAt, createdAt])\n}"
+      },
+      "technologies": ["PostgreSQL", "Debezium", "Custom polling"],
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "ed-005",
+      "name": "Event-Driven Saga",
+      "description": "Choreography-based saga using events for coordination",
+      "applicable_when": [
+        "decentralized coordination",
+        "services react to events",
+        "complex multi-service workflows",
+        "loose coupling preferred"
+      ],
+      "approach": [
+        "Each service publishes events on completion",
+        "Other services subscribe and react",
+        "Implement compensation events for rollback",
+        "Track saga state via correlation IDs"
+      ],
+      "code_examples": {
+        "choreography_saga": "// order-service/src/handlers/orderCreated.ts\neventBus.subscribe('OrderCreated', async (event) => {\n  await inventoryService.reserve(event.data.items);\n  await eventBus.publish({\n    type: 'InventoryReserved',\n    data: { orderId: event.data.orderId, items: event.data.items },\n    correlationId: event.correlationId\n  });\n});\n\n// payment-service/src/handlers/inventoryReserved.ts\neventBus.subscribe('InventoryReserved', async (event) => {\n  try {\n    const payment = await paymentService.charge(event.data);\n    await eventBus.publish({\n      type: 'PaymentProcessed',\n      data: { orderId: event.data.orderId, paymentId: payment.id },\n      correlationId: event.correlationId\n    });\n  } catch (error) {\n    await eventBus.publish({\n      type: 'PaymentFailed',\n      data: { orderId: event.data.orderId, reason: error.message },\n      correlationId: event.correlationId\n    });\n  }\n});\n\n// inventory-service/src/handlers/paymentFailed.ts\neventBus.subscribe('PaymentFailed', async (event) => {\n  // Compensating action\n  await inventoryService.release(event.data.orderId);\n  await eventBus.publish({\n    type: 'InventoryReleased',\n    data: { orderId: event.data.orderId },\n    correlationId: event.correlationId\n  });\n});"
+      },
+      "technologies": ["Kafka", "RabbitMQ", "EventBridge"],
+      "success_count": 0,
+      "last_used": null
+    }
+  ]
+}

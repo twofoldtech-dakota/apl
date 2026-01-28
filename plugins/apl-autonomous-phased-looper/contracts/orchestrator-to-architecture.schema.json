@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orchestrator-to-architecture.schema.json",
+  "title": "Orchestrator to Architecture Agent Contract",
+  "description": "Contract for delegating architecture decision tasks",
+  "type": "object",
+  "required": ["action", "context"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": ["record_decision", "get_guidance", "check_compliance", "list_decisions", "deprecate_decision", "audit_drift"],
+      "description": "The action to perform"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "goal": {
+          "type": "string",
+          "description": "Original goal for context"
+        },
+        "current_phase": {
+          "type": "string",
+          "enum": ["plan", "execute", "review"]
+        },
+        "project_path": {
+          "type": "string",
+          "description": "Path to the project root"
+        }
+      },
+      "required": ["goal"]
+    },
+    "decision": {
+      "type": "object",
+      "description": "Required for record_decision action",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Decision title"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["data", "integration", "security", "infrastructure", "frontend", "backend", "devops", "testing"]
+        },
+        "context": {
+          "type": "string",
+          "description": "What motivates this decision"
+        },
+        "decision": {
+          "type": "string",
+          "description": "The decision being made"
+        },
+        "alternatives": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "reason_rejected": { "type": "string" }
+            }
+          }
+        },
+        "consequences": {
+          "type": "object",
+          "properties": {
+            "positive": { "type": "array", "items": { "type": "string" } },
+            "negative": { "type": "array", "items": { "type": "string" } },
+            "neutral": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "query": {
+      "type": "object",
+      "description": "Required for get_guidance and list_decisions",
+      "properties": {
+        "topic": {
+          "type": "string",
+          "description": "Architecture topic to query"
+        },
+        "category": {
+          "type": "string",
+          "description": "Filter by category"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["proposed", "accepted", "deprecated", "superseded"]
+        }
+      }
+    },
+    "adr_id": {
+      "type": "string",
+      "description": "ADR identifier for deprecate_decision"
+    }
+  }
+}

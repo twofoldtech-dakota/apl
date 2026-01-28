@@ -1,0 +1,104 @@
+{
+  "category": "cqrs",
+  "description": "Command Query Responsibility Segregation patterns for complex domains",
+  "patterns": [
+    {
+      "id": "cqrs-001",
+      "name": "Basic CQRS",
+      "description": "Separate read and write models for better scalability and flexibility",
+      "applicable_when": [
+        "complex domain logic",
+        "different read/write scaling needs",
+        "multiple read model representations",
+        "performance optimization needed"
+      ],
+      "approach": [
+        "Define separate command handlers for writes",
+        "Create optimized query handlers for reads",
+        "Use different data models for each side",
+        "Sync read models via events or direct update"
+      ],
+      "code_examples": {
+        "command_side": "// src/commands/createOrder.ts\nimport { z } from 'zod';\n\nconst CreateOrderCommand = z.object({\n  customerId: z.string().uuid(),\n  items: z.array(z.object({\n    productId: z.string(),\n    quantity: z.number().positive()\n  }))\n});\n\nexport class CreateOrderHandler {\n  constructor(\n    private orderRepo: OrderRepository,\n    private eventBus: EventBus\n  ) {}\n\n  async execute(command: z.infer<typeof CreateOrderCommand>): Promise<string> {\n    const validated = CreateOrderCommand.parse(command);\n    \n    const order = Order.create({\n      id: crypto.randomUUID(),\n      customerId: validated.customerId,\n      items: validated.items,\n      status: 'pending',\n      createdAt: new Date()\n    });\n\n    await this.orderRepo.save(order);\n    \n    await this.eventBus.publish({\n      type: 'OrderCreated',\n      data: order.toDTO()\n    });\n\n    return order.id;\n  }\n}",
+        "query_side": "// src/queries/getOrderDetails.ts\nexport class GetOrderDetailsHandler {\n  constructor(private readDb: ReadDatabase) {}\n\n  async execute(orderId: string): Promise<OrderDetailsDTO> {\n    const result = await this.readDb.query(`\n      SELECT \n        o.id,\n        o.status,\n        o.total,\n        o.created_at,\n        c.name as customer_name,\n        c.email as customer_email,\n        json_agg(json_build_object(\n          'productId', oi.product_id,\n          'name', p.name,\n          'quantity', oi.quantity,\n          'price', oi.price\n        )) as items\n      FROM order_read_model o\n      JOIN customers c ON o.customer_id = c.id\n      JOIN order_items oi ON o.id = oi.order_id\n      JOIN products p ON oi.product_id = p.id\n      WHERE o.id = $1\n      GROUP BY o.id, c.id\n    `, [orderId]);\n\n    return result.rows[0];\n  }\n}",
+        "projector": "// src/projections/orderProjector.ts\nexport class OrderProjector {\n  constructor(private readDb: ReadDatabase) {}\n\n  async project(event: DomainEvent): Promise<void> {\n    switch (event.type) {\n      case 'OrderCreated':\n        await this.readDb.query(`\n          INSERT INTO order_read_model (id, customer_id, status, total, created_at)\n          VALUES ($1, $2, $3, $4, $5)\n        `, [event.data.id, event.data.customerId, 'pending', event.data.total, event.timestamp]);\n        break;\n        \n      case 'OrderShipped':\n        await this.readDb.query(`\n          UPDATE order_read_model\n          SET status = 'shipped', shipped_at = $2\n          WHERE id = $1\n        `, [event.data.orderId, event.timestamp]);\n        break;\n    }\n  }\n}"
+      },
+      "technologies": ["PostgreSQL", "MongoDB", "Elasticsearch"],
+      "tradeoffs": {
+        "pros": ["Scalability", "Optimized reads", "Clear separation"],
+        "cons": ["Complexity", "Eventual consistency", "Data duplication"]
+      },
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "cqrs-002",
+      "name": "Event Sourcing + CQRS",
+      "description": "Combine event sourcing with CQRS for full audit and flexibility",
+      "applicable_when": [
+        "need complete audit trail",
+        "multiple read representations",
+        "complex domain with temporal queries",
+        "regulatory requirements"
+      ],
+      "approach": [
+        "Store all changes as events (event sourcing)",
+        "Build multiple read models from events",
+        "Rebuild read models on demand",
+        "Use projections for different query needs"
+      ],
+      "code_examples": {
+        "full_implementation": "// src/infrastructure/eventSourcedCQRS.ts\n\n// Event Store (Write Side)\nexport class OrderAggregate {\n  private events: DomainEvent[] = [];\n  private state: OrderState;\n\n  apply(event: DomainEvent): void {\n    switch (event.type) {\n      case 'OrderCreated':\n        this.state = {\n          id: event.data.id,\n          status: 'pending',\n          items: event.data.items,\n          total: 0\n        };\n        break;\n      case 'ItemAdded':\n        this.state.items.push(event.data.item);\n        this.state.total += event.data.item.price * event.data.item.quantity;\n        break;\n      case 'OrderConfirmed':\n        this.state.status = 'confirmed';\n        break;\n    }\n    this.events.push(event);\n  }\n\n  getUncommittedEvents(): DomainEvent[] {\n    return [...this.events];\n  }\n}\n\n// Projection Manager (Read Side)\nexport class ProjectionManager {\n  private projectors: Map<string, Projector> = new Map();\n\n  register(name: string, projector: Projector): void {\n    this.projectors.set(name, projector);\n  }\n\n  async processEvent(event: DomainEvent): Promise<void> {\n    for (const [name, projector] of this.projectors) {\n      try {\n        await projector.project(event);\n      } catch (error) {\n        logger.error(`Projection ${name} failed`, { event, error });\n      }\n    }\n  }\n\n  async rebuild(projectorName: string): Promise<void> {\n    const projector = this.projectors.get(projectorName);\n    if (!projector) throw new Error(`Unknown projector: ${projectorName}`);\n\n    await projector.reset();\n    const events = await eventStore.getAllEvents();\n    \n    for (const event of events) {\n      await projector.project(event);\n    }\n  }\n}\n\n// Multiple Read Models\nconst projectionManager = new ProjectionManager();\n\n// Fast lookup by ID\nprojectionManager.register('orderDetails', new OrderDetailsProjector());\n\n// Full-text search\nprojectionManager.register('orderSearch', new ElasticsearchProjector());\n\n// Analytics/reporting\nprojectionManager.register('orderAnalytics', new AnalyticsProjector());\n\n// Real-time dashboard\nprojectionManager.register('orderDashboard', new RedisCacheProjector());"
+      },
+      "technologies": ["EventStoreDB", "Kafka", "PostgreSQL", "Elasticsearch"],
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "cqrs-003",
+      "name": "Mediator Pattern for CQRS",
+      "description": "Use mediator to dispatch commands and queries",
+      "applicable_when": [
+        "clean command/query separation",
+        "cross-cutting concerns (logging, validation)",
+        "testable handlers",
+        "loose coupling"
+      ],
+      "approach": [
+        "Define command and query interfaces",
+        "Create mediator to dispatch to handlers",
+        "Add pipeline behaviors for cross-cutting concerns",
+        "Register handlers at startup"
+      ],
+      "code_examples": {
+        "mediator": "// src/infrastructure/mediator.ts\ntype Handler<TRequest, TResponse> = (request: TRequest) => Promise<TResponse>;\n\ninterface PipelineBehavior {\n  handle<T>(request: unknown, next: () => Promise<T>): Promise<T>;\n}\n\nexport class Mediator {\n  private handlers = new Map<string, Handler<any, any>>();\n  private behaviors: PipelineBehavior[] = [];\n\n  register<TRequest, TResponse>(\n    requestType: string,\n    handler: Handler<TRequest, TResponse>\n  ): void {\n    this.handlers.set(requestType, handler);\n  }\n\n  addBehavior(behavior: PipelineBehavior): void {\n    this.behaviors.push(behavior);\n  }\n\n  async send<TResponse>(request: { type: string; [key: string]: any }): Promise<TResponse> {\n    const handler = this.handlers.get(request.type);\n    if (!handler) {\n      throw new Error(`No handler for ${request.type}`);\n    }\n\n    const pipeline = this.behaviors.reduceRight(\n      (next, behavior) => () => behavior.handle(request, next),\n      () => handler(request)\n    );\n\n    return pipeline();\n  }\n}\n\n// Behaviors\nclass LoggingBehavior implements PipelineBehavior {\n  async handle<T>(request: unknown, next: () => Promise<T>): Promise<T> {\n    const start = Date.now();\n    logger.info('Handling request', { request });\n    \n    try {\n      const result = await next();\n      logger.info('Request completed', { duration: Date.now() - start });\n      return result;\n    } catch (error) {\n      logger.error('Request failed', { error });\n      throw error;\n    }\n  }\n}\n\nclass ValidationBehavior implements PipelineBehavior {\n  async handle<T>(request: any, next: () => Promise<T>): Promise<T> {\n    if (request.validate) {\n      const errors = await request.validate();\n      if (errors.length > 0) {\n        throw new ValidationError(errors);\n      }\n    }\n    return next();\n  }\n}\n\n// Usage\nconst mediator = new Mediator();\nmediator.addBehavior(new LoggingBehavior());\nmediator.addBehavior(new ValidationBehavior());\n\nmediator.register('CreateOrder', createOrderHandler.execute.bind(createOrderHandler));\nmediator.register('GetOrderDetails', getOrderDetailsHandler.execute.bind(getOrderDetailsHandler));\n\n// In API route\napp.post('/orders', async (req, res) => {\n  const orderId = await mediator.send({\n    type: 'CreateOrder',\n    ...req.body\n  });\n  res.status(201).json({ id: orderId });\n});\n\napp.get('/orders/:id', async (req, res) => {\n  const order = await mediator.send({\n    type: 'GetOrderDetails',\n    orderId: req.params.id\n  });\n  res.json(order);\n});"
+      },
+      "technologies": ["Custom", "MediatR (C#)", "NestJS CQRS"],
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "cqrs-004",
+      "name": "Read Model Synchronization",
+      "description": "Strategies for keeping read models in sync with write models",
+      "applicable_when": [
+        "eventual consistency acceptable",
+        "need fresh read data",
+        "multiple read stores",
+        "async processing required"
+      ],
+      "approach": [
+        "Choose sync strategy based on requirements",
+        "Implement idempotent projectors",
+        "Handle out-of-order events",
+        "Add monitoring for sync lag"
+      ],
+      "code_examples": {
+        "sync_strategies": "// src/sync/strategies.ts\n\n// Strategy 1: Synchronous (Same Transaction)\nasync function syncUpdate(command: CreateOrderCommand): Promise<Order> {\n  return prisma.$transaction(async (tx) => {\n    // Write model\n    const order = await tx.order.create({ data: command });\n    \n    // Read model (same transaction)\n    await tx.orderReadModel.create({\n      data: {\n        id: order.id,\n        customerName: await getCustomerName(order.customerId),\n        total: order.total,\n        status: order.status\n      }\n    });\n    \n    return order;\n  });\n}\n\n// Strategy 2: Async via Events\nclass AsyncProjector {\n  @Subscribe('OrderCreated')\n  async onOrderCreated(event: OrderCreatedEvent): Promise<void> {\n    await this.readDb.upsert({\n      where: { id: event.data.id },\n      create: this.mapToReadModel(event.data),\n      update: this.mapToReadModel(event.data)\n    });\n  }\n}\n\n// Strategy 3: Change Data Capture (Debezium)\n// Listen to database changes and sync to read store\n\n// Monitoring sync lag\nexport class SyncLagMonitor {\n  async checkLag(): Promise<number> {\n    const writeCount = await writeDb.order.count();\n    const readCount = await readDb.orderReadModel.count();\n    \n    const lag = writeCount - readCount;\n    \n    if (lag > 100) {\n      metrics.syncLagHigh.inc();\n      alerting.warn('Read model sync lag is high', { lag });\n    }\n    \n    return lag;\n  }\n}"
+      },
+      "technologies": ["Debezium", "Kafka Connect", "Custom polling"],
+      "success_count": 0,
+      "last_used": null
+    }
+  ]
+}

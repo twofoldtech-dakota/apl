@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orchestrator-to-infrastructure.schema.json",
+  "title": "Orchestrator to Infrastructure Agent Contract",
+  "description": "Contract for delegating infrastructure-as-code tasks",
+  "type": "object",
+  "required": ["action", "context"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": ["generate", "validate", "plan", "update", "destroy_plan"],
+      "description": "The infrastructure action to perform"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "goal": {
+          "type": "string",
+          "description": "Original goal for context"
+        },
+        "current_phase": {
+          "type": "string",
+          "enum": ["plan", "execute", "review"]
+        },
+        "project_path": {
+          "type": "string"
+        }
+      },
+      "required": ["goal"]
+    },
+    "infrastructure": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": ["aws", "gcp", "azure", "digitalocean", "local"],
+          "description": "Cloud provider"
+        },
+        "tool": {
+          "type": "string",
+          "enum": ["terraform", "pulumi", "cloudformation", "kubernetes", "docker-compose"],
+          "default": "terraform"
+        },
+        "environment": {
+          "type": "string",
+          "enum": ["development", "staging", "production"],
+          "default": "development"
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["vpc", "database", "compute", "storage", "cdn", "dns", "cache", "queue", "container_cluster"]
+              },
+              "name": { "type": "string" },
+              "config": { "type": "object" }
+            }
+          }
+        },
+        "modules": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Terraform/Pulumi modules to use"
+        }
+      },
+      "required": ["provider"]
+    },
+    "kubernetes": {
+      "type": "object",
+      "description": "Kubernetes-specific configuration",
+      "properties": {
+        "namespace": { "type": "string" },
+        "replicas": { "type": "integer", "minimum": 1 },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": { "type": "string" },
+                "memory": { "type": "string" }
+              }
+            },
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": { "type": "string" },
+                "memory": { "type": "string" }
+              }
+            }
+          }
+        },
+        "ingress": { "type": "boolean" },
+        "service_type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer"]
+        }
+      }
+    },
+    "docker": {
+      "type": "object",
+      "properties": {
+        "base_image": { "type": "string" },
+        "multi_stage": { "type": "boolean", "default": true },
+        "compose": { "type": "boolean", "default": false }
+      }
+    }
+  }
+}

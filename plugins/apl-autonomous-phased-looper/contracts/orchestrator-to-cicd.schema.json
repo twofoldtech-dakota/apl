@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orchestrator-to-cicd.schema.json",
+  "title": "Orchestrator to CI/CD Agent Contract",
+  "description": "Contract for delegating CI/CD pipeline tasks",
+  "type": "object",
+  "required": ["action", "context"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": ["generate", "update", "validate", "optimize"],
+      "description": "The CI/CD action to perform"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "goal": {
+          "type": "string",
+          "description": "Original goal for context"
+        },
+        "current_phase": {
+          "type": "string",
+          "enum": ["plan", "execute", "review"]
+        },
+        "project_path": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string",
+          "enum": ["typescript", "javascript", "python", "go", "rust", "java"]
+        },
+        "package_manager": {
+          "type": "string",
+          "enum": ["npm", "yarn", "pnpm", "pip", "poetry", "cargo", "go"]
+        }
+      },
+      "required": ["goal"]
+    },
+    "pipeline_config": {
+      "type": "object",
+      "properties": {
+        "platform": {
+          "type": "string",
+          "enum": ["github-actions", "gitlab-ci", "circleci", "jenkins", "azure-pipelines", "bitbucket"],
+          "default": "github-actions"
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["build", "lint", "test", "security", "package", "deploy"]
+          },
+          "default": ["build", "lint", "test", "security", "package", "deploy"]
+        },
+        "environments": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["development", "staging", "production"]
+          },
+          "default": ["staging", "production"]
+        },
+        "triggers": {
+          "type": "object",
+          "properties": {
+            "push_branches": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["main", "develop"]
+            },
+            "pull_request": { "type": "boolean", "default": true },
+            "schedule": { "type": "string" },
+            "manual": { "type": "boolean", "default": false }
+          }
+        }
+      }
+    },
+    "features": {
+      "type": "object",
+      "properties": {
+        "caching": {
+          "type": "boolean",
+          "default": true
+        },
+        "parallelization": {
+          "type": "boolean",
+          "default": true
+        },
+        "matrix_builds": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "node_versions": { "type": "array", "items": { "type": "string" } },
+            "os": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "security_scanning": {
+          "type": "boolean",
+          "default": true
+        },
+        "dependency_caching": {
+          "type": "boolean",
+          "default": true
+        },
+        "artifact_upload": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "deployment": {
+      "type": "object",
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": ["rolling", "canary", "blue-green", "recreate"],
+          "default": "rolling"
+        },
+        "target": {
+          "type": "string",
+          "enum": ["kubernetes", "vercel", "aws-ecs", "aws-lambda", "gcp-cloud-run", "docker"]
+        },
+        "approval_required": {
+          "type": "boolean",
+          "default": true,
+          "description": "Require manual approval for production"
+        },
+        "smoke_tests": {
+          "type": "boolean",
+          "default": true
+        },
+        "rollback_on_failure": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "notifications": {
+      "type": "object",
+      "properties": {
+        "slack": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "on_success": { "type": "boolean" },
+            "on_failure": { "type": "boolean", "default": true }
+          }
+        },
+        "email": { "type": "boolean" }
+      }
+    }
+  }
+}

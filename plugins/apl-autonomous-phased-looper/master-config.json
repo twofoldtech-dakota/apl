@@ -149,6 +149,72 @@
       "tools": ["Read", "Glob", "Grep", "Bash"],
       "role": "deployment",
       "description": "Vercel deployment through MCP integration"
+    },
+    "architecture": {
+      "file": "agents/architecture-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep"],
+      "role": "enterprise",
+      "category": "governance",
+      "description": "Architecture Decision Records and governance"
+    },
+    "infrastructure": {
+      "file": "agents/infrastructure-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Bash"],
+      "role": "enterprise",
+      "category": "devops",
+      "description": "Infrastructure-as-Code generation (Terraform, K8s, Docker)"
+    },
+    "security": {
+      "file": "agents/security-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Bash"],
+      "role": "enterprise",
+      "category": "security",
+      "auto_fix": true,
+      "description": "Security scanning, SAST, SCA, and vulnerability remediation"
+    },
+    "observability": {
+      "file": "agents/observability-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Bash"],
+      "role": "enterprise",
+      "category": "devops",
+      "auto_fix": true,
+      "description": "Monitoring, logging, tracing, and alerting setup"
+    },
+    "api_evolution": {
+      "file": "agents/api-evolution-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Bash"],
+      "role": "enterprise",
+      "category": "integration",
+      "description": "API versioning, contracts, and backward compatibility"
+    },
+    "cicd": {
+      "file": "agents/cicd-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Bash"],
+      "role": "enterprise",
+      "category": "devops",
+      "auto_fix": true,
+      "description": "CI/CD pipeline generation (GitHub Actions, GitLab CI)"
+    },
+    "database_migration": {
+      "file": "agents/database-migration-agent.md",
+      "enabled": true,
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Bash"],
+      "role": "enterprise",
+      "category": "data",
+      "description": "Database schema migrations and evolution"
     }
   },
 
@@ -196,6 +262,38 @@
       "action": "scripts/validate-code.sh",
       "timeout_seconds": 30,
       "fail_on_error": true
+    },
+    "pre_test": {
+      "enabled": true,
+      "trigger": "PreTest",
+      "action": "scripts/pre-test-setup.sh",
+      "timeout_seconds": 60,
+      "fail_on_error": false,
+      "description": "Setup test environment (database, mocks, fixtures)"
+    },
+    "post_test": {
+      "enabled": true,
+      "trigger": "PostTest",
+      "action": "scripts/post-test-coverage.sh",
+      "timeout_seconds": 30,
+      "fail_on_error": true,
+      "description": "Enforce coverage gates and generate reports"
+    },
+    "on_test_failure": {
+      "enabled": true,
+      "trigger": "TestFailure",
+      "action": "scripts/analyze-test-failure.sh",
+      "timeout_seconds": 30,
+      "fail_on_error": false,
+      "description": "Analyze failures and suggest fixes"
+    },
+    "pre_task_complete": {
+      "enabled": true,
+      "trigger": "PreTaskComplete",
+      "action": "scripts/verify-tests-pass.sh",
+      "timeout_seconds": 120,
+      "fail_on_error": true,
+      "description": "Ensure all tests pass before marking task complete"
     },
     "on_session_end": {
       "enabled": true,
@@ -249,6 +347,38 @@
       "python": "ruff check .",
       "go": "golangci-lint run",
       "rust": "cargo clippy"
+    },
+    "coverage_gates": {
+      "enabled": true,
+      "min_statements": 80,
+      "min_branches": 75,
+      "min_functions": 80,
+      "min_lines": 80,
+      "block_on_decrease": true,
+      "coverage_commands": {
+        "default": "npm test -- --coverage --coverageReporters=json-summary",
+        "python": "pytest --cov --cov-report=json",
+        "go": "go test -coverprofile=coverage.out ./...",
+        "rust": "cargo tarpaulin --out Json"
+      }
+    },
+    "test_enforcement": {
+      "require_tests_for_new_code": true,
+      "require_tests_pass_before_task_complete": true,
+      "run_regression_tests": true,
+      "max_test_retries_for_flaky": 3,
+      "fail_fast": false,
+      "test_timeout_seconds": 300,
+      "parallel_test_execution": true
+    },
+    "test_generation": {
+      "auto_suggest_missing_tests": true,
+      "generate_tests_for_untested_functions": true,
+      "test_patterns": {
+        "unit": "**/*.test.{ts,js,tsx,jsx}",
+        "integration": "**/*.integration.test.{ts,js}",
+        "e2e": "**/*.e2e.test.{ts,js}"
+      }
     }
   },
 
@@ -278,10 +408,54 @@
       "database",
       "testing",
       "react",
-      "content"
+      "content",
+      "enterprise/microservices",
+      "enterprise/event-driven",
+      "enterprise/cqrs"
     ],
     "auto_suggest": true,
     "min_confidence_to_apply": 0.7
+  },
+
+  "enterprise_agents": {
+    "enabled": true,
+    "invoke_strategy": "goal_based",
+    "triggers": {
+      "architecture": {
+        "keywords": ["architecture", "design decision", "ADR", "tech stack", "pattern choice"],
+        "on_phases": ["plan"]
+      },
+      "infrastructure": {
+        "keywords": ["terraform", "kubernetes", "docker", "infrastructure", "cloud", "deploy", "k8s", "aws", "gcp", "azure"],
+        "on_phases": ["plan", "execute"]
+      },
+      "security": {
+        "keywords": ["security", "vulnerability", "audit", "penetration", "OWASP", "CVE", "authentication", "authorization"],
+        "on_phases": ["review"],
+        "auto_run": true
+      },
+      "observability": {
+        "keywords": ["monitoring", "logging", "tracing", "metrics", "alerting", "prometheus", "grafana", "datadog"],
+        "on_phases": ["execute"]
+      },
+      "api_evolution": {
+        "keywords": ["API", "versioning", "contract", "OpenAPI", "swagger", "breaking change", "deprecation"],
+        "on_phases": ["plan", "review"]
+      },
+      "cicd": {
+        "keywords": ["CI/CD", "pipeline", "github actions", "gitlab", "jenkins", "deployment", "continuous"],
+        "on_phases": ["execute"]
+      },
+      "database_migration": {
+        "keywords": ["migration", "schema", "database", "alter table", "prisma", "drizzle", "flyway"],
+        "on_phases": ["execute"]
+      }
+    },
+    "quality_gates": {
+      "security_scan_required": true,
+      "min_security_score": 80,
+      "block_on_critical_vulnerabilities": true
+    }
   },
 
   "content_strategy": {
@@ -365,7 +539,9 @@
       "DROP DATABASE",
       "format"
     ],
-    "require_tests_before_commit": false
+    "require_tests_before_commit": true,
+    "require_tests_pass_for_task_completion": true,
+    "block_on_test_regression": true
   },
 
   "domains": {
@@ -390,6 +566,23 @@
       "default_pause_on_failure": true,
       "graceful_stop_file": ".meta/STOP",
       "state_file": ".meta/continuous-state.json"
+    },
+    "multi_repository": {
+      "enabled": true,
+      "workspace_root": null,
+      "repositories": [],
+      "cross_repo_tasks": true,
+      "shared_state_path": ".meta/shared/",
+      "dependency_graph": true,
+      "parallel_repo_execution": true,
+      "max_concurrent_repos": 3
+    },
+    "enterprise_workflow": {
+      "require_adr_for_new_patterns": true,
+      "security_scan_before_merge": true,
+      "auto_generate_migration": true,
+      "enforce_api_versioning": true,
+      "generate_observability": true
     }
   },
 

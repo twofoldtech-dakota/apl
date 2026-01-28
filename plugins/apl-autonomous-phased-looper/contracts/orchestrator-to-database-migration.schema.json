@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orchestrator-to-database-migration.schema.json",
+  "title": "Orchestrator to Database Migration Agent Contract",
+  "description": "Contract for delegating database migration tasks",
+  "type": "object",
+  "required": ["action", "context"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": ["generate", "validate", "plan", "apply", "rollback", "backfill"],
+      "description": "The migration action to perform"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "goal": {
+          "type": "string",
+          "description": "Original goal for context"
+        },
+        "current_phase": {
+          "type": "string",
+          "enum": ["plan", "execute", "review"]
+        },
+        "project_path": {
+          "type": "string"
+        }
+      },
+      "required": ["goal"]
+    },
+    "migration_config": {
+      "type": "object",
+      "properties": {
+        "tool": {
+          "type": "string",
+          "enum": ["prisma", "drizzle", "typeorm", "knex", "alembic", "flyway", "golang-migrate", "atlas"],
+          "default": "prisma"
+        },
+        "database": {
+          "type": "string",
+          "enum": ["postgresql", "mysql", "sqlite", "mongodb", "cockroachdb"],
+          "default": "postgresql"
+        },
+        "environment": {
+          "type": "string",
+          "enum": ["development", "staging", "production"],
+          "default": "development"
+        }
+      }
+    },
+    "schema_change": {
+      "type": "object",
+      "description": "Details of schema change for generate action",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["add_table", "drop_table", "add_column", "drop_column", "rename_column", "modify_column", "add_index", "drop_index", "add_constraint", "drop_constraint"]
+        },
+        "table": {
+          "type": "string",
+          "description": "Target table name"
+        },
+        "column": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "new_name": { "type": "string" },
+            "type": { "type": "string" },
+            "nullable": { "type": "boolean" },
+            "default": { "type": "string" },
+            "unique": { "type": "boolean" },
+            "references": {
+              "type": "object",
+              "properties": {
+                "table": { "type": "string" },
+                "column": { "type": "string" }
+              }
+            }
+          }
+        },
+        "index": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "columns": { "type": "array", "items": { "type": "string" } },
+            "unique": { "type": "boolean" },
+            "concurrent": { "type": "boolean", "default": true }
+          }
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "properties": {
+        "require_backup": {
+          "type": "boolean",
+          "default": true
+        },
+        "dry_run": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate migration without applying"
+        },
+        "zero_downtime": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ensure migration doesn't lock tables"
+        },
+        "reversible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ensure rollback is possible"
+        },
+        "estimated_duration": {
+          "type": "string",
+          "description": "Expected migration duration"
+        }
+      }
+    },
+    "backfill": {
+      "type": "object",
+      "description": "Configuration for data backfill",
+      "properties": {
+        "table": { "type": "string" },
+        "column": { "type": "string" },
+        "batch_size": { "type": "integer", "default": 1000 },
+        "condition": { "type": "string" },
+        "value_expression": { "type": "string" }
+      }
+    },
+    "rollback_config": {
+      "type": "object",
+      "properties": {
+        "migration_id": {
+          "type": "string",
+          "description": "Migration to rollback to"
+        },
+        "steps": {
+          "type": "integer",
+          "default": 1
+        }
+      }
+    }
+  }
+}

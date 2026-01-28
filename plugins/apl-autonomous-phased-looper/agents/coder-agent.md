@@ -157,6 +157,119 @@ OBSERVATION:
    - Password stored as hash, never plaintext ✓
 ```
 
+## Test Execution (MANDATORY)
+
+**CRITICAL: All code changes MUST be verified with tests. This is not optional.**
+
+### When Writing Implementation Code
+
+After writing any implementation file, you MUST:
+
+1. **Check for existing tests**:
+   ```bash
+   # Look for related test files
+   Glob("**/*.test.{ts,js,tsx,jsx}")
+   Glob("**/*.spec.{ts,js,tsx,jsx}")
+   ```
+
+2. **Run relevant tests**:
+   ```bash
+   # Run tests related to changed files
+   npm test -- --testPathPattern="User" --passWithNoTests
+   ```
+
+3. **Report test status in output**:
+   ```json
+   {
+     "tests_run": true,
+     "test_results": {
+       "total": 5,
+       "passed": 5,
+       "failed": 0,
+       "skipped": 0
+     }
+   }
+   ```
+
+### When Writing Test Files
+
+After creating or modifying a test file, you MUST:
+
+1. **Run the new test immediately**:
+   ```bash
+   # Verify the test you just wrote actually passes
+   npm test -- --testPathPattern="User.test"
+   ```
+
+2. **Verify test is not trivially passing**:
+   - Test should actually exercise the code
+   - Test should have meaningful assertions
+   - Test should fail if code is broken
+
+3. **Example of complete test verification**:
+   ```
+   AFTER WRITING: src/models/__tests__/User.test.ts
+
+   VERIFY STEP 1: Run the test
+   > npm test -- --testPathPattern="User.test"
+   > Result: PASS (3 tests passed)
+
+   VERIFY STEP 2: Check coverage
+   > npm test -- --coverage --testPathPattern="User.test"
+   > User.ts: 95% statement coverage ✓
+
+   VERIFY STEP 3: Confirm tests are meaningful
+   > Tests include: creation, password hashing, password verification
+   > All assertions check actual behavior, not just "expect(true).toBe(true)"
+   ```
+
+### Test Execution Rules
+
+| Scenario | Required Action |
+|----------|-----------------|
+| Created new implementation file | Run existing tests + check for uncovered code |
+| Modified existing implementation | Run targeted tests + full regression |
+| Created new test file | Run new test + verify it passes |
+| Modified test file | Run modified test + verify assertions work |
+| Fixed a bug | Run test that covers the bug + regression |
+
+### Blocking Conditions
+
+**Do NOT mark task as complete if:**
+- [ ] Tests have not been run
+- [ ] Any test is failing
+- [ ] New code has no test coverage
+- [ ] Test file was created but not executed
+
+### Test Failure Handling
+
+If tests fail after your changes:
+
+1. **Analyze the failure**:
+   ```
+   ERROR: User.test.ts
+   Expected: "hashed_password"
+   Received: undefined
+   ```
+
+2. **Diagnose root cause**:
+   - Is it a test bug or implementation bug?
+   - Did I break existing functionality?
+
+3. **Fix and re-run**:
+   - Fix the issue
+   - Run tests again
+   - Verify all pass
+
+4. **Report in output**:
+   ```json
+   {
+     "test_failures_encountered": true,
+     "failures_fixed": true,
+     "fix_description": "Missing return statement in hashPassword()"
+   }
+   ```
+
 ## Success Criteria Verification
 
 After implementation, verify each criterion:
@@ -280,6 +393,25 @@ Return structured result to orchestrator:
       "result": "success"
     }
   ],
+  "test_execution": {
+    "tests_run": true,
+    "test_command": "npm test -- --testPathPattern=User",
+    "results": {
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "duration_ms": 1250
+    },
+    "coverage": {
+      "statements": 95,
+      "branches": 88,
+      "functions": 100,
+      "lines": 94
+    },
+    "regressions": [],
+    "new_failures": []
+  },
   "criteria_verification": [
     {
       "criterion": "User model has email, passwordHash, timestamps",
@@ -289,7 +421,8 @@ Return structured result to orchestrator:
   ],
   "observations": [
     "Used existing model patterns from Account.ts",
-    "Added bcrypt dependency"
+    "Added bcrypt dependency",
+    "All tests passing with 95% coverage"
   ],
   "error": null,
   "suggested_learning": {
