@@ -1,0 +1,188 @@
+{
+  "category": "testing",
+  "description": "Test-Driven Development and testing automation patterns",
+  "patterns": [
+    {
+      "id": "test-001",
+      "name": "TDD Red-Green-Refactor",
+      "description": "Write failing test first, then implement code to pass, then refactor",
+      "applicable_when": [
+        "new feature development",
+        "implementing business logic",
+        "creating new functions",
+        "adding new endpoints"
+      ],
+      "approach": [
+        "1. RED: Write a failing test that defines expected behavior",
+        "2. GREEN: Write minimal code to make the test pass",
+        "3. REFACTOR: Improve code quality while keeping tests green",
+        "4. REPEAT: Add more test cases for edge cases"
+      ],
+      "code_examples": {
+        "red_phase": "// Step 1: Write failing test first\ndescribe('calculateDiscount', () => {\n  it('should apply 10% discount for orders over $100', () => {\n    const result = calculateDiscount(150);\n    expect(result).toBe(135); // Fails - function doesn't exist yet\n  });\n});",
+        "green_phase": "// Step 2: Minimal implementation to pass\nexport function calculateDiscount(amount: number): number {\n  if (amount > 100) {\n    return amount * 0.9;\n  }\n  return amount;\n}",
+        "refactor_phase": "// Step 3: Refactor for clarity\nconst DISCOUNT_THRESHOLD = 100;\nconst DISCOUNT_RATE = 0.1;\n\nexport function calculateDiscount(amount: number): number {\n  if (amount > DISCOUNT_THRESHOLD) {\n    return amount * (1 - DISCOUNT_RATE);\n  }\n  return amount;\n}"
+      },
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "test-002",
+      "name": "Unit Test Structure (AAA)",
+      "description": "Arrange-Act-Assert pattern for clear, readable unit tests",
+      "applicable_when": [
+        "writing unit tests",
+        "testing pure functions",
+        "testing class methods",
+        "testing utilities"
+      ],
+      "approach": [
+        "ARRANGE: Set up test data and dependencies",
+        "ACT: Execute the function/method under test",
+        "ASSERT: Verify the results match expectations"
+      ],
+      "code_examples": {
+        "typescript": "describe('UserService', () => {\n  describe('createUser', () => {\n    it('should create user with hashed password', async () => {\n      // ARRANGE\n      const userService = new UserService(mockRepo);\n      const userData = {\n        email: 'test@example.com',\n        password: 'securePassword123'\n      };\n\n      // ACT\n      const user = await userService.createUser(userData);\n\n      // ASSERT\n      expect(user.email).toBe(userData.email);\n      expect(user.passwordHash).not.toBe(userData.password);\n      expect(user.passwordHash).toMatch(/^\\$2[ab]\\$/);\n    });\n  });\n});",
+        "jest_with_mocks": "describe('OrderService', () => {\n  let orderService: OrderService;\n  let mockPaymentGateway: jest.Mocked<PaymentGateway>;\n  let mockInventory: jest.Mocked<InventoryService>;\n\n  beforeEach(() => {\n    // ARRANGE: Setup mocks\n    mockPaymentGateway = {\n      charge: jest.fn(),\n      refund: jest.fn()\n    };\n    mockInventory = {\n      reserve: jest.fn(),\n      release: jest.fn()\n    };\n    orderService = new OrderService(mockPaymentGateway, mockInventory);\n  });\n\n  it('should process order with payment and inventory', async () => {\n    // ARRANGE\n    mockInventory.reserve.mockResolvedValue({ success: true });\n    mockPaymentGateway.charge.mockResolvedValue({ transactionId: 'tx123' });\n\n    const order = { items: [{ id: '1', qty: 2 }], total: 50 };\n\n    // ACT\n    const result = await orderService.processOrder(order);\n\n    // ASSERT\n    expect(mockInventory.reserve).toHaveBeenCalledWith(order.items);\n    expect(mockPaymentGateway.charge).toHaveBeenCalledWith(50);\n    expect(result.status).toBe('completed');\n  });\n});"
+      },
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "test-003",
+      "name": "Integration Test with Database",
+      "description": "Testing database operations with real database using transactions",
+      "applicable_when": [
+        "testing repository methods",
+        "testing database queries",
+        "testing data integrity",
+        "testing migrations"
+      ],
+      "approach": [
+        "Use test database or in-memory database",
+        "Wrap each test in a transaction and rollback",
+        "Seed necessary test data",
+        "Clean up after tests"
+      ],
+      "code_examples": {
+        "prisma": "import { PrismaClient } from '@prisma/client';\n\ndescribe('UserRepository Integration', () => {\n  let prisma: PrismaClient;\n\n  beforeAll(async () => {\n    prisma = new PrismaClient();\n    await prisma.$connect();\n  });\n\n  afterAll(async () => {\n    await prisma.$disconnect();\n  });\n\n  beforeEach(async () => {\n    // Clean slate for each test\n    await prisma.user.deleteMany();\n  });\n\n  it('should create and retrieve user', async () => {\n    // ACT: Create user\n    const created = await prisma.user.create({\n      data: {\n        email: 'test@example.com',\n        name: 'Test User'\n      }\n    });\n\n    // ACT: Retrieve user\n    const found = await prisma.user.findUnique({\n      where: { id: created.id }\n    });\n\n    // ASSERT\n    expect(found).not.toBeNull();\n    expect(found?.email).toBe('test@example.com');\n  });\n\n  it('should enforce unique email constraint', async () => {\n    // ARRANGE\n    await prisma.user.create({\n      data: { email: 'dupe@example.com', name: 'First' }\n    });\n\n    // ACT & ASSERT\n    await expect(\n      prisma.user.create({\n        data: { email: 'dupe@example.com', name: 'Second' }\n      })\n    ).rejects.toThrow();\n  });\n});",
+        "transaction_rollback": "describe('TransactionTest', () => {\n  it('should rollback on failure', async () => {\n    await prisma.$transaction(async (tx) => {\n      // Create records in transaction\n      await tx.order.create({ data: orderData });\n      await tx.payment.create({ data: paymentData });\n      \n      // Force rollback by throwing\n      throw new Error('Rollback test');\n    }).catch(() => {});\n\n    // Verify nothing was committed\n    const orders = await prisma.order.count();\n    expect(orders).toBe(0);\n  });\n});"
+      },
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "test-004",
+      "name": "API Endpoint Testing",
+      "description": "End-to-end testing of REST API endpoints",
+      "applicable_when": [
+        "testing API routes",
+        "testing authentication",
+        "testing request validation",
+        "testing response formats"
+      ],
+      "approach": [
+        "Use supertest for HTTP request simulation",
+        "Test happy path and error cases",
+        "Verify status codes, headers, and body",
+        "Test authentication and authorization"
+      ],
+      "code_examples": {
+        "supertest": "import request from 'supertest';\nimport { app } from '../src/app';\n\ndescribe('POST /api/users', () => {\n  it('should create user with valid data', async () => {\n    const response = await request(app)\n      .post('/api/users')\n      .send({\n        email: 'new@example.com',\n        password: 'SecurePass123!',\n        name: 'New User'\n      })\n      .expect(201);\n\n    expect(response.body).toHaveProperty('id');\n    expect(response.body.email).toBe('new@example.com');\n    expect(response.body).not.toHaveProperty('password');\n  });\n\n  it('should reject invalid email', async () => {\n    const response = await request(app)\n      .post('/api/users')\n      .send({\n        email: 'not-an-email',\n        password: 'SecurePass123!'\n      })\n      .expect(400);\n\n    expect(response.body.error).toContain('email');\n  });\n\n  it('should require authentication for protected routes', async () => {\n    await request(app)\n      .get('/api/users/me')\n      .expect(401);\n  });\n\n  it('should accept valid JWT token', async () => {\n    const token = generateTestToken({ userId: '123' });\n    \n    await request(app)\n      .get('/api/users/me')\n      .set('Authorization', `Bearer ${token}`)\n      .expect(200);\n  });\n});"
+      },
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "test-005",
+      "name": "Mock External Dependencies",
+      "description": "Isolate tests by mocking external services and APIs",
+      "applicable_when": [
+        "testing code with external API calls",
+        "testing payment integrations",
+        "testing email services",
+        "testing third-party SDKs"
+      ],
+      "approach": [
+        "Use jest.mock() or similar for module mocking",
+        "Create mock implementations that return controlled data",
+        "Test both success and failure scenarios",
+        "Verify mock was called with correct arguments"
+      ],
+      "code_examples": {
+        "jest_mock": "// Mock the entire module\njest.mock('../services/stripe', () => ({\n  createPaymentIntent: jest.fn(),\n  confirmPayment: jest.fn()\n}));\n\nimport { createPaymentIntent } from '../services/stripe';\nimport { PaymentService } from '../services/PaymentService';\n\nconst mockCreatePaymentIntent = createPaymentIntent as jest.MockedFunction<typeof createPaymentIntent>;\n\ndescribe('PaymentService', () => {\n  beforeEach(() => {\n    jest.clearAllMocks();\n  });\n\n  it('should create payment intent for valid amount', async () => {\n    // ARRANGE\n    mockCreatePaymentIntent.mockResolvedValue({\n      id: 'pi_123',\n      clientSecret: 'secret_123',\n      status: 'requires_confirmation'\n    });\n\n    const service = new PaymentService();\n\n    // ACT\n    const result = await service.initiatePayment(5000, 'usd');\n\n    // ASSERT\n    expect(mockCreatePaymentIntent).toHaveBeenCalledWith({\n      amount: 5000,\n      currency: 'usd'\n    });\n    expect(result.clientSecret).toBe('secret_123');\n  });\n\n  it('should handle Stripe errors gracefully', async () => {\n    // ARRANGE\n    mockCreatePaymentIntent.mockRejectedValue(\n      new Error('Card declined')\n    );\n\n    const service = new PaymentService();\n\n    // ACT & ASSERT\n    await expect(service.initiatePayment(5000, 'usd'))\n      .rejects.toThrow('Payment failed: Card declined');\n  });\n});",
+        "spy_on_method": "describe('EmailService', () => {\n  it('should send welcome email on user creation', async () => {\n    const sendEmailSpy = jest.spyOn(emailService, 'send')\n      .mockResolvedValue({ messageId: 'msg_123' });\n\n    await userService.createUser({ email: 'new@example.com' });\n\n    expect(sendEmailSpy).toHaveBeenCalledWith({\n      to: 'new@example.com',\n      template: 'welcome',\n      data: expect.objectContaining({ email: 'new@example.com' })\n    });\n\n    sendEmailSpy.mockRestore();\n  });\n});"
+      },
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "test-006",
+      "name": "Snapshot Testing",
+      "description": "Capture and compare output snapshots for regression detection",
+      "applicable_when": [
+        "testing UI components",
+        "testing serialized output",
+        "testing configuration generation",
+        "testing report formats"
+      ],
+      "approach": [
+        "Generate snapshot on first run",
+        "Compare against snapshot on subsequent runs",
+        "Update snapshots intentionally when output should change",
+        "Review snapshot changes in code review"
+      ],
+      "code_examples": {
+        "react_component": "import { render } from '@testing-library/react';\nimport { UserCard } from './UserCard';\n\ndescribe('UserCard', () => {\n  it('should match snapshot', () => {\n    const { container } = render(\n      <UserCard\n        user={{\n          name: 'John Doe',\n          email: 'john@example.com',\n          avatar: '/avatars/john.png'\n        }}\n      />\n    );\n\n    expect(container).toMatchSnapshot();\n  });\n\n  it('should match snapshot for loading state', () => {\n    const { container } = render(<UserCard loading />);\n    expect(container).toMatchSnapshot();\n  });\n});",
+        "json_output": "describe('ConfigGenerator', () => {\n  it('should generate correct nginx config', () => {\n    const config = generateNginxConfig({\n      domain: 'example.com',\n      upstream: 'localhost:3000',\n      ssl: true\n    });\n\n    expect(config).toMatchSnapshot();\n  });\n});"
+      },
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "test-007",
+      "name": "Property-Based Testing",
+      "description": "Generate random inputs to test properties that should always hold",
+      "applicable_when": [
+        "testing pure functions",
+        "testing mathematical operations",
+        "testing serialization/deserialization",
+        "testing invariants"
+      ],
+      "approach": [
+        "Define properties that should always be true",
+        "Generate random inputs using fast-check or similar",
+        "Run tests with many different inputs",
+        "Shrink failing cases to minimal example"
+      ],
+      "code_examples": {
+        "fast_check": "import * as fc from 'fast-check';\n\ndescribe('encode/decode symmetry', () => {\n  it('should decode what was encoded', () => {\n    fc.assert(\n      fc.property(fc.string(), (original) => {\n        const encoded = encode(original);\n        const decoded = decode(encoded);\n        return decoded === original;\n      })\n    );\n  });\n});\n\ndescribe('sort function', () => {\n  it('should produce sorted output', () => {\n    fc.assert(\n      fc.property(fc.array(fc.integer()), (arr) => {\n        const sorted = mySort(arr);\n        for (let i = 1; i < sorted.length; i++) {\n          if (sorted[i] < sorted[i-1]) return false;\n        }\n        return true;\n      })\n    );\n  });\n\n  it('should preserve all elements', () => {\n    fc.assert(\n      fc.property(fc.array(fc.integer()), (arr) => {\n        const sorted = mySort(arr);\n        return sorted.length === arr.length &&\n          arr.every(x => sorted.includes(x));\n      })\n    );\n  });\n});"
+      },
+      "success_count": 0,
+      "last_used": null
+    },
+    {
+      "id": "test-008",
+      "name": "Test Coverage Enforcement",
+      "description": "Ensure adequate test coverage with automated checks",
+      "applicable_when": [
+        "enforcing quality standards",
+        "CI/CD pipelines",
+        "code review automation",
+        "preventing coverage regression"
+      ],
+      "approach": [
+        "Configure coverage thresholds in jest.config.js",
+        "Run coverage as part of CI pipeline",
+        "Block merges if coverage drops",
+        "Generate coverage reports for review"
+      ],
+      "code_examples": {
+        "jest_config": "// jest.config.js\nmodule.exports = {\n  collectCoverage: true,\n  collectCoverageFrom: [\n    'src/**/*.{ts,tsx}',\n    '!src/**/*.d.ts',\n    '!src/**/*.test.{ts,tsx}',\n    '!src/**/index.{ts,tsx}'\n  ],\n  coverageThreshold: {\n    global: {\n      branches: 80,\n      functions: 80,\n      lines: 80,\n      statements: 80\n    },\n    './src/services/': {\n      branches: 90,\n      functions: 90\n    }\n  },\n  coverageReporters: ['text', 'lcov', 'html', 'json-summary']\n};",
+        "ci_script": "#!/bin/bash\n# scripts/check-coverage.sh\n\nnpm test -- --coverage --coverageReporters=json-summary\n\n# Read coverage from JSON\nCOVERAGE=$(jq '.total.lines.pct' coverage/coverage-summary.json)\n\nif (( $(echo \"$COVERAGE < 80\" | bc -l) )); then\n  echo \"Coverage $COVERAGE% is below 80% threshold\"\n  exit 1\nfi\n\necho \"Coverage: $COVERAGE% - PASSED\""
+      },
+      "success_count": 0,
+      "last_used": null
+    }
+  ]
+}

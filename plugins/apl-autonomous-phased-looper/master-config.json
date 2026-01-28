@@ -263,6 +263,38 @@
       "timeout_seconds": 30,
       "fail_on_error": true
     },
+    "pre_test": {
+      "enabled": true,
+      "trigger": "PreTest",
+      "action": "scripts/pre-test-setup.sh",
+      "timeout_seconds": 60,
+      "fail_on_error": false,
+      "description": "Setup test environment (database, mocks, fixtures)"
+    },
+    "post_test": {
+      "enabled": true,
+      "trigger": "PostTest",
+      "action": "scripts/post-test-coverage.sh",
+      "timeout_seconds": 30,
+      "fail_on_error": true,
+      "description": "Enforce coverage gates and generate reports"
+    },
+    "on_test_failure": {
+      "enabled": true,
+      "trigger": "TestFailure",
+      "action": "scripts/analyze-test-failure.sh",
+      "timeout_seconds": 30,
+      "fail_on_error": false,
+      "description": "Analyze failures and suggest fixes"
+    },
+    "pre_task_complete": {
+      "enabled": true,
+      "trigger": "PreTaskComplete",
+      "action": "scripts/verify-tests-pass.sh",
+      "timeout_seconds": 120,
+      "fail_on_error": true,
+      "description": "Ensure all tests pass before marking task complete"
+    },
     "on_session_end": {
       "enabled": true,
       "trigger": "Stop",
@@ -315,6 +347,38 @@
       "python": "ruff check .",
       "go": "golangci-lint run",
       "rust": "cargo clippy"
+    },
+    "coverage_gates": {
+      "enabled": true,
+      "min_statements": 80,
+      "min_branches": 75,
+      "min_functions": 80,
+      "min_lines": 80,
+      "block_on_decrease": true,
+      "coverage_commands": {
+        "default": "npm test -- --coverage --coverageReporters=json-summary",
+        "python": "pytest --cov --cov-report=json",
+        "go": "go test -coverprofile=coverage.out ./...",
+        "rust": "cargo tarpaulin --out Json"
+      }
+    },
+    "test_enforcement": {
+      "require_tests_for_new_code": true,
+      "require_tests_pass_before_task_complete": true,
+      "run_regression_tests": true,
+      "max_test_retries_for_flaky": 3,
+      "fail_fast": false,
+      "test_timeout_seconds": 300,
+      "parallel_test_execution": true
+    },
+    "test_generation": {
+      "auto_suggest_missing_tests": true,
+      "generate_tests_for_untested_functions": true,
+      "test_patterns": {
+        "unit": "**/*.test.{ts,js,tsx,jsx}",
+        "integration": "**/*.integration.test.{ts,js}",
+        "e2e": "**/*.e2e.test.{ts,js}"
+      }
     }
   },
 
@@ -475,7 +539,9 @@
       "DROP DATABASE",
       "format"
     ],
-    "require_tests_before_commit": false
+    "require_tests_before_commit": true,
+    "require_tests_pass_for_task_completion": true,
+    "block_on_test_regression": true
   },
 
   "domains": {
