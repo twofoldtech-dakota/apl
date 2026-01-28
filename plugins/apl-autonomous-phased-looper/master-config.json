@@ -76,14 +76,6 @@
       "role": "learning",
       "description": "Knowledge extraction and pattern persistence"
     },
-    "meta_orchestrator": {
-      "file": "agents/meta-orchestrator.md",
-      "enabled": true,
-      "model": "sonnet",
-      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Task", "TodoWrite"],
-      "role": "enterprise",
-      "description": "Epic/Feature/Story hierarchy for large projects"
-    },
     "requirements_analyst": {
       "file": "agents/requirements-analyst.md",
       "enabled": true,
@@ -552,31 +544,20 @@
     "questions_path": "templates/domain-questions/"
   },
 
-  "meta_orchestrator": {
-    "continuous_mode": {
+  "structured_mode": {
+    "autopilot": {
       "enabled": true,
       "default_confidence_threshold": "low",
       "default_checkpoint_interval": 5,
       "default_pause_on_failure": true,
-      "graceful_stop_file": ".meta/STOP",
-      "state_file": ".meta/continuous-state.json"
-    },
-    "multi_repository": {
-      "enabled": true,
-      "workspace_root": null,
-      "repositories": [],
-      "cross_repo_tasks": true,
-      "shared_state_path": ".meta/shared/",
-      "dependency_graph": true,
-      "parallel_repo_execution": true,
-      "max_concurrent_repos": 3
+      "graceful_stop_file": ".apl/STOP",
+      "state_file": ".apl/autopilot-state.json"
     },
     "enterprise_workflow": {
       "require_adr_for_new_patterns": true,
       "security_scan_before_merge": true,
       "auto_generate_migration": true,
-      "enforce_api_versioning": true,
-      "generate_observability": true
+      "enforce_api_versioning": true
     }
   },
 

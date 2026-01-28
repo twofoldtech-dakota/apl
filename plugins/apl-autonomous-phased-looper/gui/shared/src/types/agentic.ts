@@ -11,7 +11,6 @@ export type AgentId =
   | 'tester-agent'
   | 'reviewer-agent'
   | 'learner-agent'
-  | 'meta-orchestrator'
   | 'requirements-analyst'
   | 'horizontal-coordinator'
   | 'content-strategy-agent'

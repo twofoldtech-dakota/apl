@@ -13,7 +13,8 @@ APL uses a multi-agent architecture where specialized agents communicate through
 
 ```
                     ┌─────────────────────────────────────────┐
-                    │           APL Orchestrator              │
+                    │      Unified APL Orchestrator           │
+                    │   (Auto-detects direct/structured mode) │
                     └─────────────────────────────────────────┘
                            │              │              │
             ┌──────────────┼──────────────┼──────────────┼──────────────┐
@@ -22,13 +23,13 @@ APL uses a multi-agent architecture where specialized agents communicate through
        ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐
        │ Planner │   │  Coder  │   │ Tester  │   │Reviewer │   │ Learner │
        └─────────┘   └─────────┘   └─────────┘   └─────────┘   └─────────┘
-                                        │
-                           ┌────────────┴────────────┐
-                           ▼                         ▼
-                  ┌─────────────────┐        ┌───────────┐
-                  │   Horizontal    │        │ Deployer  │
-                  │  Coordinator    │        │ (Vercel)  │
-                  └─────────────────┘        └───────────┘
+                           │
+            ┌──────────────┼──────────────┐
+            ▼              ▼              ▼
+     ┌───────────┐  ┌───────────┐  ┌───────────┐
+     │Requirements│ │ Horizontal│  │ Deployer  │
+     │  Analyst  │  │Coordinator│  │ (Vercel)  │
+     └───────────┘  └───────────┘  └───────────┘
                            │
          ┌─────────┬───────┼───────┬─────────┐
          ▼         ▼       ▼       ▼         ▼
