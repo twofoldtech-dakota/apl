@@ -2,6 +2,7 @@
 import { Router, type Request, type Response } from 'express';
 import { aplService } from '../services/aplService.js';
 import { config, updateProjectRoot } from '../config.js';
+import { websocketServer, broadcaster } from '../websocket/index.js';
 
 export const controlRouter = Router();
 
@@ -79,7 +80,19 @@ controlRouter.post('/project', (req: Request, res: Response) => {
       return;
     }
 
+    const previousProjectRoot = config.projectRoot;
     updateProjectRoot(projectRoot);
+
+    // Restart watchers to monitor the new project directory
+    websocketServer.restartWatchers();
+
+    // Broadcast project change event so clients can reset their state
+    broadcaster.emit('project:changed', {
+      previousProjectRoot,
+      newProjectRoot: config.projectRoot,
+      aplDir: config.aplDir,
+      metaDir: config.metaDir,
+    });
 
     res.json({
       message: 'Project root updated',

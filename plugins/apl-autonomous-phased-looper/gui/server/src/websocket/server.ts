@@ -1,7 +1,6 @@
 // WebSocket Server
 import { WebSocketServer as WSServer, WebSocket } from 'ws';
 import type { Server } from 'http';
-import { v4 as uuidv4 } from 'crypto';
 import { broadcaster } from './broadcaster.js';
 import { createWatchers, type WatcherManager } from '../watchers/index.js';
 import { aplService } from '../services/aplService.js';
@@ -169,7 +168,25 @@ export class WebSocketServer {
     }
   }
 
+  /**
+   * Restart watchers with updated config paths.
+   * Call this after updateProjectRoot() to ensure watchers monitor the new project.
+   */
+  restartWatchers(): void {
+    console.log('[WebSocketServer] Restarting watchers for updated project paths');
+
+    if (this.watchers) {
+      this.watchers.stop();
+      this.watchers = null;
+    }
+
+    this.startWatchers();
+  }
+
   getClientCount(): number {
     return broadcaster.getClientCount();
   }
 }
+
+// Export singleton instance for access from routes
+export const websocketServer = new WebSocketServer();

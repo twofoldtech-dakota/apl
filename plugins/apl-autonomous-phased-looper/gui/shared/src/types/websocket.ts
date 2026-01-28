@@ -22,6 +22,7 @@ export type WebSocketMessageType =
   | 'apl:stopped'
   | 'apl:output'
   | 'apl:error'
+  | 'project:changed'
   | 'error';
 
 export interface BaseWebSocketMessage {
@@ -168,6 +169,16 @@ export interface ErrorMessage extends BaseWebSocketMessage {
   };
 }
 
+export interface ProjectChangedMessage extends BaseWebSocketMessage {
+  type: 'project:changed';
+  payload: {
+    previousProjectRoot: string;
+    newProjectRoot: string;
+    aplDir: string;
+    metaDir: string;
+  };
+}
+
 export type WebSocketMessage =
   | ConnectionEstablishedMessage
   | ConnectionErrorMessage
@@ -186,6 +197,7 @@ export type WebSocketMessage =
   | AplStoppedMessage
   | AplOutputMessage
   | AplErrorMessage
+  | ProjectChangedMessage
   | ErrorMessage;
 
 // Client -> Server messages

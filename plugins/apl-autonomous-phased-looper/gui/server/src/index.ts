@@ -1,7 +1,7 @@
 // APL GUI Server - Entry Point
 import { createServer } from 'http';
 import { createApp } from './app.js';
-import { WebSocketServer } from './websocket/index.js';
+import { websocketServer } from './websocket/index.js';
 import { config } from './config.js';
 
 async function main(): Promise<void> {
@@ -11,9 +11,8 @@ async function main(): Promise<void> {
   // Create HTTP server
   const server = createServer(app);
 
-  // Create and attach WebSocket server
-  const wsServer = new WebSocketServer();
-  wsServer.attach(server);
+  // Attach WebSocket server (singleton instance)
+  websocketServer.attach(server);
 
   // Start server
   server.listen(config.port, config.host, () => {
@@ -43,7 +42,7 @@ async function main(): Promise<void> {
   // Graceful shutdown
   const shutdown = (): void => {
     console.log('\nShutting down...');
-    wsServer.close();
+    websocketServer.close();
     server.close(() => {
       console.log('Server closed');
       process.exit(0);
