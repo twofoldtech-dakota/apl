@@ -24,6 +24,23 @@ You are the APL Orchestrator - the central coordinator for autonomous coding wor
 On receiving a goal, first initialize:
 
 ```
+0. CHECK_EXISTING_SESSION(goal, force_fresh)
+   - Check if .apl/state.json exists
+   - If force_fresh flag (--fresh) is set:
+     • Clear existing state
+     • Report: "[APL] Fresh start requested - clearing previous session"
+   - If no existing state:
+     • Report: "[APL] Starting new session"
+   - If existing state found:
+     • Load and compare goals
+     • If goals match (same intent):
+       - Report resuming with progress summary (see output format below)
+       - Return existing state to continue from
+     • If goals differ:
+       - Report: "[APL] Different session detected"
+       - Report previous goal vs new goal
+       - Start fresh with new goal
+
 1. LOAD_MASTER_CONFIG()
    - Read master-config.json from plugin root
    - This single file contains ALL configuration:
@@ -44,11 +61,13 @@ On receiving a goal, first initialize:
    - Extract relevant patterns for this goal type
    - Note anti-patterns to avoid
 
-3. INITIALIZE_STATE()
-   - Create fresh state object
-   - Set phase to config.workflow.default_entry_phase ("plan")
-   - Reset iteration counter
-   - Apply config.execution settings
+3. INITIALIZE_OR_RESUME_STATE()
+   - If resuming (from step 0): Use existing state, continue from current phase
+   - If fresh start:
+     • Create new state with session_id and started_at timestamp
+     • Set phase to config.workflow.default_entry_phase ("plan")
+     • Reset iteration counter
+     • Apply config.execution settings
 
 4. DETECT_ENTERPRISE_HANDOFF()
    - Check if goal contains meta-orchestrator handoff JSON
@@ -59,6 +78,36 @@ On receiving a goal, first initialize:
      • context.cross_cutting → constraints for planner
      • success_criteria → pre-defined criteria for tasks
    - This allows seamless delegation from meta-orchestrator
+```
+
+### Session Resume/Fresh Output Format
+
+When resuming a session, display:
+
+```
+[APL] Resuming previous session
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Goal: <existing goal>
+Phase: <PLAN|EXECUTE|REVIEW>
+Progress: <X>/<Y> tasks completed
+Iteration: <N>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Continuing from where we left off...
+(Use /apl --fresh <goal> to start over)
+```
+
+When starting fresh due to different goal:
+
+```
+[APL] Different session detected
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Previous goal: <old goal>
+New goal: <new goal>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Starting fresh with the new goal.
+(Previous state will be overwritten)
 ```
 
 ### Enterprise Handoff Format

@@ -27,6 +27,9 @@ export function useWebSocket() {
     updateToolInvocation,
     setTokenUsage,
     addToTokenHistory,
+    // Reset actions
+    resetState,
+    fetchInitialState,
   } = useAplStore();
 
   const handleMessage = useCallback(
@@ -184,6 +187,20 @@ export function useWebSocket() {
             });
             break;
 
+          case 'project:changed':
+            // Reset all state when project changes to avoid stale data confusion
+            console.log('[WebSocket] Project changed, resetting state:', message.payload);
+            resetState();
+            // Fetch fresh state for the new project
+            fetchInitialState();
+            addActivityEvent({
+              timestamp: message.timestamp,
+              type: 'info',
+              message: `Project changed to: ${message.payload.newProjectRoot}`,
+              details: message.payload,
+            });
+            break;
+
           default:
             console.log('Unknown WebSocket message:', message);
         }
@@ -209,6 +226,8 @@ export function useWebSocket() {
       updateToolInvocation,
       setTokenUsage,
       addToTokenHistory,
+      resetState,
+      fetchInitialState,
     ]
   );
 

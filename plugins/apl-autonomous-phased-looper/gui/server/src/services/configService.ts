@@ -109,12 +109,12 @@ export class ConfigService {
     return writeJsonFile(config.masterConfigPath, masterConfig);
   }
 
-  private deepMerge<T extends Record<string, unknown>>(target: T, source: Partial<T>): T {
-    const result = { ...target };
+  private deepMerge<T extends object>(target: T, source: Partial<T>): T {
+    const result = { ...target } as Record<string, unknown>;
 
     for (const key in source) {
       if (Object.prototype.hasOwnProperty.call(source, key)) {
-        const sourceValue = source[key];
+        const sourceValue = source[key as keyof T];
         const targetValue = result[key];
 
         if (
@@ -128,14 +128,14 @@ export class ConfigService {
           result[key] = this.deepMerge(
             targetValue as Record<string, unknown>,
             sourceValue as Record<string, unknown>
-          ) as T[Extract<keyof T, string>];
+          );
         } else {
-          result[key] = sourceValue as T[Extract<keyof T, string>];
+          result[key] = sourceValue;
         }
       }
     }
 
-    return result;
+    return result as T;
   }
 }
 

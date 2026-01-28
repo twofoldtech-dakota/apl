@@ -15,7 +15,7 @@ export async function readJsonFile<T>(filePath: string): Promise<T | null> {
   }
 }
 
-export async function writeJsonFile<T>(filePath: string, data: T): Promise<boolean> {
+export async function writeJsonFile<T extends object>(filePath: string, data: T): Promise<boolean> {
   try {
     // Ensure directory exists
     await fs.ensureDir(path.dirname(filePath));
@@ -27,7 +27,7 @@ export async function writeJsonFile<T>(filePath: string, data: T): Promise<boole
     }
 
     // Write the file
-    await fs.writeJson(filePath, data, { spaces: 2 });
+    await fs.writeJson(filePath, data as Record<string, unknown>, { spaces: 2 });
     return true;
   } catch (error) {
     console.error(`Error writing JSON file ${filePath}:`, error);

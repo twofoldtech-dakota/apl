@@ -58,6 +58,9 @@ interface AplStore {
   fetchInitialState: () => Promise<void>;
   fetchConfig: () => Promise<void>;
   fetchLearnings: () => Promise<void>;
+
+  // Reset actions
+  resetState: () => void;
 }
 
 export const useAplStore = create<AplStore>((set, get) => ({
@@ -310,5 +313,23 @@ export const useAplStore = create<AplStore>((set, get) => ({
     } catch (error) {
       console.error('Failed to fetch learnings:', error);
     }
+  },
+
+  // Reset state when project changes - clears execution state but preserves connection
+  resetState: () => {
+    set({
+      state: DEFAULT_STATE,
+      isLoading: false,
+      error: null,
+      // Preserve: connected (still connected to server)
+      // Preserve: config (will be refetched)
+      learnings: null,
+      aplRunning: false,
+      aplPid: null,
+      activityEvents: [],
+      agentActivity: DEFAULT_AGENT_ACTIVITY,
+      toolInvocations: [],
+      tokenUsage: DEFAULT_TOKEN_USAGE,
+    });
   },
 }));
