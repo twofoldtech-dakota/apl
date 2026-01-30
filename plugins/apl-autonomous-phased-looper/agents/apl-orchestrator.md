@@ -90,7 +90,7 @@ For simple goals. Single-session Plan → Execute → Review.
 
 ### Phase: PLAN
 
-Delegate to `planner-agent`:
+**Step 1:** Delegate to `planner-agent` via Task tool:
 ```json
 {
   "goal": "<goal>",
@@ -99,11 +99,28 @@ Delegate to `planner-agent`:
 }
 ```
 
-**Auto-generate artifacts:**
-1. Write `.apl/plan.md` — Human-readable plan with task checkboxes
-2. Write `.apl/state.json` — Internal state for resumption
+**Step 2:** CRITICAL — Capture planner output and write files:
 
-**Immediately proceed to EXECUTE** — No user action required between planning and execution.
+The planner-agent returns TWO outputs in its response:
+1. A **markdown plan** (between `--- PLAN START ---` and `--- PLAN END ---` markers)
+2. A **JSON state object** (between `--- STATE START ---` and `--- STATE END ---` markers)
+
+You MUST:
+1. **Extract the markdown plan** from the planner's response
+2. **Write it to `.apl/plan.md`** using the Write tool
+3. **Extract the JSON state** from the planner's response
+4. **Write it to `.apl/state.json`** using the Write tool
+
+Example orchestrator actions after planner returns:
+```
+1. Parse planner response for markdown between markers
+2. Write to .apl/plan.md (creates file if not exists)
+3. Parse planner response for JSON between markers
+4. Write to .apl/state.json
+5. Confirm: "Plan written to .apl/plan.md"
+```
+
+**Step 3:** Immediately proceed to EXECUTE — No user action required.
 
 ### Phase: EXECUTE
 
@@ -155,9 +172,20 @@ Break goal into hierarchy:
 **Feature** → User-facing functionality (1-8 stories)
 **Story** → Single APL session task (1-3 hours work)
 
-**Auto-generate artifacts:**
-1. Write `.apl/plan.md` — Human-readable plan with Epic/Feature/Story checkboxes
-2. Write `.apl/state.json` — Internal state (NOT user-edited)
+**Step 1:** Delegate to `planner-agent` via Task tool with structured mode context.
+
+**Step 2:** CRITICAL — Capture planner output and write files:
+
+The planner-agent returns TWO outputs in its response:
+1. A **markdown plan** (between `--- PLAN START ---` and `--- PLAN END ---` markers)
+2. A **JSON state object** (between `--- STATE START ---` and `--- STATE END ---` markers)
+
+You MUST:
+1. **Extract the markdown plan** from the planner's response
+2. **Write it to `.apl/plan.md`** using the Write tool
+3. **Extract the JSON state** from the planner's response
+4. **Write it to `.apl/state.json`** using the Write tool
+5. **Confirm**: Display "✓ Plan written to .apl/plan.md" to user
 
 The plan.md serves as the single source of truth. Example:
 

@@ -414,9 +414,21 @@ def enrich_content_tasks(tasks, config):
 
 ## Output Format
 
+**CRITICAL:** Your response MUST include clearly marked sections that the orchestrator will extract and write to files.
+
 ### Primary Output: Markdown Plan (`.apl/plan.md`)
 
 Generate a human-readable plan that serves as the source of truth. This file is auto-generated, not user-edited.
+
+**You MUST wrap the markdown plan with these exact markers:**
+
+```
+--- PLAN START ---
+<your complete markdown plan here>
+--- PLAN END ---
+```
+
+The markdown plan format:
 
 ```markdown
 # Project Plan: <Goal Summary>
@@ -520,7 +532,17 @@ For **Direct Mode** (simple tasks), use a simplified format:
 
 ### Secondary Output: JSON State (`.apl/state.json`)
 
-Also return structured JSON for machine processing (internal use only):
+Also return structured JSON for machine processing (internal use only).
+
+**You MUST wrap the JSON state with these exact markers:**
+
+```
+--- STATE START ---
+<your complete JSON state here>
+--- STATE END ---
+```
+
+The JSON state format:
 
 ```json
 {
@@ -616,6 +638,35 @@ Before returning the plan, verify:
 - [ ] UI tasks have `delegate_to: designer-agent` if design-before-code is enabled
 - [ ] Deploy tasks have `delegate_to: deployer-agent`
 - [ ] Design tasks precede their dependent code tasks when design-before-code is enabled
+
+## CRITICAL: Output Structure
+
+Your response MUST follow this exact structure:
+
+```
+[Any reasoning or analysis text here]
+
+--- PLAN START ---
+# Project Plan: <title>
+[Complete markdown plan with checkboxes]
+--- PLAN END ---
+
+--- STATE START ---
+{
+  "goal_analysis": {...},
+  "tasks": [...],
+  ...
+}
+--- STATE END ---
+```
+
+The orchestrator will:
+1. Extract content between `--- PLAN START ---` and `--- PLAN END ---`
+2. Write it to `.apl/plan.md`
+3. Extract content between `--- STATE START ---` and `--- STATE END ---`
+4. Write it to `.apl/state.json`
+
+**If you omit the markers, the plan will NOT be written to files.**
 
 ## Edge Cases
 
